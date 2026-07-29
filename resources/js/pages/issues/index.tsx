@@ -1,16 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import {
-    AlertCircle,
-    AlertTriangle,
-    CheckCircle2,
-    Clock,
     Eye,
-    Filter,
     Plus,
     RefreshCw,
     Search,
-    ShieldAlert,
     Trash2,
 } from 'lucide-react';
 
@@ -18,7 +12,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import {
@@ -91,7 +85,6 @@ interface IssuesIndexProps {
 
 export default function IssuesIndexPage({
     issues,
-    metrics,
     filters,
     deployedProjects,
 }: IssuesIndexProps) {
@@ -127,7 +120,7 @@ export default function IssuesIndexPage({
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus issue ini?')) {
+        if (confirm('Apakah Anda yakin ingin menghapus data kendala ini?')) {
             router.delete(`/issues/${id}`);
         }
     };
@@ -160,7 +153,7 @@ export default function IssuesIndexPage({
 
     return (
         <>
-            <Head title="Manajemen Issue (Kendala)" />
+            <Head title="Pencatatan Kendala (Issues)" />
             <SidebarProvider
                 style={
                     {
@@ -171,7 +164,7 @@ export default function IssuesIndexPage({
             >
                 <AppSidebar variant="inset" />
                 <SidebarInset>
-                    <SiteHeader title="Kendala System (Issues)" />
+                    <SiteHeader title="Kendala Sistem (Issues)" />
                     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                         {/* Header & Title */}
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -180,64 +173,15 @@ export default function IssuesIndexPage({
                                     Pencatatan Kendala (Issues)
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
-                                    Kelola kendala sistem berstatus *deployed* dan lacak pencapaian SLA (OKR 2).
+                                    Pencatatan dan pemantauan kendala teknis pada sistem yang telah rilis di produksi serta pelacakan target SLA.
                                 </p>
                             </div>
                             <Button asChild className="gap-2">
                                 <Link href="/issues/create">
                                     <Plus className="h-4 w-4" />
-                                    Tambah Issue
+                                    Tambah Kendala Baru
                                 </Link>
                             </Button>
-                        </div>
-
-                        {/* Metric Cards */}
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total Issue</CardTitle>
-                                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{metrics.total}</div>
-                                    <p className="text-xs text-muted-foreground">Tercatat di sistem</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Issue Open</CardTitle>
-                                    <Clock className="h-4 w-4 text-amber-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-amber-600">{metrics.open}</div>
-                                    <p className="text-xs text-muted-foreground">Sedang ditangani</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Overdue (Terlewat SLA)</CardTitle>
-                                    <ShieldAlert className="h-4 w-4 text-red-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-red-600">{metrics.overdue}</div>
-                                    <p className="text-xs text-muted-foreground">Melewati due date</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Capain SLA (OKR 2)</CardTitle>
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-emerald-600">
-                                        {metrics.on_time_percentage}%
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">Penyelesaian tepat waktu</p>
-                                </CardContent>
-                            </Card>
                         </div>
 
                         {/* Search & Filters Bar */}
@@ -250,7 +194,7 @@ export default function IssuesIndexPage({
                                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 type="search"
-                                                placeholder="Cari judul / deskripsi issue..."
+                                                placeholder="Cari judul atau deskripsi kendala..."
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
                                                 className="pl-9"
@@ -271,11 +215,11 @@ export default function IssuesIndexPage({
                                             }}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Filter System" />
+                                                <SelectValue placeholder="Pilih Sistem / Project" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="all">Semua System / Project</SelectItem>
-                                                <SelectItem value="unattached">Umum / Infrastruktur (Tanpa System)</SelectItem>
+                                                <SelectItem value="all">Semua Sistem / Project</SelectItem>
+                                                <SelectItem value="unattached">Umum / Infrastruktur (Tanpa Sistem)</SelectItem>
                                                 {deployedProjects.map((proj) => (
                                                     <SelectItem key={proj.id} value={proj.id.toString()}>
                                                         {proj.name}
@@ -295,7 +239,7 @@ export default function IssuesIndexPage({
                                             }}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Prioritas" />
+                                                <SelectValue placeholder="Prioritas SLA" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">Semua Prioritas</SelectItem>
@@ -316,7 +260,7 @@ export default function IssuesIndexPage({
                                             }}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Status" />
+                                                <SelectValue placeholder="Status Kendala" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">Semua Status</SelectItem>
@@ -347,12 +291,11 @@ export default function IssuesIndexPage({
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead className="w-12">#</TableHead>
-                                            <TableHead>Judul Issue & System</TableHead>
-                                            <TableHead>Prioritas</TableHead>
-                                            <TableHead>Root Cause</TableHead>
+                                            <TableHead>Judul Kendala & Sistem</TableHead>
+                                            <TableHead>Prioritas SLA</TableHead>
+                                            <TableHead>Kategori Penyebab</TableHead>
                                             <TableHead>Waktu Lapor</TableHead>
-                                            <TableHead>Tenggat (Due Date)</TableHead>
+                                            <TableHead>Tenggat Waktu (Due Date)</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead className="text-right">Aksi</TableHead>
                                         </TableRow>
@@ -360,21 +303,18 @@ export default function IssuesIndexPage({
                                     <TableBody>
                                         {issues.data.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
-                                                    Belum ada data issue yang tercatat.
+                                                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                                                    Belum ada data kendala yang tercatat.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            issues.data.map((issue, idx) => {
+                                            issues.data.map((issue) => {
                                                 const isOverdue =
                                                     issue.status === 'open' &&
                                                     new Date(issue.due_date) < new Date(new Date().setHours(0, 0, 0, 0));
 
                                                 return (
                                                     <TableRow key={issue.id}>
-                                                        <TableCell className="font-medium text-muted-foreground">
-                                                            {(issues.current_page - 1) * issues.per_page + idx + 1}
-                                                        </TableCell>
                                                         <TableCell>
                                                             <div className="flex flex-col">
                                                                 <Link

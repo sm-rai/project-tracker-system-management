@@ -123,7 +123,7 @@ export default function IssueCreatePage({
                                             </SelectContent>
                                         </Select>
                                         <p className="text-xs text-muted-foreground">
-                                            *Hanya menampilkan project yang sudah di-deploy (Running / Maintenance).
+                                            *Hanya menampilkan sistem yang telah berjalan di produksi (Running / Maintenance).
                                         </p>
                                         {errors.project_id && (
                                             <p className="text-xs text-red-500">{errors.project_id}</p>
