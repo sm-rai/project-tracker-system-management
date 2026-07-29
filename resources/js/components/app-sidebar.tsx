@@ -108,7 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 <SidebarMenuButton
                                     asChild
                                     isActive={url.startsWith('/issues')}
-                                    tooltip="Kendala (Issues)"
+                                    tooltip="Daftar Issue"
                                     className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
                                 >
                                     <Link
@@ -116,7 +116,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         className="flex items-center gap-2.5"
                                     >
                                         <IconAlertTriangle className="size-4" />
-                                        <span>Kendala (Issues)</span>
+                                        <span>Daftar Issue</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

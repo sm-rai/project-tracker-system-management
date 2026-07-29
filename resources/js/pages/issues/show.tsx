@@ -271,7 +271,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                         <div className="grid gap-6 md:grid-cols-3">
                             <Card className="md:col-span-2">
                                 <CardHeader>
-                                    <CardTitle>Deskripsi Kendala</CardTitle>
+                                    <CardTitle>Deskripsi Issue</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="rounded-md bg-muted/50 p-4 text-sm leading-relaxed whitespace-pre-wrap">
@@ -293,16 +293,16 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
 
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Metadeta SLA & Timeline</CardTitle>
+                                    <CardTitle>Detail & Timeline</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4 text-sm">
                                     <div className="flex justify-between items-center py-1 border-b">
-                                        <span className="text-muted-foreground">Prioritas SLA</span>
+                                        <span className="text-muted-foreground">Prioritas</span>
                                         {getPriorityBadge(issue.priority)}
                                     </div>
 
                                     <div className="flex justify-between items-center py-1 border-b">
-                                        <span className="text-muted-foreground">Root Cause</span>
+                                        <span className="text-muted-foreground">Penyebab</span>
                                         <span className="font-medium">
                                             {getRootCauseLabel(issue.root_cause_category)}
                                         </span>
@@ -322,7 +322,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     </div>
 
                                     <div className="flex justify-between items-center py-1 border-b">
-                                        <span className="text-muted-foreground">Tenggat (Due Date)</span>
+                                        <span className="text-muted-foreground">Batas Waktu</span>
                                         <span className="font-semibold text-xs text-amber-600 dark:text-amber-400">
                                             {new Date(issue.due_date).toLocaleDateString('id-ID', {
                                                 day: 'numeric',

@@ -154,7 +154,7 @@ export default function IssuesIndexPage({
 
     return (
         <>
-            <Head title="Pencatatan Issue System" />
+            <Head title="Daftar Issue System" />
             <SidebarProvider
                 style={
                     {
@@ -165,22 +165,22 @@ export default function IssuesIndexPage({
             >
                 <AppSidebar variant="inset" />
                 <SidebarInset>
-                    <SiteHeader title="Manajemen Issue" />
+                    <SiteHeader title="Daftar Issue" />
                     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
                         {/* Header & Title */}
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h1 className="text-2xl font-bold tracking-tight">
-                                    Pencatatan Issue
+                                    Daftar Issue System
                                 </h1>
                                 <p className="text-sm text-muted-foreground mt-0.5">
-                                    Kelola dan pantau daftar issue teknis pada sistem yang telah berjalan di produksi.
+                                    Kelola dan pantau seluruh laporan issue teknis pada sistem operasional.
                                 </p>
                             </div>
                             <Button asChild className="gap-2 shrink-0">
                                 <Link href="/issues/create">
                                     <Plus className="h-4 w-4" />
-                                    Tambah Issue Baru
+                                    Catat Issue
                                 </Link>
                             </Button>
                         </div>
@@ -216,11 +216,11 @@ export default function IssuesIndexPage({
                                             }}
                                         >
                                             <SelectTrigger className="h-9 text-sm">
-                                                <SelectValue placeholder="Semua Sistem / Project" />
+                                                <SelectValue placeholder="Semua Sistem" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="all">Semua Sistem / Project</SelectItem>
-                                                <SelectItem value="unattached">Umum / Infrastruktur</SelectItem>
+                                                <SelectItem value="all">Semua Sistem</SelectItem>
+                                                <SelectItem value="unattached">Infrastruktur / Umum</SelectItem>
                                                 {deployedProjects.map((proj) => (
                                                     <SelectItem key={proj.id} value={proj.id.toString()}>
                                                         {proj.name}
@@ -291,11 +291,11 @@ export default function IssuesIndexPage({
                                 <Table>
                                     <TableHeader className="bg-muted/40">
                                         <TableRow>
-                                            <TableHead className="font-semibold">Judul Issue & Sistem</TableHead>
+                                            <TableHead className="font-semibold">Issue & Sistem</TableHead>
                                             <TableHead className="font-semibold">Prioritas</TableHead>
-                                            <TableHead className="font-semibold">Kategori Penyebab</TableHead>
+                                            <TableHead className="font-semibold">Penyebab</TableHead>
                                             <TableHead className="font-semibold">Waktu Lapor</TableHead>
-                                            <TableHead className="font-semibold">Tenggat Waktu</TableHead>
+                                            <TableHead className="font-semibold">Batas Waktu</TableHead>
                                             <TableHead className="font-semibold">Status</TableHead>
                                             <TableHead className="text-right font-semibold">Aksi</TableHead>
                                         </TableRow>
@@ -306,9 +306,9 @@ export default function IssuesIndexPage({
                                                 <TableCell colSpan={7} className="h-40 text-center">
                                                     <div className="flex flex-col items-center justify-center text-muted-foreground gap-1.5 py-4">
                                                         <CheckCircle2 className="h-8 w-8 text-muted-foreground/50 stroke-[1.5]" />
-                                                        <span className="text-sm font-medium">Belum ada data issue yang tercatat.</span>
+                                                        <span className="text-sm font-medium">Belum ada issue yang tercatat.</span>
                                                         <span className="text-xs text-muted-foreground/70">
-                                                            Klik &ldquo;Tambah Issue Baru&rdquo; untuk mencatat issue pertama.
+                                                            Klik &ldquo;+ Catat Issue&rdquo; untuk membuat laporan pertama.
                                                         </span>
                                                     </div>
                                                 </TableCell>
@@ -332,7 +332,7 @@ export default function IssuesIndexPage({
                                                                 <span className="text-xs text-muted-foreground">
                                                                     {issue.project
                                                                         ? issue.project.name
-                                                                        : 'Umum / Infrastruktur'}
+                                                                        : 'Infrastruktur / Umum'}
                                                                 </span>
                                                             </div>
                                                         </TableCell>
