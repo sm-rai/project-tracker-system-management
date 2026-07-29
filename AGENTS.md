@@ -6,6 +6,7 @@
 - **Project Context (Laravel Boost)**: Always use Laravel Boost tools (`search-docs`, `database-schema`, `database-query`, `application-info`, `browser-logs`, `read-log-entries`, etc.) to understand this application's context (package versions, database structure, errors, etc.) before making changes.
 - **External Context (Context7)**: If you need documentation or references for a library/framework not covered by Laravel Boost (`search-docs`), use Context7 (`resolve-library-id` + `query-docs`) to get up-to-date, version-specific documentation.
 - **Frontend Design**: For all frontend design work (styling, layout, UI components, UX review, etc.), always activate and use the `impeccable` skill.
+- **UI Components**: All UI components generated or written for this project must use `shadcn/ui` (built on Radix UI + Tailwind CSS). Always check `resources/js/components/ui` for an existing shadcn/ui component before writing custom markup, and install/generate missing ones via shadcn's CLI convention rather than hand-rolling raw HTML/Radix primitives.
 
 </project-context>
 
@@ -22,6 +23,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 - php - 8.3
 - inertiajs/inertia-laravel (INERTIA_LARAVEL) - v3
+- laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - laravel/wayfinder (WAYFINDER) - v0
