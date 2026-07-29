@@ -76,6 +76,27 @@ test('issue can be created without project_id for general infrastructure issues'
     expect($issue->project_id)->toBeNull();
 });
 
+test('issue validation errors use Indonesian field names and guidance', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->from(route('issues.create'))
+        ->post(route('issues.store'), [
+            'project_id' => null,
+            'priority' => 'normal',
+            'reported_at' => now()->toDateTimeString(),
+        ]);
+
+    $response
+        ->assertRedirect(route('issues.create'))
+        ->assertSessionHasErrors([
+            'title' => 'Ringkasan issue wajib diisi.',
+            'description' => 'Kronologi dan dampak wajib diisi.',
+            'root_cause_category' => 'Dugaan penyebab wajib dipilih.',
+        ]);
+});
+
 test('user can resolve issue and is_on_time is computed accurately', function () {
     $user = User::factory()->create();
     $issue = Issue::factory()->create([

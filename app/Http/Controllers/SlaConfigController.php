@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateSlaConfigRequest;
 use App\Models\SlaConfig;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,14 +31,9 @@ class SlaConfigController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateSlaConfigRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'configs' => 'required|array',
-            'configs.urgent' => 'required|integer|min:1|max:365',
-            'configs.normal' => 'required|integer|min:1|max:365',
-            'configs.low' => 'required|integer|min:1|max:365',
-        ]);
+        $validated = $request->validated();
 
         foreach ($validated['configs'] as $priority => $days) {
             SlaConfig::updateOrCreate(

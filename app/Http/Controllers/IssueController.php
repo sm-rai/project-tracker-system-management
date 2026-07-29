@@ -6,13 +6,13 @@ use App\Enums\IssueStatus;
 use App\Enums\Priority;
 use App\Enums\ProjectStatus;
 use App\Enums\RootCauseCategory;
+use App\Http\Requests\SaveIssueRequest;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\SlaConfig;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -116,24 +116,9 @@ class IssueController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(SaveIssueRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'project_id' => [
-                'nullable',
-                Rule::exists('projects', 'id')->where(function ($query) {
-                    $query->whereIn('status', [
-                        ProjectStatus::DeployedRunning->value,
-                        ProjectStatus::DeployedMaintenance->value,
-                    ]);
-                }),
-            ],
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'priority' => ['required', Rule::enum(Priority::class)],
-            'root_cause_category' => ['required', Rule::enum(RootCauseCategory::class)],
-            'reported_at' => 'required|date',
-        ]);
+        $validated = $request->validated();
 
         $reportedAt = Carbon::parse($validated['reported_at']);
         $priorityEnum = Priority::from($validated['priority']);
@@ -189,24 +174,9 @@ class IssueController extends Controller
         ]);
     }
 
-    public function update(Request $request, Issue $issue): RedirectResponse
+    public function update(SaveIssueRequest $request, Issue $issue): RedirectResponse
     {
-        $validated = $request->validate([
-            'project_id' => [
-                'nullable',
-                Rule::exists('projects', 'id')->where(function ($query) {
-                    $query->whereIn('status', [
-                        ProjectStatus::DeployedRunning->value,
-                        ProjectStatus::DeployedMaintenance->value,
-                    ]);
-                }),
-            ],
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'priority' => ['required', Rule::enum(Priority::class)],
-            'root_cause_category' => ['required', Rule::enum(RootCauseCategory::class)],
-            'reported_at' => 'required|date',
-        ]);
+        $validated = $request->validated();
 
         $reportedAt = Carbon::parse($validated['reported_at']);
         $priorityEnum = Priority::from($validated['priority']);
