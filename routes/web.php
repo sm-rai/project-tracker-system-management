@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BriefFeatureController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SlaConfigController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -9,6 +10,10 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware('auth')->group(function (): void {
     Route::inertia('/dashboard', 'dashboard')->name('dashboard');
+
+    // SLA Configuration
+    Route::get('/settings/sla', [SlaConfigController::class, 'index'])->name('sla.index');
+    Route::put('/settings/sla', [SlaConfigController::class, 'update'])->name('sla.update');
 
     // Projects CRUD
     Route::resource('projects', ProjectController::class);
