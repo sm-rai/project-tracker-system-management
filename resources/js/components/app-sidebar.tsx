@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { IconDashboard, IconFolderCode, IconUsers, IconUserShield } from '@tabler/icons-react';
+import { IconAlertTriangle, IconClock, IconDashboard, IconFolderCode, IconUsers, IconUserShield } from '@tabler/icons-react';
 
 import { NavUser } from '@/components/nav-user';
 import {
@@ -100,6 +100,40 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     >
                                         <IconFolderCode className="size-4" />
                                         <span>Project & Sistem</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    isActive={url.startsWith('/issues')}
+                                    tooltip="Kendala (Issues)"
+                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                >
+                                    <Link
+                                        href="/issues"
+                                        className="flex items-center gap-2.5"
+                                    >
+                                        <IconAlertTriangle className="size-4" />
+                                        <span>Kendala (Issues)</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    isActive={url.startsWith('/settings/sla')}
+                                    tooltip="Pengaturan SLA"
+                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                >
+                                    <Link
+                                        href="/settings/sla"
+                                        className="flex items-center gap-2.5"
+                                    >
+                                        <IconClock className="size-4" />
+                                        <span>Pengaturan SLA</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
