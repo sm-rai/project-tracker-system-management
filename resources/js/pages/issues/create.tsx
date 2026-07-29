@@ -82,17 +82,17 @@ export default function IssueCreatePage({
                             </Button>
                             <div>
                                 <h1 className="text-2xl font-bold tracking-tight">
-                                    Catat Kendala System Baru
+                                    Catat Issue Baru
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
-                                    Isi informasi kendala teknis atau gangguan sistem di bawah ini.
+                                    Isi informasi issue teknis atau gangguan sistem di bawah ini.
                                 </p>
                             </div>
                         </div>
 
                         <Card className="max-w-3xl">
                             <CardHeader>
-                                <CardTitle>Formulir Kendala (Issue)</CardTitle>
+                                <CardTitle>Formulir Tambah Issue</CardTitle>
                                 <CardDescription>
                                     Tenggat waktu (*due date*) akan dihitung secara otomatis berdasarkan prioritas yang dipilih.
                                 </CardDescription>
@@ -132,7 +132,7 @@ export default function IssueCreatePage({
 
                                     {/* Judul Issue */}
                                     <div className="space-y-2">
-                                        <Label htmlFor="title">Judul Kendala / Ringkasan Masalah *</Label>
+                                        <Label htmlFor="title">Judul Issue / Ringkasan Masalah *</Label>
                                         <Input
                                             id="title"
                                             placeholder="Contoh: Error 500 saat simpan data transaksi"

@@ -121,7 +121,7 @@ export default function IssuesIndexPage({
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus data kendala ini?')) {
+        if (confirm('Apakah Anda yakin ingin menghapus data issue ini?')) {
             router.delete(`/issues/${id}`);
         }
     };
@@ -154,7 +154,7 @@ export default function IssuesIndexPage({
 
     return (
         <>
-            <Head title="Pencatatan Kendala System" />
+            <Head title="Pencatatan Issue System" />
             <SidebarProvider
                 style={
                     {
@@ -165,29 +165,29 @@ export default function IssuesIndexPage({
             >
                 <AppSidebar variant="inset" />
                 <SidebarInset>
-                    <SiteHeader title="Kendala Sistem (Issues)" />
-                    <div className="flex flex-1 flex-col gap-5 p-4 md:p-6">
+                    <SiteHeader title="Manajemen Issue" />
+                    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
                         {/* Header & Title */}
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h1 className="text-2xl font-bold tracking-tight">
-                                    Pencatatan Kendala (Issues)
+                                    Pencatatan Issue
                                 </h1>
                                 <p className="text-sm text-muted-foreground mt-0.5">
-                                    Kelola dan pantau daftar kendala teknis pada sistem yang telah berjalan di produksi.
+                                    Kelola dan pantau daftar issue teknis pada sistem yang telah berjalan di produksi.
                                 </p>
                             </div>
                             <Button asChild className="gap-2 shrink-0">
                                 <Link href="/issues/create">
                                     <Plus className="h-4 w-4" />
-                                    Tambah Kendala Baru
+                                    Tambah Issue Baru
                                 </Link>
                             </Button>
                         </div>
 
-                        {/* Search & Filters Bar - Tight Flex Layout */}
+                        {/* Compact Search & Filters Bar */}
                         <Card className="shadow-xs border bg-card">
-                            <CardContent className="p-3 md:p-4">
+                            <CardContent className="px-3.5 py-2.5 md:px-4 md:py-3">
                                 <div className="flex flex-wrap items-center gap-3">
                                     {/* Search Input */}
                                     <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[260px] flex items-center gap-2">
@@ -195,7 +195,7 @@ export default function IssuesIndexPage({
                                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                             <Input
                                                 type="search"
-                                                placeholder="Cari judul atau deskripsi kendala..."
+                                                placeholder="Cari judul atau deskripsi issue..."
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
                                                 className="pl-9 h-9 text-sm"
@@ -271,15 +271,15 @@ export default function IssuesIndexPage({
                                         </Select>
                                     </div>
 
-                                    {/* Reset Filters Button */}
+                                    {/* Animated Reset Filters Button */}
                                     <Button
                                         variant="ghost"
                                         size="icon"
                                         title="Reset Filter"
                                         onClick={() => router.get('/issues')}
-                                        className="h-9 w-9 shrink-0 ml-auto sm:ml-0"
+                                        className="group h-9 w-9 shrink-0 ml-auto sm:ml-0 hover:bg-muted"
                                     >
-                                        <RefreshCw className="h-4 w-4" />
+                                        <RefreshCw className="h-4 w-4 transition-transform duration-500 ease-in-out group-hover:rotate-180 group-active:rotate-360 text-muted-foreground group-hover:text-foreground" />
                                     </Button>
                                 </div>
                             </CardContent>
@@ -291,7 +291,7 @@ export default function IssuesIndexPage({
                                 <Table>
                                     <TableHeader className="bg-muted/40">
                                         <TableRow>
-                                            <TableHead className="font-semibold">Judul Kendala & Sistem</TableHead>
+                                            <TableHead className="font-semibold">Judul Issue & Sistem</TableHead>
                                             <TableHead className="font-semibold">Prioritas</TableHead>
                                             <TableHead className="font-semibold">Kategori Penyebab</TableHead>
                                             <TableHead className="font-semibold">Waktu Lapor</TableHead>
@@ -306,9 +306,9 @@ export default function IssuesIndexPage({
                                                 <TableCell colSpan={7} className="h-40 text-center">
                                                     <div className="flex flex-col items-center justify-center text-muted-foreground gap-1.5 py-4">
                                                         <CheckCircle2 className="h-8 w-8 text-muted-foreground/50 stroke-[1.5]" />
-                                                        <span className="text-sm font-medium">Belum ada data kendala yang tercatat.</span>
+                                                        <span className="text-sm font-medium">Belum ada data issue yang tercatat.</span>
                                                         <span className="text-xs text-muted-foreground/70">
-                                                            Klik &ldquo;Tambah Kendala Baru&rdquo; untuk mencatat kendala pertama.
+                                                            Klik &ldquo;Tambah Issue Baru&rdquo; untuk mencatat issue pertama.
                                                         </span>
                                                     </div>
                                                 </TableCell>

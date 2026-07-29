@@ -99,7 +99,7 @@ export default function IssueEditPage({
                                     Edit Detail Issue #{issue.id}
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
-                                    Perbarui data atau informasi kendala sistem.
+                                    Perbarui data atau informasi issue sistem.
                                 </p>
                             </div>
                         </div>
@@ -143,7 +143,7 @@ export default function IssueEditPage({
 
                                     {/* Judul Issue */}
                                     <div className="space-y-2">
-                                        <Label htmlFor="title">Judul Kendala / Ringkasan Masalah *</Label>
+                                        <Label htmlFor="title">Judul Issue / Ringkasan Masalah *</Label>
                                         <Input
                                             id="title"
                                             value={data.title}
