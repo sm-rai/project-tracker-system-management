@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     CheckCircle2,
+    Clock,
     Eye,
     Plus,
     RefreshCw,
@@ -139,19 +140,6 @@ export default function IssuesIndexPage({
         }
     };
 
-    const getRootCauseLabel = (category: string) => {
-        switch (category) {
-            case 'system_error':
-                return 'System Error';
-            case 'non_system':
-                return 'Non-System';
-            case 'other':
-                return 'Lainnya';
-            default:
-                return category;
-        }
-    };
-
     return (
         <>
             <Head title="Daftar Issue System" />
@@ -286,25 +274,24 @@ export default function IssuesIndexPage({
                         </Card>
 
                         {/* Data Table */}
-                        <Card className="shadow-xs border bg-card overflow-hidden">
+                        <Card className="shadow-xs border bg-card overflow-hidden rounded-xl">
                             <CardContent className="p-0">
                                 <Table>
-                                    <TableHeader className="bg-muted/40">
-                                        <TableRow>
-                                            <TableHead className="font-semibold">Issue & Sistem</TableHead>
-                                            <TableHead className="font-semibold">Prioritas</TableHead>
-                                            <TableHead className="font-semibold">Penyebab</TableHead>
-                                            <TableHead className="font-semibold">Waktu Lapor</TableHead>
-                                            <TableHead className="font-semibold">Batas Waktu</TableHead>
-                                            <TableHead className="font-semibold">Status</TableHead>
-                                            <TableHead className="text-right font-semibold">Aksi</TableHead>
+                                    <TableHeader className="bg-muted/60 border-b">
+                                        <TableRow className="hover:bg-transparent border-b-0">
+                                            <TableHead className="w-[180px] h-11 px-4 py-3 font-semibold text-foreground align-middle">Sistem</TableHead>
+                                            <TableHead className="h-11 px-4 py-3 font-semibold text-foreground align-middle">Issue</TableHead>
+                                            <TableHead className="w-[120px] h-11 px-4 py-3 font-semibold text-foreground align-middle">Prioritas</TableHead>
+                                            <TableHead className="w-[160px] h-11 px-4 py-3 font-semibold text-foreground align-middle">Waktu Lapor</TableHead>
+                                            <TableHead className="w-[180px] h-11 px-4 py-3 font-semibold text-foreground align-middle">Status</TableHead>
+                                            <TableHead className="w-[90px] h-11 px-4 py-3 text-right font-semibold text-foreground align-middle">Aksi</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {issues.data.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="h-40 text-center">
-                                                    <div className="flex flex-col items-center justify-center text-muted-foreground gap-1.5 py-4">
+                                                <TableCell colSpan={6} className="h-44 text-center">
+                                                    <div className="flex flex-col items-center justify-center text-muted-foreground gap-1.5 py-6">
                                                         <CheckCircle2 className="h-8 w-8 text-muted-foreground/50 stroke-[1.5]" />
                                                         <span className="text-sm font-medium">Belum ada issue yang tercatat.</span>
                                                         <span className="text-xs text-muted-foreground/70">
@@ -321,28 +308,42 @@ export default function IssuesIndexPage({
 
                                                 return (
                                                     <TableRow key={issue.id} className="hover:bg-muted/30 transition-colors">
-                                                        <TableCell className="py-3">
+                                                        {/* 1. Sistem */}
+                                                        <TableCell className="px-4 py-3">
                                                             <div className="flex flex-col">
+                                                                <span className="font-semibold text-sm text-foreground">
+                                                                    {issue.project ? issue.project.name : 'Infrastruktur / Umum'}
+                                                                </span>
+                                                                {issue.project && (
+                                                                    <span className="text-[11px] text-muted-foreground capitalize">
+                                                                        {issue.project.status.replace('_', ' ')}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </TableCell>
+
+                                                        {/* 2. Issue */}
+                                                        <TableCell className="px-4 py-3">
+                                                            <div className="flex flex-col gap-0.5 max-w-md">
                                                                 <Link
                                                                     href={`/issues/${issue.id}`}
-                                                                    className="font-medium text-foreground hover:underline hover:text-primary transition-colors"
+                                                                    className="font-medium text-sm text-foreground hover:underline hover:text-primary transition-colors line-clamp-1"
                                                                 >
                                                                     {issue.title}
                                                                 </Link>
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {issue.project
-                                                                        ? issue.project.name
-                                                                        : 'Infrastruktur / Umum'}
+                                                                <span className="text-xs text-muted-foreground line-clamp-1">
+                                                                    {issue.description}
                                                                 </span>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell className="py-3">{getPriorityBadge(issue.priority)}</TableCell>
-                                                        <TableCell className="py-3">
-                                                            <span className="text-xs font-medium text-muted-foreground">
-                                                                {getRootCauseLabel(issue.root_cause_category)}
-                                                            </span>
+
+                                                        {/* 3. Prioritas */}
+                                                        <TableCell className="px-4 py-3">
+                                                            {getPriorityBadge(issue.priority)}
                                                         </TableCell>
-                                                        <TableCell className="py-3 text-xs text-muted-foreground">
+
+                                                        {/* 4. Waktu Lapor */}
+                                                        <TableCell className="px-4 py-3 text-xs text-muted-foreground">
                                                             {new Date(issue.reported_at).toLocaleDateString('id-ID', {
                                                                 day: 'numeric',
                                                                 month: 'short',
@@ -351,41 +352,46 @@ export default function IssuesIndexPage({
                                                                 minute: '2-digit',
                                                             })}
                                                         </TableCell>
-                                                        <TableCell className="py-3 text-xs">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <span className="font-medium">
-                                                                    {new Date(issue.due_date).toLocaleDateString('id-ID', {
+
+                                                        {/* 5. Status & Batas Waktu */}
+                                                        <TableCell className="px-4 py-3">
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    {issue.status === 'open' ? (
+                                                                        <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50/60 dark:bg-amber-950/20 font-medium">
+                                                                            Open
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <div className="flex items-center gap-1">
+                                                                            <Badge className="bg-emerald-600 text-white font-medium">
+                                                                                Resolved
+                                                                            </Badge>
+                                                                            {issue.is_on_time !== null && (
+                                                                                <span className={`text-[10px] font-semibold ${issue.is_on_time ? 'text-emerald-600' : 'text-red-500'}`}>
+                                                                                    {issue.is_on_time ? '✓ On-Time' : '⚠ Late'}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                    {isOverdue && (
+                                                                        <Badge variant="destructive" className="px-1.5 py-0 text-[10px]">
+                                                                            Overdue
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                                                    <Clock className="h-3 w-3 text-muted-foreground/70" />
+                                                                    Batas: {new Date(issue.due_date).toLocaleDateString('id-ID', {
                                                                         day: 'numeric',
                                                                         month: 'short',
                                                                         year: 'numeric',
                                                                     })}
                                                                 </span>
-                                                                {isOverdue && (
-                                                                    <Badge variant="destructive" className="px-1.5 py-0 text-[10px]">
-                                                                        Overdue
-                                                                    </Badge>
-                                                                )}
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell className="py-3">
-                                                            {issue.status === 'open' ? (
-                                                                <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50/60 dark:bg-amber-950/20 font-medium">
-                                                                    Open
-                                                                </Badge>
-                                                            ) : (
-                                                                <div className="flex flex-col gap-0.5">
-                                                                    <Badge className="bg-emerald-600 text-white w-fit font-medium">
-                                                                        Resolved
-                                                                    </Badge>
-                                                                    {issue.is_on_time !== null && (
-                                                                        <span className={`text-[10px] font-semibold ${issue.is_on_time ? 'text-emerald-600' : 'text-red-500'}`}>
-                                                                            {issue.is_on_time ? '✓ On-Time' : '⚠ Late'}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell className="py-3 text-right">
+
+                                                        {/* 6. Aksi */}
+                                                        <TableCell className="px-4 py-3 text-right">
                                                             <div className="flex items-center justify-end gap-1">
                                                                 <Button asChild variant="ghost" size="icon" className="h-8 w-8" title="Detail">
                                                                     <Link href={`/issues/${issue.id}`}>
