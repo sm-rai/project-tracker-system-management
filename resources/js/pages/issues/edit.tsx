@@ -171,9 +171,9 @@ export default function IssueEditPage({
                                     </div>
 
                                     <div className="grid gap-6 md:grid-cols-2">
-                                        {/* Prioritas SLA */}
+                                        {/* Prioritas */}
                                         <div className="space-y-2">
-                                            <Label htmlFor="priority">Skala Prioritas SLA *</Label>
+                                            <Label htmlFor="priority">Skala Prioritas *</Label>
                                             <Select
                                                 value={data.priority}
                                                 onValueChange={(val) => setData('priority', val)}
@@ -184,14 +184,14 @@ export default function IssueEditPage({
                                                 <SelectContent>
                                                     {priorities.map((p) => (
                                                         <SelectItem key={p} value={p}>
-                                                            {p.toUpperCase()} (Target: {slaConfigs[p] || 3} hari)
+                                                            {p.toUpperCase()} ({slaConfigs[p] || 3} hari)
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                             <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
                                                 <Clock className="h-3.5 w-3.5" />
-                                                <span>Target SLA: {currentSlaDays} hari kalender</span>
+                                                <span>Target Waktu: {currentSlaDays} hari kalender</span>
                                             </div>
                                             {errors.priority && (
                                                 <p className="text-xs text-red-500">{errors.priority}</p>

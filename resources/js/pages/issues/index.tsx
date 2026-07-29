@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import {
+    CheckCircle2,
     Eye,
     Plus,
     RefreshCw,
@@ -128,11 +129,11 @@ export default function IssuesIndexPage({
     const getPriorityBadge = (priority: string) => {
         switch (priority) {
             case 'urgent':
-                return <Badge className="bg-red-600 hover:bg-red-700 text-white">Urgent</Badge>;
+                return <Badge className="bg-red-600 hover:bg-red-700 text-white font-medium">Urgent</Badge>;
             case 'normal':
-                return <Badge className="bg-amber-500 hover:bg-amber-600 text-white">Normal</Badge>;
+                return <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-medium">Normal</Badge>;
             case 'low':
-                return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">Low</Badge>;
+                return <Badge className="bg-blue-500 hover:bg-blue-600 text-white font-medium">Low</Badge>;
             default:
                 return <Badge variant="outline">{priority}</Badge>;
         }
@@ -153,7 +154,7 @@ export default function IssuesIndexPage({
 
     return (
         <>
-            <Head title="Pencatatan Kendala (Issues)" />
+            <Head title="Pencatatan Kendala System" />
             <SidebarProvider
                 style={
                     {
@@ -165,18 +166,18 @@ export default function IssuesIndexPage({
                 <AppSidebar variant="inset" />
                 <SidebarInset>
                     <SiteHeader title="Kendala Sistem (Issues)" />
-                    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+                    <div className="flex flex-1 flex-col gap-5 p-4 md:p-6">
                         {/* Header & Title */}
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h1 className="text-2xl font-bold tracking-tight">
                                     Pencatatan Kendala (Issues)
                                 </h1>
-                                <p className="text-sm text-muted-foreground">
-                                    Pencatatan dan pemantauan kendala teknis pada sistem yang telah rilis di produksi serta pelacakan target SLA.
+                                <p className="text-sm text-muted-foreground mt-0.5">
+                                    Kelola dan pantau daftar kendala teknis pada sistem yang telah berjalan di produksi.
                                 </p>
                             </div>
-                            <Button asChild className="gap-2">
+                            <Button asChild className="gap-2 shrink-0">
                                 <Link href="/issues/create">
                                     <Plus className="h-4 w-4" />
                                     Tambah Kendala Baru
@@ -184,12 +185,12 @@ export default function IssuesIndexPage({
                             </Button>
                         </div>
 
-                        {/* Search & Filters Bar */}
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="grid gap-3 md:grid-cols-12">
+                        {/* Search & Filters Bar - Tight Flex Layout */}
+                        <Card className="shadow-xs border bg-card">
+                            <CardContent className="p-3 md:p-4">
+                                <div className="flex flex-wrap items-center gap-3">
                                     {/* Search Input */}
-                                    <form onSubmit={handleSearchSubmit} className="md:col-span-4 flex items-center gap-2">
+                                    <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[260px] flex items-center gap-2">
                                         <div className="relative flex-1">
                                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                             <Input
@@ -197,16 +198,16 @@ export default function IssuesIndexPage({
                                                 placeholder="Cari judul atau deskripsi kendala..."
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
-                                                className="pl-9"
+                                                className="pl-9 h-9 text-sm"
                                             />
                                         </div>
-                                        <Button type="submit" variant="secondary" size="sm">
+                                        <Button type="submit" variant="secondary" size="sm" className="h-9 px-3">
                                             Cari
                                         </Button>
                                     </form>
 
                                     {/* Project Filter */}
-                                    <div className="md:col-span-3">
+                                    <div className="w-full sm:w-[220px]">
                                         <Select
                                             value={selectedProject}
                                             onValueChange={(val) => {
@@ -214,12 +215,12 @@ export default function IssuesIndexPage({
                                                 handleFilterChange('project_id', val);
                                             }}
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Pilih Sistem / Project" />
+                                            <SelectTrigger className="h-9 text-sm">
+                                                <SelectValue placeholder="Semua Sistem / Project" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">Semua Sistem / Project</SelectItem>
-                                                <SelectItem value="unattached">Umum / Infrastruktur (Tanpa Sistem)</SelectItem>
+                                                <SelectItem value="unattached">Umum / Infrastruktur</SelectItem>
                                                 {deployedProjects.map((proj) => (
                                                     <SelectItem key={proj.id} value={proj.id.toString()}>
                                                         {proj.name}
@@ -230,7 +231,7 @@ export default function IssuesIndexPage({
                                     </div>
 
                                     {/* Priority Filter */}
-                                    <div className="md:col-span-2">
+                                    <div className="w-full sm:w-[150px]">
                                         <Select
                                             value={selectedPriority}
                                             onValueChange={(val) => {
@@ -238,8 +239,8 @@ export default function IssuesIndexPage({
                                                 handleFilterChange('priority', val);
                                             }}
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Prioritas SLA" />
+                                            <SelectTrigger className="h-9 text-sm">
+                                                <SelectValue placeholder="Semua Prioritas" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">Semua Prioritas</SelectItem>
@@ -251,7 +252,7 @@ export default function IssuesIndexPage({
                                     </div>
 
                                     {/* Status Filter */}
-                                    <div className="md:col-span-2">
+                                    <div className="w-full sm:w-[140px]">
                                         <Select
                                             value={selectedStatus}
                                             onValueChange={(val) => {
@@ -259,8 +260,8 @@ export default function IssuesIndexPage({
                                                 handleFilterChange('status', val);
                                             }}
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Status Kendala" />
+                                            <SelectTrigger className="h-9 text-sm">
+                                                <SelectValue placeholder="Semua Status" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">Semua Status</SelectItem>
@@ -270,41 +271,46 @@ export default function IssuesIndexPage({
                                         </Select>
                                     </div>
 
-                                    {/* Reset Filters */}
-                                    <div className="md:col-span-1 flex justify-end">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            title="Reset Filter"
-                                            onClick={() => router.get('/issues')}
-                                        >
-                                            <RefreshCw className="h-4 w-4" />
-                                        </Button>
-                                    </div>
+                                    {/* Reset Filters Button */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        title="Reset Filter"
+                                        onClick={() => router.get('/issues')}
+                                        className="h-9 w-9 shrink-0 ml-auto sm:ml-0"
+                                    >
+                                        <RefreshCw className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* Data Table */}
-                        <Card>
+                        <Card className="shadow-xs border bg-card overflow-hidden">
                             <CardContent className="p-0">
                                 <Table>
-                                    <TableHeader>
+                                    <TableHeader className="bg-muted/40">
                                         <TableRow>
-                                            <TableHead>Judul Kendala & Sistem</TableHead>
-                                            <TableHead>Prioritas SLA</TableHead>
-                                            <TableHead>Kategori Penyebab</TableHead>
-                                            <TableHead>Waktu Lapor</TableHead>
-                                            <TableHead>Tenggat Waktu (Due Date)</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead className="text-right">Aksi</TableHead>
+                                            <TableHead className="font-semibold">Judul Kendala & Sistem</TableHead>
+                                            <TableHead className="font-semibold">Prioritas</TableHead>
+                                            <TableHead className="font-semibold">Kategori Penyebab</TableHead>
+                                            <TableHead className="font-semibold">Waktu Lapor</TableHead>
+                                            <TableHead className="font-semibold">Tenggat Waktu</TableHead>
+                                            <TableHead className="font-semibold">Status</TableHead>
+                                            <TableHead className="text-right font-semibold">Aksi</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {issues.data.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                                                    Belum ada data kendala yang tercatat.
+                                                <TableCell colSpan={7} className="h-40 text-center">
+                                                    <div className="flex flex-col items-center justify-center text-muted-foreground gap-1.5 py-4">
+                                                        <CheckCircle2 className="h-8 w-8 text-muted-foreground/50 stroke-[1.5]" />
+                                                        <span className="text-sm font-medium">Belum ada data kendala yang tercatat.</span>
+                                                        <span className="text-xs text-muted-foreground/70">
+                                                            Klik &ldquo;Tambah Kendala Baru&rdquo; untuk mencatat kendala pertama.
+                                                        </span>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
@@ -314,12 +320,12 @@ export default function IssuesIndexPage({
                                                     new Date(issue.due_date) < new Date(new Date().setHours(0, 0, 0, 0));
 
                                                 return (
-                                                    <TableRow key={issue.id}>
-                                                        <TableCell>
+                                                    <TableRow key={issue.id} className="hover:bg-muted/30 transition-colors">
+                                                        <TableCell className="py-3">
                                                             <div className="flex flex-col">
                                                                 <Link
                                                                     href={`/issues/${issue.id}`}
-                                                                    className="font-semibold hover:underline"
+                                                                    className="font-medium text-foreground hover:underline hover:text-primary transition-colors"
                                                                 >
                                                                     {issue.title}
                                                                 </Link>
@@ -330,13 +336,13 @@ export default function IssuesIndexPage({
                                                                 </span>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell>{getPriorityBadge(issue.priority)}</TableCell>
-                                                        <TableCell>
+                                                        <TableCell className="py-3">{getPriorityBadge(issue.priority)}</TableCell>
+                                                        <TableCell className="py-3">
                                                             <span className="text-xs font-medium text-muted-foreground">
                                                                 {getRootCauseLabel(issue.root_cause_category)}
                                                             </span>
                                                         </TableCell>
-                                                        <TableCell className="text-xs">
+                                                        <TableCell className="py-3 text-xs text-muted-foreground">
                                                             {new Date(issue.reported_at).toLocaleDateString('id-ID', {
                                                                 day: 'numeric',
                                                                 month: 'short',
@@ -345,9 +351,9 @@ export default function IssuesIndexPage({
                                                                 minute: '2-digit',
                                                             })}
                                                         </TableCell>
-                                                        <TableCell className="text-xs">
+                                                        <TableCell className="py-3 text-xs">
                                                             <div className="flex items-center gap-1.5">
-                                                                <span>
+                                                                <span className="font-medium">
                                                                     {new Date(issue.due_date).toLocaleDateString('id-ID', {
                                                                         day: 'numeric',
                                                                         month: 'short',
@@ -361,14 +367,14 @@ export default function IssuesIndexPage({
                                                                 )}
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell>
+                                                        <TableCell className="py-3">
                                                             {issue.status === 'open' ? (
-                                                                <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50 dark:bg-amber-950/20">
+                                                                <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50/60 dark:bg-amber-950/20 font-medium">
                                                                     Open
                                                                 </Badge>
                                                             ) : (
-                                                                <div className="flex flex-col gap-1">
-                                                                    <Badge className="bg-emerald-600 text-white w-fit">
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <Badge className="bg-emerald-600 text-white w-fit font-medium">
                                                                         Resolved
                                                                     </Badge>
                                                                     {issue.is_on_time !== null && (
@@ -379,9 +385,9 @@ export default function IssuesIndexPage({
                                                                 </div>
                                                             )}
                                                         </TableCell>
-                                                        <TableCell className="text-right">
+                                                        <TableCell className="py-3 text-right">
                                                             <div className="flex items-center justify-end gap-1">
-                                                                <Button asChild variant="ghost" size="icon" title="Detail">
+                                                                <Button asChild variant="ghost" size="icon" className="h-8 w-8" title="Detail">
                                                                     <Link href={`/issues/${issue.id}`}>
                                                                         <Eye className="h-4 w-4" />
                                                                     </Link>
@@ -391,7 +397,7 @@ export default function IssuesIndexPage({
                                                                     size="icon"
                                                                     title="Hapus"
                                                                     onClick={() => handleDelete(issue.id)}
-                                                                    className="text-red-500 hover:text-red-600"
+                                                                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>
@@ -408,7 +414,7 @@ export default function IssuesIndexPage({
 
                         {/* Pagination */}
                         {issues.total > issues.per_page && (
-                            <div className="flex justify-center">
+                            <div className="flex justify-center pt-2">
                                 <Pagination links={issues.links} />
                             </div>
                         )}
