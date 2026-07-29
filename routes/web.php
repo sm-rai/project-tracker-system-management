@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BriefFeatureController;
+use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SlaConfigController;
 use App\Http\Controllers\UserController;
@@ -14,6 +15,11 @@ Route::middleware('auth')->group(function (): void {
     // SLA Configuration
     Route::get('/settings/sla', [SlaConfigController::class, 'index'])->name('sla.index');
     Route::put('/settings/sla', [SlaConfigController::class, 'update'])->name('sla.update');
+
+    // Issues CRUD & Actions
+    Route::resource('issues', IssueController::class);
+    Route::patch('/issues/{issue}/resolve', [IssueController::class, 'resolve'])->name('issues.resolve');
+    Route::patch('/issues/{issue}/reopen', [IssueController::class, 'reopen'])->name('issues.reopen');
 
     // Projects CRUD
     Route::resource('projects', ProjectController::class);

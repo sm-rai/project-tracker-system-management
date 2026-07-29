@@ -40,9 +40,11 @@ class Issue extends Model
         'priority',
         'root_cause_category',
         'reported_at',
+        'due_date',
         'resolved_at',
         'status',
         'resolution_note',
+        'is_on_time',
     ];
 
     protected $attributes = [
@@ -68,14 +70,20 @@ class Issue extends Model
     protected static function booted(): void
     {
         static::creating(function (Issue $issue) {
-            $issue->due_date = Carbon::parse($issue->reported_at)
-                ->addDays(SlaConfig::daysForPriority($issue->priority));
+            if (! $issue->due_date && $issue->reported_at && $issue->priority) {
+                $issue->due_date = Carbon::parse($issue->reported_at)
+                    ->addDays(SlaConfig::daysForPriority($issue->priority));
+            }
         });
 
         static::saving(function (Issue $issue) {
             if ($issue->isDirty('resolved_at') && $issue->resolved_at !== null) {
-                $issue->is_on_time = $issue->resolved_at->lte($issue->due_date->endOfDay());
+                $dueCarbon = Carbon::parse($issue->due_date ?? $issue->reported_at);
+                $issue->is_on_time = Carbon::parse($issue->resolved_at)->lte($dueCarbon->endOfDay());
                 $issue->status = IssueStatus::Resolved;
+            } elseif ($issue->isDirty('status') && $issue->status === IssueStatus::Open) {
+                $issue->resolved_at = null;
+                $issue->is_on_time = null;
             }
         });
     }
