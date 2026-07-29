@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { IconDashboard, IconUsers, IconUserShield } from '@tabler/icons-react';
+import { IconDashboard, IconFolderCode, IconUsers, IconUserShield } from '@tabler/icons-react';
 
 import { NavUser } from '@/components/nav-user';
 import {
@@ -83,6 +83,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     >
                                         <IconDashboard className="size-4" />
                                         <span>Dashboard</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    isActive={url.startsWith('/projects')}
+                                    tooltip="Project & Sistem"
+                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                >
+                                    <Link
+                                        href="/projects"
+                                        className="flex items-center gap-2.5"
+                                    >
+                                        <IconFolderCode className="size-4" />
+                                        <span>Project & Sistem</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\BriefFeatureController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -7,6 +9,15 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware('auth')->group(function (): void {
     Route::inertia('/dashboard', 'dashboard')->name('dashboard');
+
+    // Projects CRUD
+    Route::resource('projects', ProjectController::class);
+
+    // Brief Features Nested Actions
+    Route::post('/projects/{project}/brief-features', [BriefFeatureController::class, 'store'])->name('projects.brief-features.store');
+    Route::put('/brief-features/{briefFeature}', [BriefFeatureController::class, 'update'])->name('brief-features.update');
+    Route::patch('/brief-features/{briefFeature}/status', [BriefFeatureController::class, 'updateStatus'])->name('brief-features.update-status');
+    Route::delete('/brief-features/{briefFeature}', [BriefFeatureController::class, 'destroy'])->name('brief-features.destroy');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');

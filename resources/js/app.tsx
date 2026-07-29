@@ -16,6 +16,7 @@ createInertiaApp({
         return pages[`./pages/${name}.tsx`];
     },
     setup({ el, App, props }) {
+        if (!el) return;
         createRoot(el).render(
             <>
                 <App {...props} />
