@@ -1,6 +1,14 @@
-import * as React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { IconAlertTriangle, IconClock, IconDashboard, IconFolderCode, IconUsers, IconUserShield } from '@tabler/icons-react';
+import {
+    IconAlertTriangle,
+    IconBulb,
+    IconClock,
+    IconDashboard,
+    IconFolderCode,
+    IconUsers,
+    IconUserShield,
+} from '@tabler/icons-react';
+import * as React from 'react';
 
 import { NavUser } from '@/components/nav-user';
 import {
@@ -15,6 +23,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { index as featureRequestsIndex } from '@/routes/feature-requests';
 import type { User } from '@/types/auth';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -83,6 +92,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     >
                                         <IconDashboard className="size-4" />
                                         <span>Dashboard</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
+                                    isActive={url.startsWith(
+                                        '/feature-requests',
+                                    )}
+                                    tooltip="Feature Request"
+                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                >
+                                    <Link
+                                        href={featureRequestsIndex()}
+                                        className="flex items-center gap-2.5"
+                                    >
+                                        <IconBulb className="size-4" />
+                                        <span>Feature Request</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

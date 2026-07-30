@@ -33,6 +33,20 @@ export interface Project {
     creator?: User;
     users?: User[];
     brief_features?: BriefFeature[];
+    issues?: Array<{
+        id: number;
+        title: string;
+        status: string;
+        priority: string;
+        due_date: string;
+    }>;
+    feature_requests?: Array<{
+        id: number;
+        title: string;
+        status: string;
+        priority: string;
+        due_date: string;
+    }>;
     brief_features_count?: number;
     realization_percentage: number;
     created_at: string;

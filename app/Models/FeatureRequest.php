@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $requested_at
  * @property Carbon $due_date
  * @property Carbon|null $fulfilled_at
+ * @property string|null $fulfillment_note
  * @property FeatureRequestStatus $status
  * @property bool|null $is_on_time
  * @property Carbon|null $created_at
@@ -37,6 +38,7 @@ class FeatureRequest extends Model
         'priority',
         'requested_at',
         'fulfilled_at',
+        'fulfillment_note',
         'status',
     ];
 
@@ -67,7 +69,10 @@ class FeatureRequest extends Model
         });
 
         static::saving(function (FeatureRequest $featureRequest) {
-            if ($featureRequest->isDirty('fulfilled_at') && $featureRequest->fulfilled_at !== null) {
+            if (
+                ($featureRequest->isDirty('fulfilled_at') || $featureRequest->isDirty('due_date'))
+                && $featureRequest->fulfilled_at !== null
+            ) {
                 $featureRequest->is_on_time = $featureRequest->fulfilled_at->lte($featureRequest->due_date->endOfDay());
                 $featureRequest->status = FeatureRequestStatus::Fulfilled;
             }
@@ -80,5 +85,28 @@ class FeatureRequest extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function markInProgress(): void
+    {
+        $this->status = FeatureRequestStatus::InProgress;
+        $this->save();
+    }
+
+    public function fulfill(?string $note = null): void
+    {
+        $this->fulfilled_at = now();
+        if ($note !== null) {
+            $this->fulfillment_note = $note;
+        }
+        $this->save();
+    }
+
+    public function reopen(): void
+    {
+        $this->status = FeatureRequestStatus::InProgress;
+        $this->fulfilled_at = null;
+        $this->is_on_time = null;
+        $this->save();
     }
 }

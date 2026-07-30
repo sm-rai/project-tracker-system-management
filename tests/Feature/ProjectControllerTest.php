@@ -2,6 +2,8 @@
 
 use App\Enums\ProjectStatus;
 use App\Models\BriefFeature;
+use App\Models\FeatureRequest;
+use App\Models\Issue;
 use App\Models\Project;
 use App\Models\User;
 
@@ -103,4 +105,19 @@ test('authenticated user can delete project', function () {
 
     $response->assertRedirect(route('projects.index'));
     expect(Project::find($project->id))->toBeNull();
+});
+
+test('project detail includes operational issue and feature request history', function () {
+    $user = User::factory()->admin()->create();
+    $project = Project::factory()->deployedRunning()->create(['created_by' => $user->id]);
+    Issue::factory()->create(['project_id' => $project->id, 'title' => 'Gangguan sinkronisasi']);
+    FeatureRequest::factory()->create(['project_id' => $project->id, 'title' => 'Tambah export']);
+
+    $this->actingAs($user)->get(route('projects.show', $project))
+        ->assertInertia(fn ($page) => $page
+            ->has('project.issues', 1)
+            ->where('project.issues.0.title', 'Gangguan sinkronisasi')
+            ->has('project.feature_requests', 1)
+            ->where('project.feature_requests.0.title', 'Tambah export')
+        );
 });

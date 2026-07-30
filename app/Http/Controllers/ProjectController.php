@@ -154,6 +154,8 @@ class ProjectController extends Controller
             'creator',
             'users',
             'briefFeatures' => fn ($q) => $q->orderBy('id', 'asc'),
+            'issues' => fn ($q) => $q->latest('reported_at'),
+            'featureRequests' => fn ($q) => $q->latest('requested_at'),
         ]);
 
         $project->append('realization_percentage');

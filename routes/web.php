@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BriefFeatureController;
+use App\Http\Controllers\FeatureRequestController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SlaConfigController;
@@ -20,6 +21,11 @@ Route::middleware('auth')->group(function (): void {
     Route::resource('issues', IssueController::class);
     Route::patch('/issues/{issue}/resolve', [IssueController::class, 'resolve'])->name('issues.resolve');
     Route::patch('/issues/{issue}/reopen', [IssueController::class, 'reopen'])->name('issues.reopen');
+
+    Route::resource('feature-requests', FeatureRequestController::class);
+    Route::patch('/feature-requests/{feature_request}/start', [FeatureRequestController::class, 'start'])->name('feature-requests.start');
+    Route::patch('/feature-requests/{feature_request}/fulfill', [FeatureRequestController::class, 'fulfill'])->name('feature-requests.fulfill');
+    Route::patch('/feature-requests/{feature_request}/reopen', [FeatureRequestController::class, 'reopen'])->name('feature-requests.reopen');
 
     // Projects CRUD
     Route::resource('projects', ProjectController::class);
