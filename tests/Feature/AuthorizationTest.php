@@ -222,7 +222,7 @@ test('issue due_date is auto-calculated from SLA config on creation', function (
         'reported_at' => '2026-07-28 10:00:00',
     ]);
 
-    expect($issue->due_date->format('Y-m-d'))->toBe('2026-07-29');
+    expect($issue->due_date->format('Y-m-d H:i:s'))->toBe('2026-07-29 10:00:00');
 });
 
 test('issue is_on_time is computed when resolved_at is set', function () {
@@ -242,7 +242,7 @@ test('feature request due_date is auto-calculated from SLA config on creation', 
         'requested_at' => '2026-07-28 10:00:00',
     ]);
 
-    expect($featureRequest->due_date->format('Y-m-d'))->toBe('2026-08-04');
+    expect($featureRequest->due_date->format('Y-m-d H:i:s'))->toBe('2026-08-04 10:00:00');
 });
 
 test('feature request is_on_time is computed when fulfilled_at is set', function () {

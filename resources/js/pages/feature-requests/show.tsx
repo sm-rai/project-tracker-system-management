@@ -78,8 +78,7 @@ export default function Show({ featureRequest, can }: Props) {
     const fulfillForm = useForm({ fulfillment_note: '' });
     const overdue =
         featureRequest.status !== 'fulfilled' &&
-        new Date(featureRequest.due_date) <
-            new Date(new Date().setHours(0, 0, 0, 0));
+        new Date(featureRequest.due_date) < new Date();
 
     const submitFulfillment = () => {
         fulfillForm.patch(fulfill.url(featureRequest.id), {
@@ -282,8 +281,9 @@ export default function Show({ featureRequest, can }: Props) {
                                             <p className="mt-1 text-sm font-medium tabular-nums">
                                                 {new Date(
                                                     featureRequest.due_date,
-                                                ).toLocaleDateString('id-ID', {
+                                                ).toLocaleString('id-ID', {
                                                     dateStyle: 'long',
+                                                    timeStyle: 'short',
                                                 })}
                                             </p>
                                         </div>

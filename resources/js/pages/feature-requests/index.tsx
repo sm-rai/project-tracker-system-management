@@ -78,7 +78,7 @@ function labelFor(value: string) {
 function StatusBadge({ request }: { request: FeatureRequest }) {
     const overdue =
         request.status !== 'fulfilled' &&
-        new Date(request.due_date) < new Date(new Date().setHours(0, 0, 0, 0));
+        new Date(request.due_date) < new Date();
 
     if (overdue) {
         return (
@@ -110,6 +110,16 @@ function date(value: string) {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
+    }).format(new Date(value));
+}
+
+function dateTime(value: string) {
+    return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     }).format(new Date(value));
 }
 
@@ -464,7 +474,7 @@ export default function FeatureRequestsIndex({
                                                     {date(request.requested_at)}
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground tabular-nums">
-                                                    {date(request.due_date)}
+                                                    {dateTime(request.due_date)}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <Button

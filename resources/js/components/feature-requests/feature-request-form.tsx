@@ -75,18 +75,20 @@ function FieldError({ id, message }: { id: string; message?: string }) {
     );
 }
 
-function targetDate(requestedAt: string, days: number) {
+function targetDate(requestedAt: string, hours: number) {
     if (!requestedAt) {
         return 'Menunggu waktu permintaan';
     }
 
     const date = new Date(requestedAt);
-    date.setDate(date.getDate() + days);
+    date.setTime(date.getTime() + hours * 60 * 60 * 1000);
 
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     }).format(date);
 }
 
@@ -101,10 +103,10 @@ export function FeatureRequestForm({
     const form = useForm<FormData>(initialData);
     const { markSubmitting, markFinished, unsavedChangesDialog } =
         useUnsavedChanges(form.isDirty);
-    const slaDays = slaConfigs[form.data.priority] ?? 3;
+    const slaHours = slaConfigs[form.data.priority] ?? 72;
     const dueDate = useMemo(
-        () => targetDate(form.data.requested_at, slaDays),
-        [form.data.requested_at, slaDays],
+        () => targetDate(form.data.requested_at, slaHours),
+        [form.data.requested_at, slaHours],
     );
 
     const submit = (event: FormEvent) => {
@@ -311,7 +313,8 @@ export function FeatureRequestForm({
                         <CardHeader className="border-b px-5 py-4">
                             <CardTitle>Priority &amp; Target</CardTitle>
                             <CardDescription>
-                                Target dihitung dengan hari kalender.
+                                Target dihitung berdasarkan waktu berjalan,
+                                termasuk malam dan akhir pekan.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-4 px-5 py-4">
@@ -343,7 +346,7 @@ export function FeatureRequestForm({
                                                 value={priority}
                                             >
                                                 {priorityLabels[priority]} ·{' '}
-                                                {slaConfigs[priority]} hari
+                                                {slaConfigs[priority]} jam
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -365,7 +368,7 @@ export function FeatureRequestForm({
                                             {dueDate}
                                         </p>
                                         <p className="mt-1 text-xs text-muted-foreground">
-                                            SLA {slaDays} hari kalender
+                                            SLA {slaHours} jam waktu berjalan
                                         </p>
                                     </div>
                                 </div>

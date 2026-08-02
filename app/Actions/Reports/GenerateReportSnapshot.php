@@ -209,7 +209,7 @@ class GenerateReportSnapshot
                 'root_cause_category' => $issue->root_cause_category->value,
                 'status' => $issue->status->value,
                 'reported_at' => $issue->reported_at->toDateTimeString(),
-                'due_date' => $issue->due_date->toDateString(),
+                'due_date' => $issue->due_date->toDateTimeString(),
                 'resolved_at' => $issue->resolved_at?->toDateTimeString(),
                 'is_on_time' => $issue->is_on_time,
             ];
@@ -234,7 +234,7 @@ class GenerateReportSnapshot
                 'priority' => $featureRequest->priority->value,
                 'status' => $featureRequest->status->value,
                 'requested_at' => $featureRequest->requested_at->toDateTimeString(),
-                'due_date' => $featureRequest->due_date->toDateString(),
+                'due_date' => $featureRequest->due_date->toDateTimeString(),
                 'fulfilled_at' => $featureRequest->fulfilled_at?->toDateTimeString(),
                 'is_on_time' => $featureRequest->is_on_time,
             ];

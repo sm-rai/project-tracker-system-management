@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property Priority $priority
- * @property int $target_resolution_days
+ * @property int $target_resolution_hours
  * @property Carbon|null $updated_at
  */
 class SlaConfig extends Model
@@ -22,7 +22,7 @@ class SlaConfig extends Model
     /** @var list<string> */
     protected $fillable = [
         'priority',
-        'target_resolution_days',
+        'target_resolution_hours',
     ];
 
     /** @var bool */
@@ -40,10 +40,10 @@ class SlaConfig extends Model
     }
 
     /**
-     * Get the target resolution days for a given priority.
+     * Get the target resolution hours for a given priority.
      */
-    public static function daysForPriority(Priority $priority): int
+    public static function hoursForPriority(Priority $priority): int
     {
-        return static::where('priority', $priority)->value('target_resolution_days') ?? 7;
+        return static::where('priority', $priority)->value('target_resolution_hours') ?? 168;
     }
 }

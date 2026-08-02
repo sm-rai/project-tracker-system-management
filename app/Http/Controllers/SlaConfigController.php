@@ -12,18 +12,18 @@ class SlaConfigController extends Controller
 {
     public function index(): Response
     {
-        $priorities = ['urgent' => 1, 'normal' => 3, 'low' => 7];
-        foreach ($priorities as $priority => $defaultDays) {
+        $priorities = ['urgent' => 24, 'normal' => 72, 'low' => 168];
+        foreach ($priorities as $priority => $defaultHours) {
             SlaConfig::firstOrCreate(
                 ['priority' => $priority],
-                ['target_resolution_days' => $defaultDays]
+                ['target_resolution_hours' => $defaultHours]
             );
         }
 
         $configs = SlaConfig::all()->mapWithKeys(function ($config) {
             $key = $config->priority instanceof \BackedEnum ? $config->priority->value : (string) $config->priority;
 
-            return [$key => $config->target_resolution_days];
+            return [$key => $config->target_resolution_hours];
         });
 
         return Inertia::render('sla/index', [
@@ -35,10 +35,10 @@ class SlaConfigController extends Controller
     {
         $validated = $request->validated();
 
-        foreach ($validated['configs'] as $priority => $days) {
+        foreach ($validated['configs'] as $priority => $hours) {
             SlaConfig::updateOrCreate(
                 ['priority' => $priority],
-                ['target_resolution_days' => $days]
+                ['target_resolution_hours' => $hours]
             );
         }
 

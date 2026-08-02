@@ -11,27 +11,27 @@ test('authenticated user can view sla configuration page', function () {
     $response->assertOk();
 });
 
-test('user can update target resolution days for sla priorities', function () {
+test('user can update target resolution hours for sla priorities', function () {
     $user = User::factory()->create();
 
-    SlaConfig::updateOrCreate(['priority' => 'urgent'], ['target_resolution_days' => 1]);
-    SlaConfig::updateOrCreate(['priority' => 'normal'], ['target_resolution_days' => 3]);
-    SlaConfig::updateOrCreate(['priority' => 'low'], ['target_resolution_days' => 7]);
+    SlaConfig::updateOrCreate(['priority' => 'urgent'], ['target_resolution_hours' => 24]);
+    SlaConfig::updateOrCreate(['priority' => 'normal'], ['target_resolution_hours' => 72]);
+    SlaConfig::updateOrCreate(['priority' => 'low'], ['target_resolution_hours' => 168]);
 
     $response = $this->actingAs($user)->put(route('sla.update'), [
         'configs' => [
-            'urgent' => 2,
-            'normal' => 4,
-            'low' => 10,
+            'urgent' => 48,
+            'normal' => 96,
+            'low' => 240,
         ],
     ]);
 
     $response
         ->assertRedirect()
         ->assertSessionHas('success', 'Konfigurasi SLA berhasil diperbarui.');
-    expect(SlaConfig::where('priority', 'urgent')->first()->target_resolution_days)->toBe(2);
-    expect(SlaConfig::where('priority', 'normal')->first()->target_resolution_days)->toBe(4);
-    expect(SlaConfig::where('priority', 'low')->first()->target_resolution_days)->toBe(10);
+    expect(SlaConfig::where('priority', 'urgent')->first()->target_resolution_hours)->toBe(48);
+    expect(SlaConfig::where('priority', 'normal')->first()->target_resolution_hours)->toBe(96);
+    expect(SlaConfig::where('priority', 'low')->first()->target_resolution_hours)->toBe(240);
 });
 
 test('sla validation errors use Indonesian field names and guidance', function () {
@@ -44,7 +44,7 @@ test('sla validation errors use Indonesian field names and guidance', function (
             'configs' => [
                 'urgent' => '',
                 'normal' => 0,
-                'low' => 366,
+                'low' => 8761,
             ],
         ]);
 
@@ -52,7 +52,7 @@ test('sla validation errors use Indonesian field names and guidance', function (
         ->assertRedirect(route('sla.index'))
         ->assertSessionHasErrors([
             'configs.urgent' => 'Target SLA Mendesak wajib diisi.',
-            'configs.normal' => 'Target SLA Normal minimal 1 hari kalender.',
-            'configs.low' => 'Target SLA Rendah maksimal 365 hari kalender.',
+            'configs.normal' => 'Target SLA Normal minimal 1 jam.',
+            'configs.low' => 'Target SLA Rendah maksimal 8.760 jam.',
         ]);
 });

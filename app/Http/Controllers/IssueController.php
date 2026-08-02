@@ -51,7 +51,7 @@ class IssueController extends Controller
 
         if ($request->boolean('overdue')) {
             $query->where('status', IssueStatus::Open)
-                ->whereDate('due_date', '<', now());
+                ->where('due_date', '<', now());
         }
 
         $issues = $query->paginate(10)->withQueryString();
@@ -61,7 +61,7 @@ class IssueController extends Controller
         $openIssues = Issue::where('status', IssueStatus::Open)->count();
         $resolvedIssues = Issue::where('status', IssueStatus::Resolved)->count();
         $overdueIssues = Issue::where('status', IssueStatus::Open)
-            ->whereDate('due_date', '<', now())
+            ->where('due_date', '<', now())
             ->count();
 
         $resolvedTotal = Issue::where('status', IssueStatus::Resolved)->count();
@@ -105,7 +105,7 @@ class IssueController extends Controller
         $slaConfigs = SlaConfig::all()->mapWithKeys(function ($config) {
             $key = $config->priority instanceof \BackedEnum ? $config->priority->value : (string) $config->priority;
 
-            return [$key => $config->target_resolution_days];
+            return [$key => $config->target_resolution_hours];
         });
 
         return Inertia::render('issues/create', [
@@ -122,9 +122,9 @@ class IssueController extends Controller
 
         $reportedAt = Carbon::parse($validated['reported_at']);
         $priorityEnum = Priority::from($validated['priority']);
-        $targetDays = SlaConfig::daysForPriority($priorityEnum);
+        $targetHours = SlaConfig::hoursForPriority($priorityEnum);
 
-        $dueDate = $reportedAt->copy()->addDays($targetDays)->toDateString();
+        $dueDate = $reportedAt->copy()->addHours($targetHours);
 
         Issue::create([
             'project_id' => $validated['project_id'],
@@ -162,7 +162,7 @@ class IssueController extends Controller
         $slaConfigs = SlaConfig::all()->mapWithKeys(function ($config) {
             $key = $config->priority instanceof \BackedEnum ? $config->priority->value : (string) $config->priority;
 
-            return [$key => $config->target_resolution_days];
+            return [$key => $config->target_resolution_hours];
         });
 
         return Inertia::render('issues/edit', [
@@ -180,9 +180,9 @@ class IssueController extends Controller
 
         $reportedAt = Carbon::parse($validated['reported_at']);
         $priorityEnum = Priority::from($validated['priority']);
-        $targetDays = SlaConfig::daysForPriority($priorityEnum);
+        $targetHours = SlaConfig::hoursForPriority($priorityEnum);
 
-        $dueDate = $reportedAt->copy()->addDays($targetDays)->toDateString();
+        $dueDate = $reportedAt->copy()->addHours($targetHours);
 
         $issue->update([
             'project_id' => $validated['project_id'],

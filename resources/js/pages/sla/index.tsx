@@ -48,9 +48,9 @@ interface PriorityDefinition {
 }
 
 const defaultConfigs: Record<Priority, string> = {
-    urgent: '1',
-    normal: '3',
-    low: '7',
+    urgent: '24',
+    normal: '72',
+    low: '168',
 };
 
 const priorityDefinitions: PriorityDefinition[] = [
@@ -83,29 +83,30 @@ const priorityDefinitions: PriorityDefinition[] = [
     },
 ];
 
-function getPreviewDate(daysValue: string): string {
-    const days = Number(daysValue);
+function getPreviewDate(hoursValue: string): string {
+    const hours = Number(hoursValue);
 
-    if (!Number.isInteger(days) || days < 1 || days > 365) {
+    if (!Number.isInteger(hours) || hours < 1 || hours > 8760) {
         return 'Nilai belum valid';
     }
 
     const targetDate = new Date();
-    targetDate.setHours(12, 0, 0, 0);
-    targetDate.setDate(targetDate.getDate() + days);
+    targetDate.setTime(targetDate.getTime() + hours * 60 * 60 * 1000);
 
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     }).format(targetDate);
 }
 
 export default function SlaConfigPage({ configs }: SlaConfigProps) {
     const initialConfigs: Record<Priority, string> = {
-        urgent: String(configs.urgent ?? 1),
-        normal: String(configs.normal ?? 3),
-        low: String(configs.low ?? 7),
+        urgent: String(configs.urgent ?? 24),
+        normal: String(configs.normal ?? 72),
+        low: String(configs.low ?? 168),
     };
     const {
         data,
@@ -209,9 +210,9 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                                 Atur target penyelesaian
                             </h1>
                             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                                Tetapkan jumlah hari kalender untuk penyelesaian
-                                issue dan feature request berdasarkan tingkat
-                                prioritas.
+                                Tetapkan waktu berjalan dalam jam untuk
+                                penyelesaian Issue dan Feature Request. Satu
+                                hari SLA selalu berarti 24 jam.
                             </p>
                         </header>
 
@@ -254,9 +255,10 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                                         Target per prioritas
                                     </CardTitle>
                                     <CardDescription className="max-w-2xl">
-                                        Masukkan target antara 1 sampai 365 hari
-                                        kalender. Nilai ini menjadi acuan
-                                        perhitungan tenggat otomatis.
+                                        Masukkan target antara 1 sampai 8.760
+                                        jam. Nilai ini menjadi acuan perhitungan
+                                        tenggat otomatis berdasarkan waktu
+                                        laporan atau permintaan.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="divide-y divide-border p-0">
@@ -307,7 +309,7 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                                                     >
                                                         Target SLA{' '}
                                                         {priority.label} dalam
-                                                        hari kalender
+                                                        jam
                                                     </Label>
                                                     <div className="flex items-center gap-2">
                                                         <Input
@@ -315,7 +317,7 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                                                             type="number"
                                                             inputMode="numeric"
                                                             min={1}
-                                                            max={365}
+                                                            max={8760}
                                                             value={
                                                                 data.configs[
                                                                     priority
@@ -341,7 +343,7 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                                                             required
                                                         />
                                                         <span className="w-24 text-sm text-muted-foreground">
-                                                            hari kalender
+                                                            jam
                                                         </span>
                                                     </div>
                                                     {error && (
@@ -368,8 +370,8 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                                         </CardTitle>
                                     </div>
                                     <CardDescription>
-                                        Preview target jika laporan dibuat hari
-                                        ini.
+                                        Preview target jika laporan atau
+                                        permintaan dibuat sekarang.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-4 px-5 py-4">

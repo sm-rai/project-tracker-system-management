@@ -51,7 +51,7 @@ class FeatureRequestController extends Controller
             ->when($request->input('status'), fn ($query, $status) => $query->where('status', $status))
             ->when($request->boolean('overdue'), fn ($query) => $query
                 ->where('status', '!=', FeatureRequestStatus::Fulfilled->value)
-                ->whereDate('due_date', '<', now()->toDateString()));
+                ->where('due_date', '<', now()));
 
         return Inertia::render('feature-requests/index', [
             'featureRequests' => $query->paginate(10)->withQueryString(),
@@ -106,8 +106,7 @@ class FeatureRequestController extends Controller
     {
         $validated = $request->validated();
         $validated['due_date'] = Carbon::parse($validated['requested_at'])
-            ->addDays(SlaConfig::daysForPriority(Priority::from($validated['priority'])))
-            ->toDateString();
+            ->addHours(SlaConfig::hoursForPriority(Priority::from($validated['priority'])));
         $featureRequest->forceFill($validated)->save();
 
         return redirect()->route('feature-requests.show', $featureRequest)
@@ -170,7 +169,7 @@ class FeatureRequestController extends Controller
             'deployedProjects' => $this->deployedProjects(),
             'priorities' => array_column(Priority::cases(), 'value'),
             'slaConfigs' => SlaConfig::all()->mapWithKeys(fn (SlaConfig $config) => [
-                $config->priority->value => $config->target_resolution_days,
+                $config->priority->value => $config->target_resolution_hours,
             ]),
         ];
     }

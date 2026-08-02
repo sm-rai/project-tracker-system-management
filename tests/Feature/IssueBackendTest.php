@@ -7,9 +7,9 @@ use App\Models\User;
 use Carbon\Carbon;
 
 beforeEach(function () {
-    SlaConfig::updateOrCreate(['priority' => 'urgent'], ['target_resolution_days' => 1]);
-    SlaConfig::updateOrCreate(['priority' => 'normal'], ['target_resolution_days' => 3]);
-    SlaConfig::updateOrCreate(['priority' => 'low'], ['target_resolution_days' => 7]);
+    SlaConfig::updateOrCreate(['priority' => 'urgent'], ['target_resolution_hours' => 24]);
+    SlaConfig::updateOrCreate(['priority' => 'normal'], ['target_resolution_hours' => 72]);
+    SlaConfig::updateOrCreate(['priority' => 'low'], ['target_resolution_hours' => 168]);
 });
 
 test('authenticated user can view issue list page', function () {
@@ -38,7 +38,7 @@ test('user can create issue and due date is calculated based on sla config', fun
 
     $issue = Issue::first();
     expect($issue->title)->toBe('Error Server 500 saat Checkout');
-    expect($issue->due_date->format('Y-m-d'))->toBe('2026-08-02');
+    expect($issue->due_date->format('Y-m-d H:i:s'))->toBe('2026-08-02 10:00:00');
     expect($issue->status->value)->toBe('open');
 });
 
@@ -105,7 +105,7 @@ test('user can resolve issue and is_on_time is computed accurately', function ()
         'status' => 'open',
     ]);
 
-    Carbon::setTestNow('2026-08-02 14:00:00');
+    Carbon::setTestNow('2026-08-02 10:00:00');
 
     $response = $this->actingAs($user)->patch(route('issues.resolve', $issue), [
         'resolution_note' => 'Perbaikan query database berhasil dilakukan.',

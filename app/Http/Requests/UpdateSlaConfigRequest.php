@@ -19,9 +19,9 @@ class UpdateSlaConfigRequest extends FormRequest
     {
         return [
             'configs' => ['required', 'array'],
-            'configs.urgent' => ['required', 'integer', 'min:1', 'max:365'],
-            'configs.normal' => ['required', 'integer', 'min:1', 'max:365'],
-            'configs.low' => ['required', 'integer', 'min:1', 'max:365'],
+            'configs.urgent' => ['required', 'integer', 'min:1', 'max:8760'],
+            'configs.normal' => ['required', 'integer', 'min:1', 'max:8760'],
+            'configs.low' => ['required', 'integer', 'min:1', 'max:8760'],
         ];
     }
 
@@ -35,8 +35,8 @@ class UpdateSlaConfigRequest extends FormRequest
             'configs.array' => 'Format konfigurasi SLA tidak valid.',
             'configs.*.required' => ':attribute wajib diisi.',
             'configs.*.integer' => ':attribute harus berupa angka bulat.',
-            'configs.*.min' => ':attribute minimal 1 hari kalender.',
-            'configs.*.max' => ':attribute maksimal 365 hari kalender.',
+            'configs.*.min' => ':attribute minimal 1 jam.',
+            'configs.*.max' => ':attribute maksimal 8.760 jam.',
         ];
     }
 

@@ -531,14 +531,7 @@ export default function IssuesIndexPage({
                                             const isOverdue =
                                                 issue.status === 'open' &&
                                                 new Date(issue.due_date) <
-                                                    new Date(
-                                                        new Date().setHours(
-                                                            0,
-                                                            0,
-                                                            0,
-                                                            0,
-                                                        ),
-                                                    );
+                                                    new Date();
 
                                             return (
                                                 <TableRow
@@ -652,6 +645,8 @@ export default function IssuesIndexPage({
                                                                         day: 'numeric',
                                                                         month: 'short',
                                                                         year: 'numeric',
+                                                                        hour: '2-digit',
+                                                                        minute: '2-digit',
                                                                     },
                                                                 )}
                                                             </span>

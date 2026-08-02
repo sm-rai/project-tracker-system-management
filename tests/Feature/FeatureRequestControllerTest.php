@@ -8,9 +8,9 @@ use App\Models\User;
 use Carbon\Carbon;
 
 beforeEach(function () {
-    SlaConfig::updateOrCreate(['priority' => 'urgent'], ['target_resolution_days' => 1]);
-    SlaConfig::updateOrCreate(['priority' => 'normal'], ['target_resolution_days' => 3]);
-    SlaConfig::updateOrCreate(['priority' => 'low'], ['target_resolution_days' => 7]);
+    SlaConfig::updateOrCreate(['priority' => 'urgent'], ['target_resolution_hours' => 24]);
+    SlaConfig::updateOrCreate(['priority' => 'normal'], ['target_resolution_hours' => 72]);
+    SlaConfig::updateOrCreate(['priority' => 'low'], ['target_resolution_hours' => 168]);
 });
 
 afterEach(function () {
@@ -24,7 +24,7 @@ test('feature request can move through its supported workflow', function () {
 
     expect($featureRequest->fresh()->status)->toBe(FeatureRequestStatus::InProgress);
 
-    Carbon::setTestNow($featureRequest->due_date->startOfDay());
+    Carbon::setTestNow($featureRequest->due_date);
     $featureRequest->fulfill('Sudah dirilis ke production.');
     $featureRequest->refresh();
 
@@ -79,7 +79,7 @@ test('authenticated user can create a feature request for a deployed project', f
     $featureRequest = FeatureRequest::first();
 
     $response->assertRedirect("/feature-requests/{$featureRequest->id}");
-    expect($featureRequest->due_date->format('Y-m-d'))->toBe('2026-08-02')
+    expect($featureRequest->due_date->format('Y-m-d H:i:s'))->toBe('2026-08-02 09:00:00')
         ->and($featureRequest->status)->toBe(FeatureRequestStatus::Open);
 });
 
@@ -130,7 +130,7 @@ test('editing a fulfilled request recalculates due date and on time result', fun
 
     $featureRequest->refresh();
 
-    expect($featureRequest->due_date->format('Y-m-d'))->toBe('2026-07-08')
+    expect($featureRequest->due_date->format('Y-m-d H:i:s'))->toBe('2026-07-08 09:00:00')
         ->and($featureRequest->is_on_time)->toBeTrue();
 });
 

@@ -86,6 +86,8 @@ function formatDate(value: string): string {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     }).format(new Date(value));
 }
 
@@ -388,7 +390,7 @@ function AttentionList({
                                         variant="outline"
                                         className="border-danger/25 bg-danger-surface text-danger"
                                     >
-                                        {item.days_overdue} hari
+                                        {item.hours_overdue} jam
                                     </Badge>
                                     <Badge variant="outline">
                                         {priorityLabels[item.priority]}

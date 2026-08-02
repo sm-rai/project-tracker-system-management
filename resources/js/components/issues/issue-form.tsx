@@ -31,7 +31,6 @@ interface Project {
     name: string;
     status: string;
 }
-
 export interface IssueFormData {
     project_id: string;
     title: string;
@@ -98,7 +97,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
     );
 }
 
-function getTargetDate(reportedAt: string, slaDays: number): string {
+function getTargetDate(reportedAt: string, slaHours: number): string {
     if (!reportedAt) {
         return 'Menunggu waktu laporan';
     }
@@ -109,12 +108,14 @@ function getTargetDate(reportedAt: string, slaDays: number): string {
         return 'Waktu laporan belum valid';
     }
 
-    targetDate.setDate(targetDate.getDate() + slaDays);
+    targetDate.setTime(targetDate.getTime() + slaHours * 60 * 60 * 1000);
 
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     }).format(targetDate);
 }
 
@@ -136,11 +137,11 @@ export function IssueForm({
             'Perubahan pada formulir belum disimpan. Tetap tinggalkan halaman?',
         );
 
-    const currentSlaDays = slaConfigs[data.priority] || 3;
+    const currentSlaHours = slaConfigs[data.priority] || 72;
     const selectedRootCause = rootCauseOptions[data.root_cause_category];
     const targetDate = useMemo(
-        () => getTargetDate(data.reported_at, currentSlaDays),
-        [currentSlaDays, data.reported_at],
+        () => getTargetDate(data.reported_at, currentSlaHours),
+        [currentSlaHours, data.reported_at],
     );
     const errorEntries = useMemo(
         () => Object.entries(errors) as [keyof IssueFormData, string][],
@@ -473,8 +474,8 @@ export function IssueForm({
                                                 {priorityLabels[priority] ||
                                                     priority}{' '}
                                                     ·{' '}
-                                                    {slaConfigs[priority] || 3}{' '}
-                                                hari
+                                                    {slaConfigs[priority] || 72}{' '}
+                                                jam
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -502,8 +503,8 @@ export function IssueForm({
                                                 Dihitung otomatis dari waktu
                                                 laporan dan SLA{' '}
                                             <span className="font-medium tabular-nums">
-                                                    {currentSlaDays} hari
-                                                    kalender
+                                                    {currentSlaHours} jam waktu
+                                                    berjalan
                                             </span>
                                             .
                                         </p>

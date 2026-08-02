@@ -156,6 +156,11 @@ class BuildReportExportData
         return sprintf('%d %s %d', $date->day, $months[$date->month], $date->year);
     }
 
+    private function formatDateTime(CarbonImmutable $date): string
+    {
+        return sprintf('%s, %s', $this->formatDate($date), $date->format('H:i'));
+    }
+
     /**
      * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>
@@ -166,7 +171,7 @@ class BuildReportExportData
             $issue['reported_at_label'] = $this->formatDate(
                 CarbonImmutable::parse($issue['reported_at']),
             );
-            $issue['due_date_label'] = $this->formatDate(
+            $issue['due_date_label'] = $this->formatDateTime(
                 CarbonImmutable::parse($issue['due_date']),
             );
 
@@ -184,7 +189,7 @@ class BuildReportExportData
             $request['requested_at_label'] = $this->formatDate(
                 CarbonImmutable::parse($request['requested_at']),
             );
-            $request['due_date_label'] = $this->formatDate(
+            $request['due_date_label'] = $this->formatDateTime(
                 CarbonImmutable::parse($request['due_date']),
             );
 

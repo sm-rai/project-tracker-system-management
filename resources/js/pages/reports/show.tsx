@@ -62,7 +62,7 @@ function percentageWidth(value: number): string {
     return `${Math.min(Math.max(value, 0), 100)}%`;
 }
 
-function date(value: string | null): string {
+function dateTime(value: string | null): string {
     if (!value) {
         return '-';
     }
@@ -71,6 +71,8 @@ function date(value: string | null): string {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
     }).format(new Date(value));
 }
 
@@ -365,7 +367,7 @@ function IssueRows({
                                 {labels[issue.status]}
                             </Badge>
                         </TableCell>
-                        <TableCell>{date(issue.due_date)}</TableCell>
+                        <TableCell>{dateTime(issue.due_date)}</TableCell>
                         <TableCell className="text-right">
                             {issue.is_on_time === true ? (
                                 <Badge className="bg-success text-success-foreground">
@@ -429,7 +431,7 @@ function FeatureRequestRows({
                                 {labels[request.status]}
                             </Badge>
                         </TableCell>
-                        <TableCell>{date(request.due_date)}</TableCell>
+                        <TableCell>{dateTime(request.due_date)}</TableCell>
                         <TableCell className="text-right">
                             {request.is_on_time === true ? (
                                 <Badge className="bg-success text-success-foreground">

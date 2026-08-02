@@ -18,7 +18,7 @@ class SlaConfigFactory extends Factory
     {
         return [
             'priority' => fake()->randomElement(Priority::cases()),
-            'target_resolution_days' => fake()->numberBetween(1, 14),
+            'target_resolution_hours' => fake()->numberBetween(1, 336),
         ];
     }
 
@@ -26,7 +26,7 @@ class SlaConfigFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'priority' => Priority::Urgent,
-            'target_resolution_days' => 1,
+            'target_resolution_hours' => 24,
         ]);
     }
 
@@ -34,7 +34,7 @@ class SlaConfigFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'priority' => Priority::Normal,
-            'target_resolution_days' => 3,
+            'target_resolution_hours' => 72,
         ]);
     }
 
@@ -42,7 +42,7 @@ class SlaConfigFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'priority' => Priority::Low,
-            'target_resolution_days' => 7,
+            'target_resolution_hours' => 168,
         ]);
     }
 }

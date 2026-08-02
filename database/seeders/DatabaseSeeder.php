@@ -38,17 +38,17 @@ class DatabaseSeeder extends Seeder
 
         SlaConfig::updateOrCreate(
             ['priority' => Priority::Urgent],
-            ['target_resolution_days' => 1],
+            ['target_resolution_hours' => 24],
         );
 
         SlaConfig::updateOrCreate(
             ['priority' => Priority::Normal],
-            ['target_resolution_days' => 3],
+            ['target_resolution_hours' => 72],
         );
 
         SlaConfig::updateOrCreate(
             ['priority' => Priority::Low],
-            ['target_resolution_days' => 7],
+            ['target_resolution_hours' => 168],
         );
     }
 }

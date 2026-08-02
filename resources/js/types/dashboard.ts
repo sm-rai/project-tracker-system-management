@@ -70,7 +70,7 @@ export interface DashboardAttentionItem {
     priority: 'urgent' | 'normal' | 'low';
     status: string;
     due_date: string;
-    days_overdue: number;
+    hours_overdue: number;
     href: string;
 }
 

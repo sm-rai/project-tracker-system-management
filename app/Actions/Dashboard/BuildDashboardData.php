@@ -181,14 +181,14 @@ class BuildDashboardData
             'deployed_maintenance' => Project::where('status', ProjectStatus::DeployedMaintenance->value)->count(),
             'open_issues' => Issue::where('status', IssueStatus::Open->value)->count(),
             'overdue_issues' => Issue::where('status', IssueStatus::Open->value)
-                ->whereDate('due_date', '<', now()->toDateString())
+                ->where('due_date', '<', now())
                 ->count(),
             'open_feature_requests' => FeatureRequest::whereIn('status', [
                 FeatureRequestStatus::Open->value,
                 FeatureRequestStatus::InProgress->value,
             ])->count(),
             'overdue_feature_requests' => FeatureRequest::where('status', '!=', FeatureRequestStatus::Fulfilled->value)
-                ->whereDate('due_date', '<', now()->toDateString())
+                ->where('due_date', '<', now())
                 ->count(),
         ];
     }
@@ -218,7 +218,7 @@ class BuildDashboardData
     {
         $issues = Issue::query()
             ->where('status', IssueStatus::Open->value)
-            ->whereDate('due_date', '<', now()->toDateString())
+            ->where('due_date', '<', now())
             ->orderBy('due_date')
             ->limit(5)
             ->get()
@@ -228,8 +228,8 @@ class BuildDashboardData
                 'project_name' => $this->projectName($issue->project_id),
                 'priority' => $issue->priority->value,
                 'status' => $issue->status->value,
-                'due_date' => $issue->due_date->toDateString(),
-                'days_overdue' => (int) $issue->due_date->startOfDay()->diffInDays(now()->startOfDay()),
+                'due_date' => $issue->due_date->toDateTimeString(),
+                'hours_overdue' => (int) $issue->due_date->diffInHours(now()),
                 'href' => route('issues.show', $issue, false),
             ])
             ->all();
@@ -242,7 +242,7 @@ class BuildDashboardData
     {
         $featureRequests = FeatureRequest::query()
             ->where('status', '!=', FeatureRequestStatus::Fulfilled->value)
-            ->whereDate('due_date', '<', now()->toDateString())
+            ->where('due_date', '<', now())
             ->orderBy('due_date')
             ->limit(5)
             ->get()
@@ -252,8 +252,8 @@ class BuildDashboardData
                 'project_name' => $this->projectName($featureRequest->project_id),
                 'priority' => $featureRequest->priority->value,
                 'status' => $featureRequest->status->value,
-                'due_date' => $featureRequest->due_date->toDateString(),
-                'days_overdue' => (int) $featureRequest->due_date->startOfDay()->diffInDays(now()->startOfDay()),
+                'due_date' => $featureRequest->due_date->toDateTimeString(),
+                'hours_overdue' => (int) $featureRequest->due_date->diffInHours(now()),
                 'href' => route('feature-requests.show', $featureRequest, false),
             ])
             ->all();

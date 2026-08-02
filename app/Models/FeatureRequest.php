@@ -56,7 +56,7 @@ class FeatureRequest extends Model
             'priority' => Priority::class,
             'status' => FeatureRequestStatus::class,
             'requested_at' => 'datetime',
-            'due_date' => 'date',
+            'due_date' => 'datetime',
             'fulfilled_at' => 'datetime',
             'is_on_time' => 'boolean',
         ];
@@ -66,7 +66,7 @@ class FeatureRequest extends Model
     {
         static::creating(function (FeatureRequest $featureRequest) {
             $featureRequest->due_date = Carbon::parse($featureRequest->requested_at)
-                ->addDays(SlaConfig::daysForPriority($featureRequest->priority));
+                ->addHours(SlaConfig::hoursForPriority($featureRequest->priority));
         });
 
         static::saving(function (FeatureRequest $featureRequest) {
@@ -74,7 +74,7 @@ class FeatureRequest extends Model
                 ($featureRequest->isDirty('fulfilled_at') || $featureRequest->isDirty('due_date'))
                 && $featureRequest->fulfilled_at !== null
             ) {
-                $featureRequest->is_on_time = $featureRequest->fulfilled_at->lte($featureRequest->due_date->endOfDay());
+                $featureRequest->is_on_time = $featureRequest->fulfilled_at->lte($featureRequest->due_date);
                 $featureRequest->status = FeatureRequestStatus::Fulfilled;
             }
         });

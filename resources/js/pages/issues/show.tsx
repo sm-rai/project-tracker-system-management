@@ -93,14 +93,6 @@ function formatDateTime(value: string): string {
     }).format(new Date(value));
 }
 
-function formatDate(value: string): string {
-    return new Intl.DateTimeFormat('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-    }).format(new Date(value));
-}
-
 function DetailRow({
     label,
     children,
@@ -153,8 +145,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
     };
 
     const isOverdue =
-        issue.status === 'open' &&
-        new Date(issue.due_date) < new Date(new Date().setHours(0, 0, 0, 0));
+        issue.status === 'open' && new Date(issue.due_date) < new Date();
 
     const getPriorityBadge = (priority: string) => {
         switch (priority) {
@@ -383,7 +374,8 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     </p>
                                     <p className="mt-1 text-sm leading-relaxed">
                                         Penanganan issue ini melewati batas
-                                        waktu pada {formatDate(issue.due_date)}.
+                                        waktu pada{' '}
+                                        {formatDateTime(issue.due_date)}.
                                     </p>
                                 </div>
                             </div>
@@ -508,7 +500,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                                         : 'font-semibold text-warning'
                                                 }
                                             >
-                                                {formatDate(issue.due_date)}
+                                                {formatDateTime(issue.due_date)}
                                             </span>
                                         </DetailRow>
                                         {issue.resolved_at && (
