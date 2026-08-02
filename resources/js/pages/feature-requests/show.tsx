@@ -18,6 +18,7 @@ import {
     start,
 } from '@/actions/App/Http/Controllers/FeatureRequestController';
 import { AppSidebar } from '@/components/app-sidebar';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ interface Props {
 
 const labels: Record<string, string> = {
     open: 'Open',
-    in_progress: 'Dikerjakan',
+    in_progress: 'Sedang Dikerjakan',
     fulfilled: 'Terpenuhi',
     urgent: 'Mendesak',
     normal: 'Normal',
@@ -65,6 +66,7 @@ function fullDate(value: string) {
 
 export default function Show({ featureRequest, can }: Props) {
     const [fulfillOpen, setFulfillOpen] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const fulfillForm = useForm({ fulfillment_note: '' });
     const overdue =
         featureRequest.status !== 'fulfilled' &&
@@ -82,13 +84,9 @@ export default function Show({ featureRequest, can }: Props) {
     };
 
     const remove = () => {
-        if (
-            window.confirm(
-                'Hapus feature request ini secara permanen? Tindakan ini tidak dapat dibatalkan.',
-            )
-        ) {
-            router.delete(destroy.url(featureRequest.id));
-        }
+        router.delete(destroy.url(featureRequest.id), {
+            onFinish: () => setDeleteConfirmOpen(false),
+        });
     };
 
     return (
@@ -141,7 +139,7 @@ export default function Show({ featureRequest, can }: Props) {
                                         }
                                     >
                                         <Play className="size-4" />
-                                        Mulai Dikerjakan
+                                        Mulai Feature Request
                                     </Button>
                                 )}
                                 {featureRequest.status !== 'fulfilled' && (
@@ -168,13 +166,15 @@ export default function Show({ featureRequest, can }: Props) {
                                 <Button asChild variant="outline">
                                     <Link href={edit(featureRequest.id)}>
                                         <Pencil className="size-4" />
-                                        Edit
+                                        Edit Feature Request
                                     </Link>
                                 </Button>
                                 {can.delete && (
                                     <Button
                                         variant="destructive"
-                                        onClick={remove}
+                                        onClick={() =>
+                                            setDeleteConfirmOpen(true)
+                                        }
                                     >
                                         <Trash2 className="size-4" />
                                         Hapus
@@ -188,7 +188,7 @@ export default function Show({ featureRequest, can }: Props) {
                                 <ClockAlert className="mt-0.5 size-5 shrink-0" />
                                 <div>
                                     <p className="font-medium">
-                                        Feature request melewati target SLA
+                                        Feature Request melewati target SLA
                                     </p>
                                     <p className="mt-1 text-sm">
                                         Segera perbarui progres atau tandai
@@ -212,7 +212,7 @@ export default function Show({ featureRequest, can }: Props) {
                                     </p>
 
                                     {featureRequest.fulfillment_note && (
-                                        <div className="mt-6 rounded-lg bg-[#E5F0E5] p-4 text-[#315f3a]">
+                                        <div className="mt-6 rounded-lg bg-success-surface p-4 text-success">
                                             <p className="text-xs font-semibold">
                                                 Catatan pemenuhan
                                             </p>
@@ -261,7 +261,7 @@ export default function Show({ featureRequest, can }: Props) {
                                     </div>
                                     {featureRequest.fulfilled_at && (
                                         <div className="flex gap-3">
-                                            <CheckCircle2 className="mt-0.5 size-4 text-[#3F7A4A]" />
+                                            <CheckCircle2 className="mt-0.5 size-4 text-success" />
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
                                                     Terpenuhi
@@ -275,7 +275,7 @@ export default function Show({ featureRequest, can }: Props) {
                                                     variant="outline"
                                                     className={
                                                         featureRequest.is_on_time
-                                                            ? 'mt-2 border-[#3F7A4A]/25 bg-[#E5F0E5] text-[#3F7A4A]'
+                                                            ? 'mt-2 border-success/20 bg-success-surface text-success'
                                                             : 'mt-2 border-destructive/25 bg-destructive/10 text-destructive'
                                                     }
                                                 >
@@ -296,9 +296,11 @@ export default function Show({ featureRequest, can }: Props) {
             <Dialog open={fulfillOpen} onOpenChange={setFulfillOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Tandai request terpenuhi</DialogTitle>
+                        <DialogTitle>
+                            Tandai Feature Request sebagai Terpenuhi
+                        </DialogTitle>
                         <DialogDescription>
-                            Waktu pemenuhan dan status on-time akan dihitung
+                            Waktu pemenuhan dan status tepat waktu akan dihitung
                             otomatis.
                         </DialogDescription>
                     </DialogHeader>
@@ -339,6 +341,15 @@ export default function Show({ featureRequest, can }: Props) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                title={`Hapus feature request "${featureRequest.title}"?`}
+                description="Feature request akan dihapus permanen dan tidak dapat dipulihkan."
+                confirmText="Hapus Feature Request"
+                variant="danger"
+                onConfirm={remove}
+            />
         </>
     );
 }

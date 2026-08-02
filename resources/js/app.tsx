@@ -1,6 +1,7 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp  } from '@inertiajs/react';
+import type {ResolvedComponent} from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from 'react-hot-toast';
 
@@ -9,14 +10,15 @@ const appName = import.meta.env.VITE_APP_NAME || 'Project Tracker';
 createInertiaApp({
     title: (title) => (title ? `${title} — ${appName}` : appName),
     resolve: (name) => {
-        const pages = import.meta.glob('./pages/**/*.tsx', { eager: true }) as Record<
-            string,
-            { default: React.ComponentType }
-        >;
-        return pages[`./pages/${name}.tsx`];
+        const pages = import.meta.glob<ResolvedComponent>('./pages/**/*.tsx');
+
+        return pages[`./pages/${name}.tsx`]();
     },
     setup({ el, App, props }) {
-        if (!el) return;
+        if (!el) {
+return;
+}
+
         createRoot(el).render(
             <>
                 <App {...props} />

@@ -4,7 +4,7 @@
 | | |
 |---|---|
 | **Dokumen** | Product Requirements Document (PRD) |
-| **Versi** | 1.2 (Revisi 2 — entitas Project & Sistem disatukan) |
+| **Versi** | 1.4 (Export PDF lengkap & PNG ringkasan snapshot) |
 | **Pemilik Produk** | Erwin — System Management, IT Rumah Atsiri Indonesia |
 | **Status** | Draft — siap direview sebelum masuk fase development |
 | **Tanggal** | 26 Juli 2026 |
@@ -27,7 +27,7 @@ Aplikasi ini menggantikan proses pencatatan manual/tersebar dan menjadi basis ot
 Divisi System Management memiliki dua OKR utama yang saat ini pelaporannya masih manual:
 
 **OKR 1 — Menyusun dan Menetapkan Alur Kerja Permintaan Program yang Jelas, Terukur, dan Berpusat pada Pengalaman Pengguna (User-Centric)**
-> Target: **75%** fitur yang di-*propose* pada brief terealisasi.
+> Target: setiap project development mencapai minimal **75%** realisasi fitur yang di-*propose* pada brief.
 
 **OKR 2 — Memperkuat Integrasi Antar Sistem dan Kolaborasi Lintas Departemen untuk Mendukung Arsitektur Bisnis yang Terpadu**
 > Target: **80%** kendala dapat teratasi sesuai timeline.
@@ -43,7 +43,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 - Mencatat semua kendala sistem dan request fitur pada sistem existing → basis perhitungan OKR 2.
 - Melacak fase siklus hidup tiap project/sistem secara eksplisit — dari development, deployment, hingga status operasional (running/maintenance).
 - Menghitung otomatis persentase capaian kedua OKR, termasuk tren dari minggu ke minggu.
-- Menghasilkan laporan mingguan yang bisa diexport dalam format **PDF** (laporan lengkap) dan **PNG** (per-chart, untuk share cepat), dengan fleksibilitas rentang tanggal.
+- Menghasilkan laporan mingguan yang bisa diexport dalam format **PDF** (laporan lengkap) dan **PNG** (ringkasan snapshot utuh untuk share cepat), dengan fleksibilitas rentang tanggal.
 
 ---
 
@@ -66,7 +66,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 - CRUD Feature Request — hanya untuk Project/Sistem yang sudah berstatus deployed
 - Konfigurasi SLA per prioritas (Urgent/Normal/Low)
 - Dashboard ringkasan real-time
-- Generate & export laporan mingguan (PDF lengkap + PNG per-chart), dengan opsi rentang tanggal custom
+- Generate & export laporan mingguan (PDF lengkap + PNG ringkasan snapshot utuh), dengan opsi rentang tanggal custom
 - Autentikasi sederhana (single user, role-ready)
 
 ### 5.2 Out of Scope (MVP) — kandidat fase berikutnya
@@ -89,7 +89,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 | **Database** | MySQL — satu database untuk seluruh entity, tidak perlu pemisahan schema mengingat skala aplikasi yang kecil dan single-purpose |
 | **Hosting** | Infra existing kamu (VPS via Coolify) |
 | **PDF generation** | Rekomendasi: **Spatie Browsershot** (render Blade/HTML view via headless Chrome ke PDF) — lebih presisi untuk chart dibanding DomPDF yang terbatas untuk CSS/JS modern |
-| **PNG per-chart export** | Screenshot komponen chart individual via Browsershot (server-side) atau export langsung dari canvas chart di browser (client-side, lebih ringan untuk MVP) |
+| **PNG snapshot export** | Screenshot ringkasan snapshot utuh via Browsershot (server-side), berisi ringkasan OKR, statistik, realisasi project, dan status Issue/Feature Request |
 | **Auth** | Laravel native auth (session-based) — cukup login email + password, tanpa alur invitation kompleks karena skala user kecil |
 
 > **Catatan:** pattern Repository + Service Layer bisa tetap dipakai untuk menjaga konsistensi coding style, sesuai preferensi arsitektur yang biasa kamu pakai.
@@ -200,26 +200,33 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 | period_start_date | date | tanggal mulai periode (default Senin) |
 | period_end_date | date | tanggal akhir periode (default Minggu, total 7 hari) |
 | period_type | enum | `weekly_default` (laporan mingguan standar, 7 hari) atau `custom_range` (analisis ad-hoc rentang tanggal bebas) |
-| okr1_avg_percentage | decimal | rata-rata % realisasi seluruh project aktif pada periode tsb |
+| okr1_project_achievement_percentage | decimal nullable | persentase project aktif yang mencapai target OKR 1 sebesar 75%; ringkasan tambahan, bukan pengganti penilaian per project |
 | okr2_issue_percentage | decimal | % kendala on-time pada periode tsb |
 | okr2_feature_request_percentage | decimal | % request fitur on-time pada periode tsb |
 | project_breakdown_json | json | snapshot detail per project saat itu |
 | issue_breakdown_json | json | snapshot detail kendala saat itu (termasuk breakdown root cause) |
 | feature_request_breakdown_json | json | snapshot detail request fitur saat itu |
 | pdf_file_path | string | nullable, lokasi file PDF hasil generate |
-| png_file_paths | json (array) | nullable, lokasi file PNG per-chart |
+| png_file_paths | json (array) | nullable, kompatibilitas histori; export PNG MVP berupa satu ringkasan snapshot utuh dan tidak disimpan sebagai file permanen |
 | generated_at | timestamp | |
 
 > Snapshot disimpan permanen tiap kali laporan/analisis digenerate, agar tren historis tidak berubah meskipun data mentah di tabel lain kemudian diedit.
+
+> Catatan kompatibilitas: snapshot lama dapat tetap memiliki kolom `okr1_avg_percentage`, tetapi snapshot baru menggunakan `okr1_project_achievement_percentage` dan detail `project_breakdown_json` sebagai sumber penilaian OKR 1 per project.
 
 ---
 
 ## 8. Business Logic / Perhitungan
 
-### 8.1 OKR 1 — % Realisasi Fitur
-- Dihitung per project: `(fitur done / total fitur) × 100`.
-- Angka yang dilaporkan ke HoD adalah **rata-rata % realisasi dari seluruh project berstatus** `planning`, `in_progress`, `on_hold`, dan `completed_pending_deployment` pada periode laporan — status-status ini masih dianggap "dalam radar" realisasi brief.
-- Begitu project berstatus `deployed_running` atau `deployed_maintenance`, project tersebut dianggap **100% selesai** dan otomatis "lulus" dari rata-rata mingguan OKR 1 (tetap tercatat untuk histori), sekaligus otomatis menjadi eligible untuk menerima pencatatan Issue/Feature Request di OKR 2 — tidak ada langkah linking manual, karena keduanya adalah entitas yang sama.
+### 8.1 OKR 1 — % Realisasi Fitur per Project
+- Setiap project yang masih berada dalam fase development memiliki OKR 1 masing-masing.
+- Status project yang masuk penilaian: `planning`, `in_progress`, `on_hold`, dan `completed_pending_deployment`.
+- Perhitungan setiap project: `(fitur done / total fitur) × 100`.
+- Project dinyatakan mencapai OKR 1 apabila realisasinya minimal **75%**.
+- Dashboard dan laporan wajib menampilkan hasil per project, bukan rata-rata persentase lintas project.
+- Project yang belum memiliki brief feature berstatus **belum dapat dinilai** dan tidak dimasukkan ke denominator project yang dapat dinilai. Kondisi ini tetap ditampilkan sebagai kelengkapan data yang perlu ditindaklanjuti.
+- Ringkasan tambahan boleh menampilkan jumlah project yang mencapai target dibandingkan jumlah project yang dapat dinilai, tetapi tidak menjadi pengganti nilai OKR per project.
+- Begitu project berstatus `deployed_running` atau `deployed_maintenance`, project tersebut dianggap **100% selesai** dan otomatis keluar dari radar OKR 1 (tetap tercatat untuk histori), sekaligus otomatis menjadi eligible untuk menerima pencatatan Issue/Feature Request di OKR 2 — tidak ada langkah linking manual, karena keduanya adalah entitas yang sama.
 
 ### 8.2 OKR 2 — Kendala & Request Fitur
 - `due_date` = tanggal lapor + jumlah hari SLA sesuai prioritas (kalender hari biasa, bukan hari kerja — lihat catatan di §11).
@@ -257,7 +264,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 ### 9.5 Dashboard Utama
 - Ringkasan real-time (tidak perlu tunggu laporan mingguan):
   - Jumlah project/sistem per status (termasuk status deployment/operasional)
-  - Rata-rata % realisasi OKR 1 saat ini
+  - Realisasi OKR 1 per project aktif dan jumlah project yang mencapai target
   - Jumlah sistem yang sedang `deployed_maintenance`
   - Jumlah Issue & Feature Request open, termasuk yang overdue
   - % on-time OKR 2 berjalan (periode saat ini, live)
@@ -267,7 +274,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 - **Analisis Rentang Custom:** user bisa memilih rentang tanggal bebas (tidak harus 7 hari/kelipatan minggu) untuk kebutuhan visualisasi/analisis ad-hoc yang berbeda dari laporan mingguan standar.
 - Preview laporan sebelum export.
 - Export **PDF** (laporan lengkap): ringkasan OKR 1 & OKR 2, chart tren antar-periode, chart realisasi vs target, breakdown root cause, narasi otomatis (misal: "Minggu ini X kendala dilaporkan, Y% selesai tepat waktu").
-- Export **PNG** per-chart untuk kebutuhan share cepat (misal ke WhatsApp/slide HoD).
+- Export **PNG** ringkasan snapshot utuh untuk kebutuhan share cepat (misal ke WhatsApp/slide HoD).
 - Setiap kali generate, tersimpan sebagai snapshot histori (`report_snapshots`), ditandai `period_type` sesuai jenisnya.
 
 ### 9.7 Autentikasi
@@ -293,9 +300,9 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 Beberapa keputusan berikut diambil sebagai asumsi masuk akal berdasarkan brainstorming — sebaiknya dikonfirmasi ulang sebelum development dimulai:
 
 1. **Perhitungan hari SLA** memakai kalender hari biasa (termasuk weekend), bukan hari kerja. Jika Rumah Atsiri punya definisi "hari kerja" yang berbeda, `due_date` perlu logika tambahan (skip weekend/libur).
-2. **Cakupan rata-rata OKR 1** hanya mencakup project berstatus `planning`/`in_progress`/`on_hold`/`completed_pending_deployment`. Perlu dikonfirmasi apakah ini sesuai maksud pelaporan ke HoD, atau justru harus mencakup semua project sejak awal tahun (cumulative), termasuk yang sudah `deployed`.
+2. **Cakupan OKR 1** hanya mencakup project berstatus `planning`/`in_progress`/`on_hold`/`completed_pending_deployment`, dengan target 75% untuk setiap project. Project yang sudah `deployed` keluar dari radar OKR 1.
 3. **Status `deployed_maintenance`** murni penanda kondisi ("sistem sedang dalam maintenance"), belum tentu berkaitan langsung dengan satu Issue tertentu. Perlu dikonfirmasi apakah maintenance terjadwal (misal: update rutin) perlu tercatat sebagai entry terpisah (misal maintenance log) di fase berikutnya, atau cukup sebagai status saja untuk MVP.
-4. **PDF/PNG generation approach** (Browsershot vs alternatif lain) adalah rekomendasi awal, bisa dievaluasi ulang saat implementasi tergantung kompleksitas chart yang dibutuhkan.
+4. **PDF/PNG generation approach** menggunakan Spatie Browsershot dengan Chrome/Chromium headless; konfigurasi executable dapat diarahkan melalui `BROWSERSHOT_CHROME_PATH` bila browser tidak terdeteksi otomatis.
 
 ---
 
@@ -308,7 +315,7 @@ Beberapa keputusan berikut diambil sebagai asumsi masuk akal berdasarkan brainst
 - [ ] Halaman konfigurasi SLA berfungsi
 - [ ] Dashboard menampilkan ringkasan real-time yang akurat
 - [ ] Laporan mingguan standar (7 hari) maupun analisis rentang custom bisa digenerate, dengan snapshot tersimpan
-- [ ] Export PDF lengkap dan PNG per-chart berhasil dan layak dikirim ke HoD tanpa editing manual tambahan
+- [ ] Export PDF lengkap dan PNG ringkasan snapshot utuh berhasil dan layak dikirim ke HoD tanpa editing manual tambahan
 - [ ] Login berfungsi dengan aman (single user)
 
 ---

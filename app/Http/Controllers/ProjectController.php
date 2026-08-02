@@ -47,7 +47,6 @@ class ProjectController extends Controller
             return $project;
         });
 
-        // Calculate OKR 1 Average Realization Percentage across active development projects
         $activeDevelopmentStatuses = [
             ProjectStatus::Planning->value,
             ProjectStatus::InProgress->value,
@@ -55,14 +54,20 @@ class ProjectController extends Controller
             ProjectStatus::CompletedPendingDeployment->value,
         ];
 
-        $activeProjects = Project::whereIn('status', $activeDevelopmentStatuses)->get();
-        $totalActive = $activeProjects->count();
-        $avgOkr1 = 0;
-
-        if ($totalActive > 0) {
-            $sumPercentage = $activeProjects->sum(fn (Project $p) => $p->realization_percentage);
-            $avgOkr1 = round($sumPercentage / $totalActive, 1);
-        }
+        $activeProjects = Project::query()
+            ->whereIn('status', $activeDevelopmentStatuses)
+            ->withCount([
+                'briefFeatures as brief_features_total',
+                'briefFeatures as brief_features_done' => fn ($query) => $query
+                    ->where('status', BriefFeatureStatus::Done->value),
+            ])
+            ->get();
+        $evaluableProjects = $activeProjects->filter(
+            fn (Project $project): bool => (int) $project->brief_features_total > 0
+        );
+        $achievedProjects = $evaluableProjects->filter(
+            fn (Project $project): bool => ((int) $project->brief_features_done / (int) $project->brief_features_total) * 100 >= 75
+        );
 
         $summary = [
             'total_projects' => Project::count(),
@@ -71,7 +76,9 @@ class ProjectController extends Controller
                 ProjectStatus::DeployedRunning->value,
                 ProjectStatus::DeployedMaintenance->value,
             ])->count(),
-            'okr1_avg_realization' => $avgOkr1,
+            'okr1_total_projects' => $activeProjects->count(),
+            'okr1_evaluable_projects' => $evaluableProjects->count(),
+            'okr1_achieved_projects' => $achievedProjects->count(),
         ];
 
         return Inertia::render('projects/index', [
@@ -212,13 +219,23 @@ class ProjectController extends Controller
         unset($validated['user_ids']);
 
         $newStatus = ProjectStatus::from($validated['status']);
+        $developmentStatuses = [
+            ProjectStatus::Planning,
+            ProjectStatus::InProgress,
+            ProjectStatus::OnHold,
+        ];
         $deployedStatuses = [
             ProjectStatus::CompletedPendingDeployment,
             ProjectStatus::DeployedRunning,
             ProjectStatus::DeployedMaintenance,
         ];
 
-        if (in_array($newStatus, $deployedStatuses) && empty($validated['actual_end_date']) && empty($project->actual_end_date)) {
+        if (
+            in_array($project->status, $developmentStatuses, true)
+            && in_array($newStatus, $deployedStatuses, true)
+            && empty($validated['actual_end_date'])
+            && empty($project->actual_end_date)
+        ) {
             $validated['actual_end_date'] = now()->toDateString();
         }
 

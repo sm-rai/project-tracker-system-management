@@ -24,6 +24,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read float $realization_percentage
+ * @property-read int $brief_features_total
+ * @property-read int $brief_features_done
  * @property-read User $creator
  */
 class Project extends Model

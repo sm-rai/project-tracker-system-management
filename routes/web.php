@@ -1,17 +1,30 @@
 <?php
 
 use App\Http\Controllers\BriefFeatureController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeatureRequestController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ReportSnapshotController;
+use App\Http\Controllers\ReportSnapshotExportController;
 use App\Http\Controllers\SlaConfigController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', fn () => redirect()->route('dashboard'))
+    ->middleware('auth')
+    ->name('home');
 
 Route::middleware('auth')->group(function (): void {
-    Route::inertia('/dashboard', 'dashboard')->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/reports', [ReportSnapshotController::class, 'index'])->name('reports.index');
+    Route::post('/reports', [ReportSnapshotController::class, 'store'])->name('reports.store');
+    Route::get('/reports/{reportSnapshot}/export/pdf', [ReportSnapshotExportController::class, 'pdf'])
+        ->name('reports.export.pdf');
+    Route::get('/reports/{reportSnapshot}/export/png', [ReportSnapshotExportController::class, 'png'])
+        ->name('reports.export.png');
+    Route::get('/reports/{reportSnapshot}', [ReportSnapshotController::class, 'show'])->name('reports.show');
 
     // SLA Configuration
     Route::get('/settings/sla', [SlaConfigController::class, 'index'])->name('sla.index');

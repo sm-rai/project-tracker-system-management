@@ -1,22 +1,32 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
 import {
-    CheckCircle2,
+    ChevronLeft,
+    ChevronRight,
     Clock,
     Eye,
+    MoreHorizontal,
     Plus,
-    RefreshCw,
     Search,
+    SearchX,
     Trash2,
+    X,
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 
 import { AppSidebar } from '@/components/app-sidebar';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { FilterPopover } from '@/components/filter-popover';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Pagination } from '@/components/ui/pagination';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+} from '@/components/ui/pagination';
 import {
     Select,
     SelectContent,
@@ -33,6 +43,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 
 interface Project {
     id: number;
@@ -60,6 +71,8 @@ interface PaginatedData<T> {
     data: T[];
     current_page: number;
     last_page: number;
+    from: number | null;
+    to: number | null;
     per_page: number;
     total: number;
     links: { url: string | null; label: string; active: boolean }[];
@@ -67,22 +80,40 @@ interface PaginatedData<T> {
 
 interface IssuesIndexProps {
     issues: PaginatedData<Issue>;
-    metrics: {
-        total: number;
-        open: number;
-        resolved: number;
-        overdue: number;
-        on_time_percentage: number;
-    };
     filters: {
         search?: string;
         project_id?: string;
         priority?: string;
         status?: string;
         root_cause_category?: string;
-        overdue?: boolean;
+        overdue?: boolean | string;
     };
     deployedProjects: Project[];
+}
+
+const rootCauseLabels: Record<string, string> = {
+    system_error: 'System Error',
+    non_system: 'Non-System',
+    other: 'Other',
+};
+
+function getPriorityBadge(priority: string) {
+    const className =
+        priority === 'urgent'
+            ? 'border-danger/20 bg-danger-surface text-danger'
+            : priority === 'normal'
+              ? 'border-warning/20 bg-warning-surface text-warning'
+              : 'border-info/20 bg-info-surface text-info';
+
+    return (
+        <Badge variant="outline" className={className}>
+            {priority === 'urgent'
+                ? 'Urgent'
+                : priority === 'normal'
+                  ? 'Normal'
+                  : 'Low'}
+        </Badge>
+    );
 }
 
 export default function IssuesIndexPage({
@@ -103,147 +134,232 @@ export default function IssuesIndexPage({
     const [selectedRootCause, setSelectedRootCause] = useState(
         filters.root_cause_category || 'all',
     );
+    const [overdue, setOverdue] = useState(
+        filters.overdue === true || filters.overdue === '1',
+    );
+    const [issueToDelete, setIssueToDelete] = useState<Issue | null>(null);
+    const isFirstRender = useRef(true);
 
-    const handleFilterChange = (key: string, value: string) => {
-        const queryParams = {
+    const applyFilters = (
+        searchValue: string,
+        projectValue: string,
+        priorityValue: string,
+        statusValue: string,
+        rootCauseValue: string,
+        overdueValue: boolean,
+    ) => {
+        router.get(
+            '/issues',
+            {
+                search: searchValue || undefined,
+                project_id: projectValue === 'all' ? undefined : projectValue,
+                priority: priorityValue === 'all' ? undefined : priorityValue,
+                status: statusValue === 'all' ? undefined : statusValue,
+                root_cause_category:
+                    rootCauseValue === 'all' ? undefined : rootCauseValue,
+                overdue: overdueValue ? 1 : undefined,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
+    };
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            applyFilters(
+                search,
+                selectedProject,
+                selectedPriority,
+                selectedStatus,
+                selectedRootCause,
+                overdue,
+            );
+        }, 300);
+
+        return () => clearTimeout(timer);
+        // Select filters apply immediately; only the free-text search is debounced.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
+
+    const handleProjectChange = (value: string) => {
+        setSelectedProject(value);
+        applyFilters(
             search,
-            project_id: selectedProject,
-            priority: selectedPriority,
-            status: selectedStatus,
-            root_cause_category: selectedRootCause,
-            [key]: value,
-        };
-
-        // Clean up default 'all'
-        Object.keys(queryParams).forEach((k) => {
-            if (
-                queryParams[k as keyof typeof queryParams] === 'all' ||
-                !queryParams[k as keyof typeof queryParams]
-            ) {
-                delete queryParams[k as keyof typeof queryParams];
-            }
-        });
-
-        router.get('/issues', queryParams, {
-            preserveState: true,
-            replace: true,
-        });
+            value,
+            selectedPriority,
+            selectedStatus,
+            selectedRootCause,
+            overdue,
+        );
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleFilterChange('search', search);
+    const handlePriorityChange = (value: string) => {
+        setSelectedPriority(value);
+        applyFilters(
+            search,
+            selectedProject,
+            value,
+            selectedStatus,
+            selectedRootCause,
+            overdue,
+        );
     };
 
-    const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus data issue ini?')) {
-            router.delete(`/issues/${id}`);
+    const handleStatusChange = (value: string) => {
+        setSelectedStatus(value);
+        applyFilters(
+            search,
+            selectedProject,
+            selectedPriority,
+            value,
+            selectedRootCause,
+            overdue,
+        );
+    };
+
+    const handleRootCauseChange = (value: string) => {
+        setSelectedRootCause(value);
+        applyFilters(
+            search,
+            selectedProject,
+            selectedPriority,
+            selectedStatus,
+            value,
+            overdue,
+        );
+    };
+
+    const handleOverdueChange = (checked: boolean) => {
+        setOverdue(checked);
+        applyFilters(
+            search,
+            selectedProject,
+            selectedPriority,
+            selectedStatus,
+            selectedRootCause,
+            checked,
+        );
+    };
+
+    const handleResetFilters = () => {
+        setSearch('');
+        setSelectedProject('all');
+        setSelectedPriority('all');
+        setSelectedStatus('all');
+        setSelectedRootCause('all');
+        setOverdue(false);
+        router.get('/issues', {}, { preserveState: true, replace: true });
+    };
+
+    const handleDelete = () => {
+        if (!issueToDelete) {
+            return;
         }
+
+        router.delete(`/issues/${issueToDelete.id}`, {
+            onFinish: () => setIssueToDelete(null),
+        });
     };
 
-    const getPriorityBadge = (priority: string) => {
-        switch (priority) {
-            case 'urgent':
-                return (
-                    <Badge className="bg-red-600 font-medium text-white hover:bg-red-700">
-                        Urgent
-                    </Badge>
-                );
-            case 'normal':
-                return (
-                    <Badge className="bg-amber-500 font-medium text-white hover:bg-amber-600">
-                        Normal
-                    </Badge>
-                );
-            case 'low':
-                return (
-                    <Badge className="bg-blue-500 font-medium text-white hover:bg-blue-600">
-                        Low
-                    </Badge>
-                );
-            default:
-                return <Badge variant="outline">{priority}</Badge>;
-        }
-    };
+    const hasActiveFilter =
+        search.trim() !== '' ||
+        selectedProject !== 'all' ||
+        selectedPriority !== 'all' ||
+        selectedStatus !== 'all' ||
+        selectedRootCause !== 'all' ||
+        overdue;
+    const activeAdvancedFilterCount = [
+        selectedProject !== 'all',
+        selectedPriority !== 'all',
+        selectedStatus !== 'all',
+        selectedRootCause !== 'all',
+        overdue,
+    ].filter(Boolean).length;
+    const prevLink = issues.links[0]?.url;
+    const nextLink = issues.links[issues.links.length - 1]?.url;
 
     return (
         <>
-            <Head title="Daftar Issue System" />
+            <Head title="Issues" />
             <SidebarProvider
                 style={
                     {
                         '--sidebar-width': 'calc(var(--spacing) * 72)',
                         '--header-height': 'calc(var(--spacing) * 12)',
-                    } as React.CSSProperties
+                    } as CSSProperties
                 }
             >
                 <AppSidebar variant="inset" />
                 <SidebarInset>
                     <SiteHeader title="Daftar Issue" />
-                    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-                        {/* Header & Title */}
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <h1 className="text-2xl font-bold tracking-tight">
-                                    Daftar Issue System
-                                </h1>
-                                <p className="mt-0.5 text-sm text-muted-foreground">
-                                    Kelola dan pantau seluruh laporan issue
-                                    teknis pada sistem operasional.
-                                </p>
-                            </div>
-                            <Button asChild className="shrink-0 gap-2">
-                                <Link href="/issues/create">
-                                    <Plus className="h-4 w-4" />
-                                    Catat Issue
-                                </Link>
-                            </Button>
+                    <div className="flex flex-1 flex-col gap-4 p-4 pt-0 md:p-6 md:pt-0">
+                        <div className="flex flex-col gap-1 pt-4 md:pt-2">
+                            <h1 className="text-lg font-semibold tracking-tight text-foreground">
+                                Issues
+                            </h1>
+                            <p className="text-sm text-muted-foreground">
+                                Catat dan pantau issue teknis pada sistem
+                                operasional, termasuk target penyelesaiannya
+                                berdasarkan SLA.
+                            </p>
                         </div>
 
-                        {/* Compact Search & Filters Bar */}
-                        <Card className="border bg-card py-0 shadow-xs">
-                            <CardContent className="px-3.5 py-2.5 md:px-4 md:py-3">
-                                <div className="flex flex-wrap items-center gap-3">
-                                    {/* Search Input */}
-                                    <form
-                                        onSubmit={handleSearchSubmit}
-                                        className="flex min-w-[260px] flex-1 items-center gap-2"
-                                    >
-                                        <div className="relative flex-1">
-                                            <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                type="search"
-                                                placeholder="Cari judul atau deskripsi issue..."
-                                                value={search}
-                                                onChange={(e) =>
-                                                    setSearch(e.target.value)
-                                                }
-                                                className="h-9 pl-9 text-sm"
-                                            />
-                                        </div>
-                                        <Button
-                                            type="submit"
-                                            variant="secondary"
-                                            size="sm"
-                                            className="h-9 px-3"
-                                        >
-                                            Cari
-                                        </Button>
-                                    </form>
-
-                                    {/* Project Filter */}
-                                    <div className="w-full sm:w-[220px]">
-                                        <Select
-                                            value={selectedProject}
-                                            onValueChange={(val) => {
-                                                setSelectedProject(val);
-                                                handleFilterChange(
-                                                    'project_id',
-                                                    val,
+                        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                            <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                                <div className="relative max-w-sm flex-1">
+                                    <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        aria-label="Cari issue"
+                                        type="search"
+                                        placeholder="Cari judul atau deskripsi issue..."
+                                        value={search}
+                                        onChange={(event) =>
+                                            setSearch(event.target.value)
+                                        }
+                                        className="h-9 border-border bg-background pr-8 pl-9 text-sm focus-visible:ring-ring/30"
+                                    />
+                                    {search && (
+                                        <button
+                                            type="button"
+                                            aria-label="Hapus pencarian"
+                                            onClick={() => {
+                                                setSearch('');
+                                                applyFilters(
+                                                    '',
+                                                    selectedProject,
+                                                    selectedPriority,
+                                                    selectedStatus,
+                                                    selectedRootCause,
+                                                    overdue,
                                                 );
                                             }}
+                                            className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded-sm p-0.5 text-muted-foreground transition-colors hover:text-foreground"
                                         >
-                                            <SelectTrigger className="h-9 text-sm">
+                                            <X className="size-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <FilterPopover
+                                    activeCount={activeAdvancedFilterCount}
+                                >
+                                    <div className="grid gap-3">
+                                        <Select
+                                            value={selectedProject}
+                                            onValueChange={handleProjectChange}
+                                        >
+                                            <SelectTrigger
+                                                aria-label="Filter sistem"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[190px] md:h-9"
+                                            >
                                                 <SelectValue placeholder="Semua Sistem" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -254,32 +370,28 @@ export default function IssuesIndexPage({
                                                     Infrastruktur / Umum
                                                 </SelectItem>
                                                 {deployedProjects.map(
-                                                    (proj) => (
+                                                    (project) => (
                                                         <SelectItem
-                                                            key={proj.id}
-                                                            value={proj.id.toString()}
+                                                            key={project.id}
+                                                            value={String(
+                                                                project.id,
+                                                            )}
                                                         >
-                                                            {proj.name}
+                                                            {project.name}
                                                         </SelectItem>
                                                     ),
                                                 )}
                                             </SelectContent>
                                         </Select>
-                                    </div>
 
-                                    {/* Priority Filter */}
-                                    <div className="w-full sm:w-[150px]">
                                         <Select
                                             value={selectedPriority}
-                                            onValueChange={(val) => {
-                                                setSelectedPriority(val);
-                                                handleFilterChange(
-                                                    'priority',
-                                                    val,
-                                                );
-                                            }}
+                                            onValueChange={handlePriorityChange}
                                         >
-                                            <SelectTrigger className="h-9 text-sm">
+                                            <SelectTrigger
+                                                aria-label="Filter prioritas"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[150px] md:h-9"
+                                            >
                                                 <SelectValue placeholder="Semua Prioritas" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -297,21 +409,15 @@ export default function IssuesIndexPage({
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
-                                    </div>
 
-                                    {/* Status Filter */}
-                                    <div className="w-full sm:w-[140px]">
                                         <Select
                                             value={selectedStatus}
-                                            onValueChange={(val) => {
-                                                setSelectedStatus(val);
-                                                handleFilterChange(
-                                                    'status',
-                                                    val,
-                                                );
-                                            }}
+                                            onValueChange={handleStatusChange}
                                         >
-                                            <SelectTrigger className="h-9 text-sm">
+                                            <SelectTrigger
+                                                aria-label="Filter status issue"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[140px] md:h-9"
+                                            >
                                                 <SelectValue placeholder="Semua Status" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -326,256 +432,427 @@ export default function IssuesIndexPage({
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
-                                    </div>
 
-                                    {/* Animated Reset Filters Button */}
+                                        <Select
+                                            value={selectedRootCause}
+                                            onValueChange={
+                                                handleRootCauseChange
+                                            }
+                                        >
+                                            <SelectTrigger
+                                                aria-label="Filter akar masalah"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[160px] md:h-9"
+                                            >
+                                                <SelectValue placeholder="Semua Root Cause" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">
+                                                    Semua Root Cause
+                                                </SelectItem>
+                                                {Object.entries(
+                                                    rootCauseLabels,
+                                                ).map(([value, label]) => (
+                                                    <SelectItem
+                                                        key={value}
+                                                        value={value}
+                                                    >
+                                                        {label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+
+                                        <label className="flex h-9 items-center gap-2 px-1 text-sm text-muted-foreground">
+                                            <Checkbox
+                                                checked={overdue}
+                                                onCheckedChange={(checked) =>
+                                                    handleOverdueChange(
+                                                        checked === true,
+                                                    )
+                                                }
+                                            />
+                                            Overdue
+                                        </label>
+                                    </div>
+                                </FilterPopover>
+
+                                {hasActiveFilter && (
                                     <Button
                                         variant="ghost"
-                                        size="icon"
-                                        title="Reset Filter"
-                                        onClick={() => router.get('/issues')}
-                                        className="group ml-auto h-9 w-9 shrink-0 hover:bg-muted sm:ml-0"
+                                        size="sm"
+                                        onClick={handleResetFilters}
+                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto md:h-9"
                                     >
-                                        <RefreshCw className="h-4 w-4 text-muted-foreground transition-transform duration-500 ease-in-out group-hover:rotate-180 group-hover:text-foreground group-active:rotate-360" />
+                                        <X className="mr-1 size-3" />
+                                        Reset Filter
                                     </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                )}
+                            </div>
 
-                        {/* Data Table */}
-                        <Card className="overflow-hidden rounded-xl border bg-card py-0 shadow-xs">
-                            <CardContent className="p-0">
-                                <Table className="min-w-[1040px] table-fixed">
-                                    <TableHeader className="border-b bg-muted/60">
-                                        <TableRow className="border-b-0 hover:bg-transparent">
-                                            <TableHead className="h-11 w-[18%] px-4 py-3 align-middle font-semibold text-foreground">
-                                                Sistem
-                                            </TableHead>
-                                            <TableHead className="h-11 w-[30%] px-4 py-3 align-middle font-semibold text-foreground">
-                                                Issue
-                                            </TableHead>
-                                            <TableHead className="h-11 w-[11%] px-4 py-3 align-middle font-semibold text-foreground">
-                                                Prioritas
-                                            </TableHead>
-                                            <TableHead className="h-11 w-[15%] px-4 py-3 align-middle font-semibold text-foreground">
-                                                Waktu Lapor
-                                            </TableHead>
-                                            <TableHead className="h-11 w-[16%] px-4 py-3 align-middle font-semibold text-foreground">
-                                                Status
-                                            </TableHead>
-                                            <TableHead className="h-11 w-[10%] px-4 py-3 text-right align-middle font-semibold text-foreground">
-                                                Aksi
-                                            </TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {issues.data.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell
-                                                    colSpan={6}
-                                                    className="h-44 text-center"
+                            <Button
+                                asChild
+                                size="sm"
+                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover md:h-9"
+                            >
+                                <Link href="/issues/create">
+                                    <Plus className="size-4" />
+                                    <span>Catat Issue</span>
+                                </Link>
+                            </Button>
+                        </div>
+
+                        <div className="overflow-hidden rounded-lg border border-border bg-card">
+                            <Table className="min-w-[1040px]">
+                                <TableHeader>
+                                    <TableRow className="border-border hover:bg-transparent">
+                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                            Sistem
+                                        </TableHead>
+                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                            Issue
+                                        </TableHead>
+                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                            Prioritas
+                                        </TableHead>
+                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                            Waktu Lapor
+                                        </TableHead>
+                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                            Status
+                                        </TableHead>
+                                        <TableHead className="h-10 text-right text-xs font-medium text-muted-foreground">
+                                            Aksi
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {issues.data.length > 0 ? (
+                                        issues.data.map((issue) => {
+                                            const isOverdue =
+                                                issue.status === 'open' &&
+                                                new Date(issue.due_date) <
+                                                    new Date(
+                                                        new Date().setHours(
+                                                            0,
+                                                            0,
+                                                            0,
+                                                            0,
+                                                        ),
+                                                    );
+
+                                            return (
+                                                <TableRow
+                                                    key={issue.id}
+                                                    className="border-border transition-colors hover:bg-muted/30"
                                                 >
-                                                    <div className="flex flex-col items-center justify-center gap-1.5 py-6 text-muted-foreground">
-                                                        <CheckCircle2 className="h-8 w-8 stroke-[1.5] text-muted-foreground/50" />
-                                                        <span className="text-sm font-medium">
-                                                            Belum ada issue yang
-                                                            tercatat.
-                                                        </span>
-                                                        <span className="text-xs text-muted-foreground/70">
-                                                            Klik &ldquo;+ Catat
-                                                            Issue&rdquo; untuk
-                                                            membuat laporan
-                                                            pertama.
-                                                        </span>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            issues.data.map((issue) => {
-                                                const isOverdue =
-                                                    issue.status === 'open' &&
-                                                    new Date(issue.due_date) <
-                                                        new Date(
-                                                            new Date().setHours(
-                                                                0,
-                                                                0,
-                                                                0,
-                                                                0,
-                                                            ),
-                                                        );
-
-                                                return (
-                                                    <TableRow
-                                                        key={issue.id}
-                                                        className="transition-colors hover:bg-muted/30"
-                                                    >
-                                                        {/* 1. Sistem */}
-                                                        <TableCell className="px-4 py-3">
-                                                            <div className="flex min-w-0 flex-col">
-                                                                <span className="truncate text-sm font-semibold text-foreground">
-                                                                    {issue.project
-                                                                        ? issue
-                                                                              .project
-                                                                              .name
-                                                                        : 'Infrastruktur / Umum'}
+                                                    <TableCell>
+                                                        <div className="flex min-w-0 flex-col">
+                                                            <span className="truncate text-sm font-medium text-foreground">
+                                                                {issue.project
+                                                                    ? issue
+                                                                          .project
+                                                                          .name
+                                                                    : 'Infrastruktur / Umum'}
+                                                            </span>
+                                                            {issue.project && (
+                                                                <span className="truncate text-xs text-muted-foreground capitalize">
+                                                                    {issue.project.status.replace(
+                                                                        '_',
+                                                                        ' ',
+                                                                    )}
                                                                 </span>
-                                                                {issue.project && (
-                                                                    <span className="truncate text-[11px] text-muted-foreground capitalize">
-                                                                        {issue.project.status.replace(
-                                                                            '_',
-                                                                            ' ',
-                                                                        )}
-                                                                    </span>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex min-w-0 flex-col gap-0.5">
+                                                            <Link
+                                                                href={`/issues/${issue.id}`}
+                                                                className="line-clamp-1 text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline"
+                                                            >
+                                                                {issue.title}
+                                                            </Link>
+                                                            <span className="line-clamp-1 text-xs text-muted-foreground">
+                                                                {
+                                                                    issue.description
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {getPriorityBadge(
+                                                            issue.priority,
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-sm text-muted-foreground tabular-nums">
+                                                        {new Date(
+                                                            issue.reported_at,
+                                                        ).toLocaleDateString(
+                                                            'id-ID',
+                                                            {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            },
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className={
+                                                                        issue.status ===
+                                                                        'open'
+                                                                            ? 'border-warning/20 bg-warning-surface text-warning'
+                                                                            : 'border-success/20 bg-success-surface text-success'
+                                                                    }
+                                                                >
+                                                                    {issue.status ===
+                                                                    'open'
+                                                                        ? 'Open'
+                                                                        : 'Resolved'}
+                                                                </Badge>
+                                                                {isOverdue && (
+                                                                    <Badge
+                                                                        variant="destructive"
+                                                                        className="px-1.5 py-0 text-xs"
+                                                                    >
+                                                                        Overdue
+                                                                    </Badge>
                                                                 )}
                                                             </div>
-                                                        </TableCell>
-
-                                                        {/* 2. Issue */}
-                                                        <TableCell className="px-4 py-3">
-                                                            <div className="flex min-w-0 flex-col gap-0.5">
+                                                            {issue.status ===
+                                                                'resolved' &&
+                                                                issue.is_on_time !==
+                                                                    null && (
+                                                                    <span
+                                                                        className={cn(
+                                                                            'text-xs font-medium',
+                                                                            issue.is_on_time
+                                                                                ? 'text-success'
+                                                                                : 'text-danger',
+                                                                        )}
+                                                                    >
+                                                                        {issue.is_on_time
+                                                                            ? 'Tepat waktu'
+                                                                            : 'Terlambat'}
+                                                                    </span>
+                                                                )}
+                                                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                                <Clock className="size-3 text-muted-foreground/70" />
+                                                                Target:{' '}
+                                                                {new Date(
+                                                                    issue.due_date,
+                                                                ).toLocaleDateString(
+                                                                    'id-ID',
+                                                                    {
+                                                                        day: 'numeric',
+                                                                        month: 'short',
+                                                                        year: 'numeric',
+                                                                    },
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <Button
+                                                                asChild
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="size-8 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                            >
                                                                 <Link
                                                                     href={`/issues/${issue.id}`}
-                                                                    className="line-clamp-1 text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline"
+                                                                    title="Lihat detail"
                                                                 >
-                                                                    {
-                                                                        issue.title
-                                                                    }
+                                                                    <Eye className="size-4" />
+                                                                    <span className="sr-only">
+                                                                        Lihat
+                                                                        Detail
+                                                                    </span>
                                                                 </Link>
-                                                                <span className="line-clamp-1 text-xs text-muted-foreground">
-                                                                    {
-                                                                        issue.description
-                                                                    }
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                title="Hapus issue"
+                                                                onClick={() =>
+                                                                    setIssueToDelete(
+                                                                        issue,
+                                                                    )
+                                                                }
+                                                                className="size-11 text-muted-foreground hover:bg-danger-surface hover:text-danger md:size-8"
+                                                            >
+                                                                <Trash2 className="size-4" />
+                                                                <span className="sr-only">
+                                                                    Hapus Issue
                                                                 </span>
-                                                            </div>
-                                                        </TableCell>
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={6}
+                                                className="h-48 text-center"
+                                            >
+                                                <div className="mx-auto flex max-w-xs flex-col items-center justify-center gap-2">
+                                                    <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                                                        <SearchX className="size-5" />
+                                                    </div>
+                                                    <h3 className="text-sm font-semibold text-foreground">
+                                                        {hasActiveFilter
+                                                            ? 'Issue Tidak Ditemukan'
+                                                            : 'Belum Ada Issue'}
+                                                    </h3>
+                                                    <p className="text-center text-xs leading-normal text-muted-foreground">
+                                                        {hasActiveFilter
+                                                            ? 'Tidak ada issue yang cocok dengan filter saat ini.'
+                                                            : 'Klik “Catat Issue” untuk membuat laporan pertama.'}
+                                                    </p>
+                                                    {hasActiveFilter && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={
+                                                                handleResetFilters
+                                                            }
+                                                            className="mt-1 h-8 text-xs"
+                                                        >
+                                                            Reset Filter
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
 
-                                                        {/* 3. Prioritas */}
-                                                        <TableCell className="px-4 py-3">
-                                                            {getPriorityBadge(
-                                                                issue.priority,
-                                                            )}
-                                                        </TableCell>
+                            <div className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs text-muted-foreground tabular-nums">
+                                    Menampilkan{' '}
+                                    <span className="font-medium text-foreground">
+                                        {issues.from || 0}–{issues.to || 0}
+                                    </span>{' '}
+                                    dari total {issues.total} issue
+                                </p>
 
-                                                        {/* 4. Waktu Lapor */}
-                                                        <TableCell className="px-4 py-3 text-xs text-muted-foreground">
-                                                            {new Date(
-                                                                issue.reported_at,
-                                                            ).toLocaleDateString(
-                                                                'id-ID',
-                                                                {
-                                                                    day: 'numeric',
-                                                                    month: 'short',
-                                                                    year: 'numeric',
-                                                                    hour: '2-digit',
-                                                                    minute: '2-digit',
-                                                                },
-                                                            )}
-                                                        </TableCell>
+                                {issues.last_page > 1 && (
+                                    <Pagination className="mx-0 w-auto">
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <Link
+                                                    href={prevLink || '#'}
+                                                    preserveState
+                                                    preserveScroll
+                                                    className={cn(
+                                                        buttonVariants({
+                                                            variant: 'ghost',
+                                                            size: 'default',
+                                                        }),
+                                                        'h-8 gap-1 px-2.5 text-xs sm:pl-2.5',
+                                                        !prevLink &&
+                                                            'pointer-events-none opacity-40',
+                                                    )}
+                                                >
+                                                    <ChevronLeft className="size-4" />
+                                                    <span className="hidden sm:block">
+                                                        Sebelumnya
+                                                    </span>
+                                                </Link>
+                                            </PaginationItem>
 
-                                                        {/* 5. Status & Batas Waktu */}
-                                                        <TableCell className="px-4 py-3">
-                                                            <div className="flex flex-col gap-1">
-                                                                <div className="flex items-center gap-1.5">
-                                                                    {issue.status ===
-                                                                    'open' ? (
-                                                                        <Badge
-                                                                            variant="outline"
-                                                                            className="border-amber-500 bg-amber-50/60 font-medium text-amber-600 dark:bg-amber-950/20"
-                                                                        >
-                                                                            Open
-                                                                        </Badge>
-                                                                    ) : (
-                                                                        <div className="flex items-center gap-1">
-                                                                            <Badge className="bg-emerald-600 font-medium text-white">
-                                                                                Resolved
-                                                                            </Badge>
-                                                                            {issue.is_on_time !==
-                                                                                null && (
-                                                                                <span
-                                                                                    className={`text-[10px] font-semibold ${issue.is_on_time ? 'text-emerald-600' : 'text-red-500'}`}
-                                                                                >
-                                                                                    {issue.is_on_time
-                                                                                        ? '✓ On-Time'
-                                                                                        : '⚠ Late'}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                    {isOverdue && (
-                                                                        <Badge
-                                                                            variant="destructive"
-                                                                            className="px-1.5 py-0 text-[10px]"
-                                                                        >
-                                                                            Overdue
-                                                                        </Badge>
-                                                                    )}
-                                                                </div>
-                                                                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                                                                    <Clock className="h-3 w-3 text-muted-foreground/70" />
-                                                                    Batas:{' '}
-                                                                    {new Date(
-                                                                        issue.due_date,
-                                                                    ).toLocaleDateString(
-                                                                        'id-ID',
+                                            {issues.links
+                                                .slice(1, -1)
+                                                .map((link, index) =>
+                                                    link.label === '...' ? (
+                                                        <PaginationItem
+                                                            key={`ellipsis-${index}`}
+                                                        >
+                                                            <span className="flex size-8 items-center justify-center text-muted-foreground">
+                                                                <MoreHorizontal className="size-4" />
+                                                            </span>
+                                                        </PaginationItem>
+                                                    ) : (
+                                                        <PaginationItem
+                                                            key={link.label}
+                                                        >
+                                                            <Link
+                                                                href={
+                                                                    link.url ||
+                                                                    '#'
+                                                                }
+                                                                preserveState
+                                                                preserveScroll
+                                                                className={cn(
+                                                                    buttonVariants(
                                                                         {
-                                                                            day: 'numeric',
-                                                                            month: 'short',
-                                                                            year: 'numeric',
+                                                                            variant:
+                                                                                link.active
+                                                                                    ? 'outline'
+                                                                                    : 'ghost',
+                                                                            size: 'icon',
                                                                         },
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                        </TableCell>
+                                                                    ),
+                                                                    'size-8 h-8 text-xs font-medium',
+                                                                )}
+                                                            >
+                                                                {link.label}
+                                                            </Link>
+                                                        </PaginationItem>
+                                                    ),
+                                                )}
 
-                                                        {/* 6. Aksi */}
-                                                        <TableCell className="px-4 py-3 text-right">
-                                                            <div className="flex items-center justify-end gap-1">
-                                                                <Button
-                                                                    asChild
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-8 w-8"
-                                                                    title="Detail"
-                                                                >
-                                                                    <Link
-                                                                        href={`/issues/${issue.id}`}
-                                                                    >
-                                                                        <Eye className="h-4 w-4" />
-                                                                    </Link>
-                                                                </Button>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    title="Hapus"
-                                                                    onClick={() =>
-                                                                        handleDelete(
-                                                                            issue.id,
-                                                                        )
-                                                                    }
-                                                                    className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            })
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-
-                        {/* Pagination */}
-                        {issues.total > issues.per_page && (
-                            <div className="flex justify-center pt-2">
-                                <Pagination links={issues.links} />
+                                            <PaginationItem>
+                                                <Link
+                                                    href={nextLink || '#'}
+                                                    preserveState
+                                                    preserveScroll
+                                                    className={cn(
+                                                        buttonVariants({
+                                                            variant: 'ghost',
+                                                            size: 'default',
+                                                        }),
+                                                        'h-8 gap-1 px-2.5 text-xs sm:pr-2.5',
+                                                        !nextLink &&
+                                                            'pointer-events-none opacity-40',
+                                                    )}
+                                                >
+                                                    <span className="hidden sm:block">
+                                                        Berikutnya
+                                                    </span>
+                                                    <ChevronRight className="size-4" />
+                                                </Link>
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </SidebarInset>
             </SidebarProvider>
+            <ConfirmDialog
+                open={issueToDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setIssueToDelete(null);
+                    }
+                }}
+                title={`Hapus issue "${issueToDelete?.title ?? ''}"?`}
+                description="Issue akan dihapus permanen dan tidak dapat dipulihkan."
+                confirmText="Hapus Issue"
+                variant="danger"
+                onConfirm={handleDelete}
+            />
         </>
     );
 }

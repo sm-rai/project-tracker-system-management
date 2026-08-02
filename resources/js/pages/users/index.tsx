@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     IconArchive,
@@ -16,6 +15,7 @@ import {
     IconUserShield,
     IconX,
 } from '@tabler/icons-react';
+import { useEffect, useRef, useState } from 'react';
 
 import { AppSidebar } from '@/components/app-sidebar';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -87,7 +87,9 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
 
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [roleFilter, setRoleFilter] = useState<string>(filters.role || 'all');
-    const [statusFilter, setStatusFilter] = useState<string>(filters.status || 'all');
+    const [statusFilter, setStatusFilter] = useState<string>(
+        filters.status || 'all',
+    );
 
     // Debounce timer for search
     const isFirstRender = useRef(true);
@@ -111,6 +113,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
+
             return;
         }
 
@@ -119,6 +122,8 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
         }, 300);
 
         return () => clearTimeout(timer);
+        // Role and status changes apply immediately; only the free-text search is debounced.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery]);
 
     // Handle instant filter selects
@@ -226,10 +231,11 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                         {/* Page Header */}
                         <div className="flex flex-col gap-1 pt-4 md:pt-2">
                             <h1 className="text-lg font-semibold tracking-tight text-foreground">
-                                Kelola User & Hak Akses
+                                Manajemen User dan Akses
                             </h1>
                             <p className="text-sm text-muted-foreground">
-                                Atur daftar anggota tim, tingkatan role access, dan status akun pengguna.
+                                Atur anggota tim, peran akses, dan status akun
+                                pengguna.
                             </p>
                         </div>
 
@@ -240,18 +246,25 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                 <div className="relative max-w-sm flex-1">
                                     <IconSearch className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
+                                        aria-label="Cari user"
                                         placeholder="Cari nama, email, atau ID user..."
                                         value={searchQuery}
                                         onChange={(e) =>
                                             setSearchQuery(e.target.value)
                                         }
-                                        className="h-9 border-border bg-background pl-9 pr-8 text-sm focus-visible:ring-ring/30"
+                                        className="h-9 border-border bg-background pr-8 pl-9 text-sm focus-visible:ring-ring/30"
                                     />
                                     {searchQuery && (
                                         <button
+                                            type="button"
+                                            aria-label="Hapus pencarian user"
                                             onClick={() => {
                                                 setSearchQuery('');
-                                                applyFilters('', roleFilter, statusFilter);
+                                                applyFilters(
+                                                    '',
+                                                    roleFilter,
+                                                    statusFilter,
+                                                );
                                             }}
                                             className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded-sm p-0.5 text-muted-foreground transition-colors hover:text-foreground"
                                         >
@@ -265,12 +278,15 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                     value={roleFilter}
                                     onValueChange={handleRoleChange}
                                 >
-                                    <SelectTrigger className="h-9 w-full border-border bg-background text-sm sm:w-[150px]">
-                                        <SelectValue placeholder="Semua Role" />
+                                    <SelectTrigger
+                                        aria-label="Filter peran akses"
+                                        className="h-11 w-full border-border bg-background text-sm sm:w-[150px] md:h-9"
+                                    >
+                                        <SelectValue placeholder="Semua Peran" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">
-                                            Semua Role
+                                            Semua Peran
                                         </SelectItem>
                                         <SelectItem value="admin">
                                             Admin
@@ -286,7 +302,10 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                     value={statusFilter}
                                     onValueChange={handleStatusChange}
                                 >
-                                    <SelectTrigger className="h-9 w-full border-border bg-background text-sm sm:w-[160px]">
+                                    <SelectTrigger
+                                        aria-label="Filter status akun"
+                                        className="h-11 w-full border-border bg-background text-sm sm:w-[160px] md:h-9"
+                                    >
                                         <SelectValue placeholder="Semua Status" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -307,7 +326,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleResetFilters}
-                                        className="h-9 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto"
+                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto md:h-9"
                                     >
                                         <IconX className="mr-1 size-3" />
                                         Reset Filter
@@ -318,11 +337,13 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                             {/* Create User Button */}
                             <Button
                                 size="sm"
-                                className="h-9 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover"
-                                onClick={() => setUserModal({ open: true, user: null })}
+                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover md:h-9"
+                                onClick={() =>
+                                    setUserModal({ open: true, user: null })
+                                }
                             >
                                 <IconPlus className="size-4" />
-                                <span>Tambah User Baru</span>
+                                <span>Tambah User</span>
                             </Button>
                         </div>
 
@@ -335,10 +356,10 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                             Pengguna
                                         </TableHead>
                                         <TableHead className="h-10 text-xs font-medium text-muted-foreground">
-                                            Email Address
+                                            Email
                                         </TableHead>
                                         <TableHead className="h-10 text-xs font-medium text-muted-foreground">
-                                            Role Access
+                                            Peran Akses
                                         </TableHead>
                                         <TableHead className="h-10 text-xs font-medium text-muted-foreground">
                                             Status
@@ -370,7 +391,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                 >
                                                     {/* User Name */}
                                                     <TableCell>
-                                                        <div className="flex items-center gap-2 min-w-0">
+                                                        <div className="flex min-w-0 items-center gap-2">
                                                             <span
                                                                 className={`truncate text-sm font-medium ${
                                                                     isArchived
@@ -383,7 +404,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                             {isSelf && (
                                                                 <Badge
                                                                     variant="outline"
-                                                                    className="border-primary/20 bg-primary-surface px-1.5 py-0 text-[10px] font-medium text-primary shrink-0"
+                                                                    className="shrink-0 border-primary/20 bg-primary-surface px-1.5 py-0 text-xs font-medium text-primary"
                                                                 >
                                                                     Akun Anda
                                                                 </Badge>
@@ -460,64 +481,87 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                             <div className="flex items-center justify-end gap-1">
                                                                 {/* Edit User Button */}
                                                                 <Tooltip>
-                                                                    <TooltipTrigger asChild>
+                                                                    <TooltipTrigger
+                                                                        asChild
+                                                                    >
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="icon"
                                                                             className="size-8 text-muted-foreground hover:bg-muted hover:text-foreground"
                                                                             onClick={() =>
-                                                                                setUserModal({
-                                                                                    open: true,
-                                                                                    user: u,
-                                                                                })
+                                                                                setUserModal(
+                                                                                    {
+                                                                                        open: true,
+                                                                                        user: u,
+                                                                                    },
+                                                                                )
                                                                             }
                                                                         >
                                                                             <IconPencil className="size-4" />
-                                                                            <span className="sr-only">Edit User</span>
+                                                                            <span className="sr-only">
+                                                                                Edit
+                                                                                User
+                                                                            </span>
                                                                         </Button>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent>
-                                                                        Edit Data User
+                                                                        Edit
+                                                                        User
                                                                     </TooltipContent>
                                                                 </Tooltip>
 
                                                                 {/* Restore or Archive Button */}
                                                                 {isArchived ? (
                                                                     <Tooltip>
-                                                                        <TooltipTrigger asChild>
+                                                                        <TooltipTrigger
+                                                                            asChild
+                                                                        >
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="icon"
                                                                                 className="size-8 text-success hover:bg-success-surface hover:text-success"
                                                                                 onClick={() =>
-                                                                                    handleRestore(u)
+                                                                                    handleRestore(
+                                                                                        u,
+                                                                                    )
                                                                                 }
                                                                             >
                                                                                 <IconRefresh className="size-4" />
                                                                                 <span className="sr-only">
-                                                                                    Aktifkan Kembali
+                                                                                    Aktifkan
+                                                                                    Kembali
                                                                                 </span>
                                                                             </Button>
                                                                         </TooltipTrigger>
                                                                         <TooltipContent>
-                                                                            Aktifkan Akun Kembali
+                                                                            Aktifkan
+                                                                            Akun
+                                                                            Kembali
                                                                         </TooltipContent>
                                                                     </Tooltip>
                                                                 ) : (
                                                                     <Tooltip>
-                                                                        <TooltipTrigger asChild>
+                                                                        <TooltipTrigger
+                                                                            asChild
+                                                                        >
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="icon"
                                                                                 className="size-8 text-muted-foreground hover:bg-danger-surface hover:text-danger disabled:pointer-events-none disabled:opacity-40"
-                                                                                disabled={isSelf}
+                                                                                disabled={
+                                                                                    isSelf
+                                                                                }
                                                                                 onClick={() =>
-                                                                                    !isSelf && handleSoftDelete(u)
+                                                                                    !isSelf &&
+                                                                                    handleSoftDelete(
+                                                                                        u,
+                                                                                    )
                                                                                 }
                                                                             >
                                                                                 <IconArchiveOff className="size-4" />
                                                                                 <span className="sr-only">
-                                                                                    Nonaktifkan Akun
+                                                                                    Nonaktifkan
+                                                                                    Akun
                                                                                 </span>
                                                                             </Button>
                                                                         </TooltipTrigger>
@@ -549,13 +593,18 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                         User Tidak Ditemukan
                                                     </h3>
                                                     <p className="text-center text-xs leading-normal text-muted-foreground">
-                                                        Tidak ada data user yang cocok dengan kriteria pencarian atau filter saat ini.
+                                                        Tidak ada data user yang
+                                                        cocok dengan kriteria
+                                                        pencarian atau filter
+                                                        saat ini.
                                                     </p>
                                                     {hasActiveFilter && (
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={handleResetFilters}
+                                                            onClick={
+                                                                handleResetFilters
+                                                            }
                                                             className="mt-1 h-8 text-xs"
                                                         >
                                                             Reset Filter
@@ -569,7 +618,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                             </Table>
 
                             {/* Table footer count & pagination */}
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-border px-4 py-3">
+                            <div className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                                 <p className="text-xs text-muted-foreground tabular-nums">
                                     Menampilkan{' '}
                                     <span className="font-medium text-foreground">
@@ -589,46 +638,67 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                     preserveState
                                                     preserveScroll
                                                     className={cn(
-                                                        buttonVariants({ variant: 'ghost', size: 'default' }),
-                                                        'h-8 gap-1 px-2.5 sm:pl-2.5 text-xs',
-                                                        !prevLink && 'pointer-events-none opacity-40',
+                                                        buttonVariants({
+                                                            variant: 'ghost',
+                                                            size: 'default',
+                                                        }),
+                                                        'h-8 gap-1 px-2.5 text-xs sm:pl-2.5',
+                                                        !prevLink &&
+                                                            'pointer-events-none opacity-40',
                                                     )}
                                                 >
                                                     <IconChevronLeft className="size-4" />
-                                                    <span className="hidden sm:block">Previous</span>
+                                                    <span className="hidden sm:block">
+                                                        Sebelumnya
+                                                    </span>
                                                 </Link>
                                             </PaginationItem>
 
                                             {/* Page Number Links */}
-                                            {users.links.slice(1, -1).map((link, idx) => {
-                                                if (link.label === '...') {
+                                            {users.links
+                                                .slice(1, -1)
+                                                .map((link, idx) => {
+                                                    if (link.label === '...') {
+                                                        return (
+                                                            <PaginationItem
+                                                                key={idx}
+                                                            >
+                                                                <span className="flex size-8 items-center justify-center text-muted-foreground">
+                                                                    <IconDots className="size-4" />
+                                                                </span>
+                                                            </PaginationItem>
+                                                        );
+                                                    }
+
                                                     return (
-                                                        <PaginationItem key={idx}>
-                                                            <span className="flex size-8 items-center justify-center text-muted-foreground">
-                                                                <IconDots className="size-4" />
-                                                            </span>
+                                                        <PaginationItem
+                                                            key={idx}
+                                                        >
+                                                            <Link
+                                                                href={
+                                                                    link.url ||
+                                                                    '#'
+                                                                }
+                                                                preserveState
+                                                                preserveScroll
+                                                                className={cn(
+                                                                    buttonVariants(
+                                                                        {
+                                                                            variant:
+                                                                                link.active
+                                                                                    ? 'outline'
+                                                                                    : 'ghost',
+                                                                            size: 'icon',
+                                                                        },
+                                                                    ),
+                                                                    'size-8 h-8 text-xs font-medium',
+                                                                )}
+                                                            >
+                                                                {link.label}
+                                                            </Link>
                                                         </PaginationItem>
                                                     );
-                                                }
-                                                return (
-                                                    <PaginationItem key={idx}>
-                                                        <Link
-                                                            href={link.url || '#'}
-                                                            preserveState
-                                                            preserveScroll
-                                                            className={cn(
-                                                                buttonVariants({
-                                                                    variant: link.active ? 'outline' : 'ghost',
-                                                                    size: 'icon',
-                                                                }),
-                                                                'h-8 size-8 text-xs font-medium',
-                                                            )}
-                                                        >
-                                                            {link.label}
-                                                        </Link>
-                                                    </PaginationItem>
-                                                );
-                                            })}
+                                                })}
 
                                             {/* Next Link */}
                                             <PaginationItem>
@@ -637,12 +707,18 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                     preserveState
                                                     preserveScroll
                                                     className={cn(
-                                                        buttonVariants({ variant: 'ghost', size: 'default' }),
-                                                        'h-8 gap-1 px-2.5 sm:pr-2.5 text-xs',
-                                                        !nextLink && 'pointer-events-none opacity-40',
+                                                        buttonVariants({
+                                                            variant: 'ghost',
+                                                            size: 'default',
+                                                        }),
+                                                        'h-8 gap-1 px-2.5 text-xs sm:pr-2.5',
+                                                        !nextLink &&
+                                                            'pointer-events-none opacity-40',
                                                     )}
                                                 >
-                                                    <span className="hidden sm:block">Next</span>
+                                                    <span className="hidden sm:block">
+                                                        Berikutnya
+                                                    </span>
                                                     <IconChevronRight className="size-4" />
                                                 </Link>
                                             </PaginationItem>
@@ -658,14 +734,18 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
             {/* Create / Edit User Modal */}
             <UserFormModal
                 open={userModal.open}
-                onOpenChange={(open) => setUserModal((prev) => ({ ...prev, open }))}
+                onOpenChange={(open) =>
+                    setUserModal((prev) => ({ ...prev, open }))
+                }
                 user={userModal.user}
             />
 
             {/* Custom Shadcn SweetAlert-Style Confirm Dialog */}
             <ConfirmDialog
                 open={confirmState.open}
-                onOpenChange={(open) => setConfirmState((prev) => ({ ...prev, open }))}
+                onOpenChange={(open) =>
+                    setConfirmState((prev) => ({ ...prev, open }))
+                }
                 title={confirmState.title}
                 description={confirmState.description}
                 variant={confirmState.variant}

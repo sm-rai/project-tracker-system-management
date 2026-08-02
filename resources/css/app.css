@@ -128,23 +128,23 @@
     --ring: #af4424;
 
     /* Rumah Atsiri - Semantic */
-    --success: #3f7a4a;
+    --success: #315f3a;
     --success-foreground: #ffffff;
     --success-surface: #e5f0e5;
 
-    --warning: #b9772e;
+    --warning: #8a571f;
     --warning-foreground: #ffffff;
     --warning-surface: #f6e8d6;
 
-    --pending: #9c842f;
+    --pending: #6f5d20;
     --pending-foreground: #ffffff;
     --pending-surface: #f2eacf;
 
-    --info: #2f7c7a;
+    --info: #286b69;
     --info-foreground: #ffffff;
     --info-surface: #dcedec;
 
-    --danger: #dc2626;
+    --danger: #b42318;
     --danger-foreground: #ffffff;
     --danger-surface: #fee2e2;
 
@@ -186,6 +186,20 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@media (pointer: coarse) {
+    [data-slot='sidebar-wrapper'] [data-slot='button'],
+    [data-slot='sidebar-wrapper'] [data-slot='select-trigger'],
+    [data-slot='sidebar-wrapper'] [data-slot='sidebar-menu-button'],
+    [data-slot='sidebar-wrapper'] [data-slot='sidebar-menu-action'] {
+        min-block-size: 2.75rem;
+    }
+
+    [data-slot='sidebar-wrapper'] [data-slot='button'],
+    [data-slot='sidebar-wrapper'] [data-slot='sidebar-menu-action'] {
+        min-inline-size: 2.75rem;
     }
 }
 

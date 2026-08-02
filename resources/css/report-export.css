@@ -1,0 +1,493 @@
+:root {
+    --export-primary: #af4424;
+    --export-primary-surface: #f3e3de;
+    --export-foreground: #25211e;
+    --export-muted-foreground: #756e66;
+    --export-border: #e7dfd5;
+    --export-muted: #eeeae4;
+    --export-background: #faf7f2;
+    --export-card: #ffffff;
+    --export-success: #3f7a4a;
+    --export-success-surface: #e5f0e5;
+    --export-warning: #b9772e;
+    --export-warning-surface: #f6e8d6;
+    --export-info: #2f7c7a;
+    --export-info-surface: #dcedec;
+    --export-danger: #dc2626;
+    --export-danger-surface: #fee2e2;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    color: var(--export-foreground);
+    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+body {
+    background: var(--export-background);
+}
+
+.export-document {
+    color: var(--export-foreground);
+}
+
+.export-pdf {
+    width: 100%;
+    background: var(--export-card);
+}
+
+.export-png {
+    width: 1600px;
+    padding: 64px;
+    background: var(--export-background);
+}
+
+.report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--export-primary);
+}
+
+.report-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.report-brand-mark {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border: 2px solid var(--export-primary);
+    color: var(--export-primary);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.report-eyebrow {
+    margin: 0 0 2px;
+    color: var(--export-primary);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.report-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.report-subtitle {
+    margin: 5px 0 0;
+    color: var(--export-muted-foreground);
+    font-size: 12px;
+}
+
+.report-meta {
+    color: var(--export-muted-foreground);
+    font-size: 11px;
+    text-align: right;
+}
+
+.report-meta strong {
+    display: block;
+    color: var(--export-foreground);
+    font-size: 13px;
+}
+
+.export-section {
+    margin-top: 24px;
+    page-break-inside: avoid;
+}
+
+.export-section-title {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.export-section-description {
+    margin: -5px 0 14px;
+    color: var(--export-muted-foreground);
+    font-size: 11px;
+}
+
+.export-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.export-metric-card,
+.export-stat-card,
+.export-mini-card,
+.export-project-row {
+    border: 1px solid var(--export-border);
+    border-radius: 10px;
+    background: var(--export-card);
+}
+
+.export-metric-card {
+    min-height: 126px;
+    padding: 16px;
+}
+
+.export-metric-label,
+.export-stat-label {
+    margin: 0;
+    color: var(--export-muted-foreground);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.export-metric-value {
+    margin: 6px 0 10px;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.export-metric-target {
+    margin: 8px 0 0;
+    color: var(--export-muted-foreground);
+    font-size: 10px;
+}
+
+.export-status {
+    display: inline-block;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.export-status-success {
+    border-color: #b8d5b9;
+    background: var(--export-success-surface);
+    color: var(--export-success);
+}
+
+.export-status-warning {
+    border-color: #e4c898;
+    background: var(--export-warning-surface);
+    color: var(--export-warning);
+}
+
+.export-status-neutral {
+    border-color: var(--export-border);
+    background: var(--export-muted);
+    color: var(--export-muted-foreground);
+}
+
+.export-progress {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--export-muted);
+}
+
+.export-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--export-primary);
+}
+
+.export-progress-success > span {
+    background: var(--export-success);
+}
+
+.export-progress-warning > span {
+    background: var(--export-warning);
+}
+
+.export-progress-neutral > span {
+    background: var(--export-muted-foreground);
+}
+
+.export-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.export-stat-card {
+    padding: 14px 16px;
+}
+
+.export-stat-value {
+    margin: 4px 0 0;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.export-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+
+.export-table th {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--export-border);
+    background: var(--export-background);
+    color: var(--export-muted-foreground);
+    font-size: 9px;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.export-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--export-border);
+    vertical-align: top;
+}
+
+.export-table tr {
+    page-break-inside: avoid;
+}
+
+.export-table .numeric {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.export-table .muted {
+    color: var(--export-muted-foreground);
+}
+
+.export-table .strong {
+    font-weight: 700;
+}
+
+.export-empty {
+    padding: 18px;
+    border: 1px dashed var(--export-border);
+    border-radius: 8px;
+    background: var(--export-background);
+    color: var(--export-muted-foreground);
+    text-align: center;
+}
+
+.export-breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.export-breakdown-card {
+    min-height: 100px;
+    padding: 14px;
+    border: 1px solid var(--export-border);
+    border-radius: 8px;
+    background: var(--export-card);
+    page-break-inside: avoid;
+}
+
+.export-breakdown-card h3 {
+    margin: 0 0 8px;
+    font-size: 11px;
+}
+
+.export-breakdown-list {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.export-breakdown-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--export-muted-foreground);
+}
+
+.export-breakdown-list strong {
+    color: var(--export-foreground);
+    font-variant-numeric: tabular-nums;
+}
+
+.export-project-list {
+    display: grid;
+    gap: 10px;
+}
+
+.export-project-row {
+    padding: 14px 16px;
+}
+
+.export-project-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.export-project-name {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.export-project-status {
+    margin: 3px 0 0;
+    color: var(--export-muted-foreground);
+    font-size: 10px;
+}
+
+.export-project-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.export-project-progress .export-progress {
+    flex: 1;
+}
+
+.export-project-value {
+    min-width: 84px;
+    color: var(--export-muted-foreground);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.export-summary-copy {
+    margin: 0;
+    color: var(--export-muted-foreground);
+    font-size: 11px;
+}
+
+.export-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.export-mini-card {
+    padding: 16px;
+}
+
+.export-mini-card h3 {
+    margin: 0 0 5px;
+    font-size: 12px;
+}
+
+.export-mini-card p {
+    margin: 0;
+    color: var(--export-muted-foreground);
+    font-size: 11px;
+}
+
+.export-footer {
+    margin-top: 28px;
+    padding-top: 12px;
+    border-top: 1px solid var(--export-border);
+    color: var(--export-muted-foreground);
+    font-size: 9px;
+}
+
+.export-png .report-title {
+    font-size: 32px;
+}
+
+.export-png .report-subtitle,
+.export-png .report-meta {
+    font-size: 13px;
+}
+
+.export-png .export-section {
+    margin-top: 30px;
+}
+
+.export-png .export-metric-card {
+    min-height: 154px;
+    padding: 22px;
+}
+
+.export-png .export-metric-label,
+.export-png .export-stat-label {
+    font-size: 13px;
+}
+
+.export-png .export-metric-value {
+    font-size: 38px;
+}
+
+.export-png .export-metric-target,
+.export-png .export-summary-copy {
+    font-size: 13px;
+}
+
+.export-png .export-stat-card {
+    padding: 20px 22px;
+}
+
+.export-png .export-stat-value {
+    font-size: 30px;
+}
+
+.export-png .export-project-row {
+    padding: 18px 22px;
+}
+
+.export-png .export-project-name {
+    font-size: 16px;
+}
+
+.export-png .export-project-status,
+.export-png .export-project-value,
+.export-png .export-mini-card p {
+    font-size: 13px;
+}
+
+.export-png .export-mini-card {
+    padding: 22px;
+}
+
+.export-png .export-mini-card h3 {
+    font-size: 16px;
+}
+
+@media print {
+    body {
+        background: #ffffff;
+    }
+
+    .export-pdf {
+        padding: 0;
+    }
+
+    .export-section {
+        break-inside: avoid;
+    }
+
+    .export-table thead {
+        display: table-header-group;
+    }
+}

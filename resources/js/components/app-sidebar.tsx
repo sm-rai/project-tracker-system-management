@@ -4,6 +4,7 @@ import {
     IconBulb,
     IconClock,
     IconDashboard,
+    IconReportAnalytics,
     IconFolderCode,
     IconUsers,
     IconUserShield,
@@ -59,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     <span className="text-sm font-bold tracking-tight">
                                         Project Tracker
                                     </span>
-                                    <span className="text-[11px] text-muted-foreground">
+                                    <span className="text-xs text-muted-foreground">
                                         System Management
                                     </span>
                                 </div>
@@ -72,7 +73,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarContent className="px-2 py-2">
                 {/* Navigasi Utama */}
                 <SidebarGroup>
-                    <SidebarGroupLabel className="text-[11px] font-medium tracking-wider text-muted-foreground/70 uppercase">
+                    <SidebarGroupLabel className="text-xs font-medium tracking-wider text-muted-foreground/70 uppercase">
                         Navigasi Utama
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
@@ -84,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         url === '/dashboard' || url === '/'
                                     }
                                     tooltip="Dashboard"
-                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
                                 >
                                     <Link
                                         href="/dashboard"
@@ -103,7 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         '/feature-requests',
                                     )}
                                     tooltip="Feature Request"
-                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
                                 >
                                     <Link
                                         href={featureRequestsIndex()}
@@ -118,9 +119,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             <SidebarMenuItem>
                                 <SidebarMenuButton
                                     asChild
+                                    isActive={url.startsWith('/reports')}
+                                    tooltip="Laporan OKR"
+                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
+                                >
+                                    <Link
+                                        href="/reports"
+                                        className="flex items-center gap-2.5"
+                                    >
+                                        <IconReportAnalytics className="size-4" />
+                                        <span>Laporan OKR</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    asChild
                                     isActive={url.startsWith('/projects')}
                                     tooltip="Project & Sistem"
-                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
                                 >
                                     <Link
                                         href="/projects"
@@ -136,15 +154,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 <SidebarMenuButton
                                     asChild
                                     isActive={url.startsWith('/issues')}
-                                    tooltip="Daftar Issue"
-                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                    tooltip="Issue"
+                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
                                 >
                                     <Link
                                         href="/issues"
                                         className="flex items-center gap-2.5"
                                     >
                                         <IconAlertTriangle className="size-4" />
-                                        <span>Daftar Issue</span>
+                                        <span>Issue</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -154,7 +172,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     asChild
                                     isActive={url.startsWith('/settings/sla')}
                                     tooltip="Pengaturan SLA"
-                                    className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
                                 >
                                     <Link
                                         href="/settings/sla"
@@ -172,9 +190,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {/* Menu Admin (Kelola User) */}
                 {isAdmin && (
                     <SidebarGroup className="mt-2">
-                        <SidebarGroupLabel className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-[#AF4424] uppercase">
-                            <IconUserShield className="size-3.5 text-[#AF4424]" />
-                            <span>Admin System</span>
+                        <SidebarGroupLabel className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
+                            <IconUserShield className="size-3.5 text-primary" />
+                            <span>Administrasi</span>
                         </SidebarGroupLabel>
                         <SidebarGroupContent>
                             <SidebarMenu>
@@ -182,15 +200,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     <SidebarMenuButton
                                         asChild
                                         isActive={url.startsWith('/users')}
-                                        tooltip="Kelola User"
-                                        className="transition-colors hover:bg-[#FAF7F2] data-[active=true]:bg-[#F3E3DE] data-[active=true]:font-semibold data-[active=true]:text-[#AF4424]"
+                                        tooltip="Manajemen User"
+                                        className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
                                     >
                                         <Link
                                             href="/users"
                                             className="flex items-center gap-2.5"
                                         >
                                             <IconUsers className="size-4" />
-                                            <span>Kelola User</span>
+                                            <span>Manajemen User</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

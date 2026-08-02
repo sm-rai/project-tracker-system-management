@@ -3,6 +3,7 @@ import { ArrowLeft, Clock, Save, ShieldAlert } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { FormEvent } from 'react';
 
+import { SystemCombobox } from '@/components/projects/system-combobox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -65,16 +66,24 @@ const priorityLabels: Record<string, string> = {
     low: 'Rendah',
 };
 
-const rootCauseLabels: Record<string, string> = {
-    system_error: 'Kesalahan sistem atau perangkat lunak',
-    non_system: 'Proses operasional atau penggunaan',
-    other: 'Infrastruktur atau penyebab lain',
-};
-
-const projectStatusLabels: Record<string, string> = {
-    deployed_running: 'Berjalan',
-    deployed_maintenance: 'Dalam pemeliharaan',
-};
+const rootCauseOptions: Record<string, { label: string; description: string }> =
+    {
+        system_error: {
+            label: 'Kesalahan sistem atau aplikasi',
+            description:
+                'Bug, error, hasil keliru, atau integrasi gagal saat prosedur sudah dilakukan dengan benar.',
+        },
+        non_system: {
+            label: 'Proses operasional atau penggunaan',
+            description:
+                'Masalah pada SOP, input, konfigurasi, atau langkah penggunaan saat sistem bekerja sesuai desain.',
+        },
+        other: {
+            label: 'Infrastruktur atau belum diketahui',
+            description:
+                'Masalah server, jaringan, perangkat, layanan pihak ketiga, atau penyebab yang belum teridentifikasi.',
+        },
+    };
 
 function FieldError({ id, message }: { id: string; message?: string }) {
     if (!message) {
@@ -123,6 +132,7 @@ export function IssueForm({
     const isSubmittingRef = useRef(false);
 
     const currentSlaDays = slaConfigs[data.priority] || 3;
+    const selectedRootCause = rootCauseOptions[data.root_cause_category];
     const targetDate = useMemo(
         () => getTargetDate(data.reported_at, currentSlaDays),
         [currentSlaDays, data.reported_at],
@@ -220,9 +230,9 @@ export function IssueForm({
                     </Link>
                 </Button>
                 <div className="min-w-0">
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">
                         {pageTitle}
-                    </h2>
+                    </h1>
                     <p className="mt-0.5 max-w-3xl text-sm leading-relaxed text-muted-foreground">
                         {pageDescription}
                     </p>
@@ -262,160 +272,177 @@ export function IssueForm({
                     </Alert>
                 )}
 
-                <Card className="min-w-0 gap-0 border-border py-0 shadow-xs xl:col-span-8">
-                    <CardHeader className="border-b border-border px-5 py-5 md:px-6">
-                        <CardTitle className="text-base">
-                            Informasi issue
-                        </CardTitle>
-                        <CardDescription>
-                            Jelaskan sistem yang terdampak, apa yang terjadi,
-                            dan kapan issue dilaporkan.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-5 px-5 py-5 md:px-6 md:py-6">
-                        <div className="grid min-w-0 gap-2">
-                            <Label htmlFor="project_id">Sistem terdampak</Label>
-                            <Select
-                                value={data.project_id || 'none'}
-                                onValueChange={(value) =>
-                                    setData(
-                                        'project_id',
-                                        value === 'none' ? '' : value,
-                                    )
-                                }
-                            >
-                                <SelectTrigger
+                <div className="contents xl:col-span-8 xl:grid xl:min-w-0 xl:content-start xl:gap-5">
+                    <Card className="order-1 min-w-0 gap-0 border-border py-0 shadow-xs xl:order-none">
+                        <CardHeader className="border-b border-border px-5 py-5 md:px-6">
+                            <CardTitle className="text-base">
+                                Informasi issue
+                            </CardTitle>
+                            <CardDescription>
+                                Jelaskan sistem yang terdampak, apa yang
+                                terjadi, dan kapan issue dilaporkan.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-5 px-5 py-5 md:px-6 md:py-6">
+                            <div className="grid min-w-0 gap-2">
+                                <Label htmlFor="project_id">
+                                    Sistem terdampak
+                                </Label>
+                                <SystemCombobox
                                     id="project_id"
-                                    className="w-full min-w-0 data-[size=default]:h-11 md:data-[size=default]:h-9"
-                                    aria-invalid={Boolean(errors.project_id)}
-                                    aria-describedby={
+                                    projects={deployedProjects}
+                                    value={data.project_id || 'none'}
+                                    onValueChange={(value) =>
+                                        setData(
+                                            'project_id',
+                                            value === 'none' ? '' : value,
+                                        )
+                                    }
+                                    placeholder="Pilih sistem terdampak"
+                                    allowNoSystem
+                                    ariaInvalid={Boolean(errors.project_id)}
+                                    ariaDescribedBy={
                                         errors.project_id
                                             ? 'project_id-error project_id-help'
                                             : 'project_id-help'
                                     }
+                                />
+                                <p
+                                    id="project_id-help"
+                                    className="text-xs leading-relaxed text-muted-foreground"
                                 >
-                                    <SelectValue placeholder="Pilih sistem terdampak" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">
-                                        Tidak terkait sistem tertentu
-                                    </SelectItem>
-                                    {deployedProjects.map((project) => (
-                                        <SelectItem
-                                            key={project.id}
-                                            value={project.id.toString()}
-                                        >
-                                            {project.name} ·{' '}
-                                            {projectStatusLabels[
-                                                project.status
-                                            ] || project.status}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p
-                                id="project_id-help"
-                                className="text-xs leading-relaxed text-muted-foreground"
-                            >
-                                Daftar hanya memuat sistem yang sudah berjalan
-                                atau sedang dalam pemeliharaan.
+                                    Hanya menampilkan sistem dengan status
+                                    Berjalan atau Dalam pemeliharaan.
+                                </p>
+                                <FieldError
+                                    id="project_id-error"
+                                    message={errors.project_id}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="title">
+                                    Ringkasan issue{' '}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="title"
+                                    placeholder="Contoh: Gagal menyimpan transaksi pada POS"
+                                    value={data.title}
+                                    onChange={(event) =>
+                                        setData('title', event.target.value)
+                                    }
+                                    className="h-11 md:h-9"
+                                    aria-invalid={Boolean(errors.title)}
+                                    aria-describedby={
+                                        errors.title ? 'title-error' : undefined
+                                    }
+                                    required
+                                />
+                                <FieldError
+                                    id="title-error"
+                                    message={errors.title}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">
+                                    Kronologi dan dampak{' '}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Textarea
+                                    id="description"
+                                    rows={5}
+                                    placeholder="Jelaskan apa yang terjadi, pesan error yang muncul, langkah terakhir sebelum issue terjadi, dan dampaknya terhadap operasional."
+                                    value={data.description}
+                                    onChange={(event) =>
+                                        setData(
+                                            'description',
+                                            event.target.value,
+                                        )
+                                    }
+                                    className="min-h-32 resize-y"
+                                    aria-invalid={Boolean(errors.description)}
+                                    aria-describedby={
+                                        errors.description
+                                            ? 'description-error'
+                                            : undefined
+                                    }
+                                    required
+                                />
+                                <FieldError
+                                    id="description-error"
+                                    message={errors.description}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="reported_at">
+                                    Waktu dilaporkan{' '}
+                                    <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="reported_at"
+                                    type="datetime-local"
+                                    value={data.reported_at}
+                                    onChange={(event) =>
+                                        setData(
+                                            'reported_at',
+                                            event.target.value,
+                                        )
+                                    }
+                                    className="h-11 md:h-9"
+                                    aria-invalid={Boolean(errors.reported_at)}
+                                    aria-describedby={
+                                        errors.reported_at
+                                            ? 'reported_at-error reported_at-help'
+                                            : 'reported_at-help'
+                                    }
+                                    required
+                                />
+                                <p
+                                    id="reported_at-help"
+                                    className="text-xs leading-relaxed text-muted-foreground"
+                                >
+                                    Waktu saat ini terisi otomatis. Ubah jika
+                                    issue dilaporkan setelah kejadian.
+                                </p>
+                                <FieldError
+                                    id="reported_at-error"
+                                    message={errors.reported_at}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="order-3 min-w-0 gap-0 border-border py-0 shadow-xs xl:order-none">
+                        <CardContent className="px-5 py-4">
+                            <p className="text-xs leading-relaxed text-muted-foreground">
+                                Pastikan ringkasan, waktu laporan, dan prioritas
+                                sudah sesuai sebelum menyimpan.
                             </p>
-                            <FieldError
-                                id="project_id-error"
-                                message={errors.project_id}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="title">
-                                Ringkasan issue{' '}
-                                <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="title"
-                                placeholder="Contoh: Gagal menyimpan transaksi pada POS"
-                                value={data.title}
-                                onChange={(event) =>
-                                    setData('title', event.target.value)
-                                }
-                                className="h-11 md:h-9"
-                                aria-invalid={Boolean(errors.title)}
-                                aria-describedby={
-                                    errors.title ? 'title-error' : undefined
-                                }
-                                required
-                            />
-                            <FieldError
-                                id="title-error"
-                                message={errors.title}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="description">
-                                Kronologi dan dampak{' '}
-                                <span className="text-destructive">*</span>
-                            </Label>
-                            <Textarea
-                                id="description"
-                                rows={5}
-                                placeholder="Jelaskan apa yang terjadi, pesan error yang muncul, langkah terakhir sebelum issue terjadi, dan dampaknya terhadap operasional."
-                                value={data.description}
-                                onChange={(event) =>
-                                    setData('description', event.target.value)
-                                }
-                                className="min-h-32 resize-y"
-                                aria-invalid={Boolean(errors.description)}
-                                aria-describedby={
-                                    errors.description
-                                        ? 'description-error'
-                                        : undefined
-                                }
-                                required
-                            />
-                            <FieldError
-                                id="description-error"
-                                message={errors.description}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="reported_at">
-                                Waktu dilaporkan{' '}
-                                <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="reported_at"
-                                type="datetime-local"
-                                value={data.reported_at}
-                                onChange={(event) =>
-                                    setData('reported_at', event.target.value)
-                                }
-                                className="h-11 md:h-9"
-                                aria-invalid={Boolean(errors.reported_at)}
-                                aria-describedby={
-                                    errors.reported_at
-                                        ? 'reported_at-error reported_at-help'
-                                        : 'reported_at-help'
-                                }
-                                required
-                            />
-                            <p
-                                id="reported_at-help"
-                                className="text-xs leading-relaxed text-muted-foreground"
+                        </CardContent>
+                        <CardFooter className="grid grid-cols-2 gap-3 border-t border-border px-5 py-3">
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="h-11 md:h-10"
                             >
-                                Waktu saat ini terisi otomatis. Ubah jika issue
-                                dilaporkan setelah kejadian.
-                            </p>
-                            <FieldError
-                                id="reported_at-error"
-                                message={errors.reported_at}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+                                <Link href="/issues">Batal</Link>
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="h-11 gap-2 md:h-10"
+                            >
+                                <Save className="size-4" />
+                                {processing ? 'Menyimpan…' : submitLabel}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
 
-                <div className="min-w-0 space-y-5 xl:sticky xl:top-16 xl:col-span-4">
+                <div className="order-2 min-w-0 space-y-5 xl:sticky xl:top-16 xl:order-none xl:col-span-4">
                     <Card className="gap-0 border-border py-0 shadow-xs">
                         <CardHeader className="border-b border-border px-5 py-4">
                             <CardTitle className="text-base">
@@ -518,58 +545,67 @@ export function IssueForm({
                                                 : 'root_cause_category-help'
                                         }
                                     >
-                                        <SelectValue placeholder="Pilih dugaan penyebab" />
+                                        <SelectValue placeholder="Pilih dugaan penyebab">
+                                            {selectedRootCause ? (
+                                                <span className="max-w-full truncate">
+                                                    {selectedRootCause.label}
+                                                </span>
+                                            ) : null}
+                                        </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent>
                                         {rootCauses.map((rootCause) => (
                                             <SelectItem
                                                 key={rootCause}
                                                 value={rootCause}
+                                                textValue={
+                                                    rootCauseOptions[rootCause]
+                                                        ?.label || rootCause
+                                                }
                                             >
-                                                {rootCauseLabels[rootCause] ||
-                                                    rootCause}
+                                                {rootCauseOptions[rootCause]
+                                                    ?.label || rootCause}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <p
+                                <div
                                     id="root_cause_category-help"
-                                    className="text-xs leading-relaxed text-muted-foreground"
+                                    className="grid gap-2 rounded-lg border border-border/80 bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground"
                                 >
-                                    Dapat diperbarui setelah investigasi.
-                                </p>
+                                    <p className="font-medium text-foreground">
+                                        Panduan dugaan penyebab
+                                    </p>
+                                    <p>
+                                        Pilih kategori berdasarkan dugaan awal.
+                                        Kategori dapat diperbarui setelah
+                                        investigasi.
+                                    </p>
+                                    <ul className="grid gap-1.5">
+                                        {rootCauses.map((rootCause) => {
+                                            const option =
+                                                rootCauseOptions[rootCause];
+
+                                            return (
+                                                <li key={rootCause}>
+                                                    <span className="font-medium text-foreground">
+                                                        {option?.label ||
+                                                            rootCause}
+                                                    </span>{' '}
+                                                    —{' '}
+                                                    {option?.description ||
+                                                        'Kategori ini dapat diperbarui setelah investigasi.'}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
                                 <FieldError
                                     id="root_cause_category-error"
                                     message={errors.root_cause_category}
                                 />
                             </div>
                         </CardContent>
-                    </Card>
-
-                    <Card className="gap-0 border-border py-0 shadow-xs">
-                        <CardContent className="px-5 py-4">
-                            <p className="text-xs leading-relaxed text-muted-foreground">
-                                Pastikan ringkasan, waktu laporan, dan prioritas
-                                sudah sesuai sebelum menyimpan.
-                            </p>
-                        </CardContent>
-                        <CardFooter className="grid grid-cols-2 gap-3 border-t border-border px-5 py-3">
-                            <Button
-                                asChild
-                                variant="outline"
-                                className="h-11 md:h-10"
-                            >
-                                <Link href="/issues">Batal</Link>
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                className="h-11 gap-2 md:h-10"
-                            >
-                                <Save className="size-4" />
-                                {processing ? 'Menyimpan…' : submitLabel}
-                            </Button>
-                        </CardFooter>
                     </Card>
                 </div>
 

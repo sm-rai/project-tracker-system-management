@@ -13,7 +13,7 @@ enum BriefFeatureStatus: string
         return match ($this) {
             self::Todo => 'To Do',
             self::InProgress => 'In Progress',
-            self::Done => 'Selesai (Done)',
+            self::Done => 'Done',
         };
     }
 }

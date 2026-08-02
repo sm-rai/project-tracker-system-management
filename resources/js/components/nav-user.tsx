@@ -96,7 +96,7 @@ export function NavUser({
                                         {user.email}
                                     </span>
                                     {user.role && (
-                                        <span className="mt-1 inline-flex w-fit items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary capitalize">
+                                        <span className="mt-1 inline-flex w-fit items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-xs font-semibold text-primary capitalize">
                                             {user.role === 'admin' ? (
                                                 <IconUserShield className="size-3" />
                                             ) : (

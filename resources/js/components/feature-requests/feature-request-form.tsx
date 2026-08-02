@@ -7,6 +7,7 @@ import {
     store,
     update,
 } from '@/actions/App/Http/Controllers/FeatureRequestController';
+import { SystemCombobox } from '@/components/projects/system-combobox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -153,11 +154,11 @@ export function FeatureRequestForm({
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight">
                         {mode === 'create'
-                            ? 'Catat Feature Request'
+                            ? 'Tambah Feature Request'
                             : 'Edit Feature Request'}
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Rekam kebutuhan sistem beserta target pemenuhannya
+                        Jelaskan kebutuhan sistem dan target pemenuhannya
                         berdasarkan SLA.
                     </p>
                 </div>
@@ -199,38 +200,27 @@ export function FeatureRequestForm({
                     <CardContent className="grid gap-5 px-5 py-5">
                         <div className="grid gap-2">
                             <Label htmlFor="project_id">Sistem terkait</Label>
-                            <Select
+                            <SystemCombobox
+                                id="project_id"
+                                projects={deployedProjects}
                                 value={form.data.project_id}
                                 onValueChange={(value) =>
                                     form.setData('project_id', value)
                                 }
+                                placeholder="Pilih sistem terkait"
+                                ariaInvalid={Boolean(form.errors.project_id)}
+                                ariaDescribedBy={
+                                    form.errors.project_id
+                                        ? 'project_id-error project_id-help'
+                                        : 'project_id-help'
+                                }
+                            />
+                            <p
+                                id="project_id-help"
+                                className="text-xs leading-relaxed text-muted-foreground"
                             >
-                                <SelectTrigger
-                                    id="project_id"
-                                    aria-invalid={Boolean(
-                                        form.errors.project_id,
-                                    )}
-                                    aria-describedby={
-                                        form.errors.project_id
-                                            ? 'project_id-error'
-                                            : undefined
-                                    }
-                                >
-                                    <SelectValue placeholder="Pilih sistem yang sudah deployed" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {deployedProjects.map((project) => (
-                                        <SelectItem
-                                            key={project.id}
-                                            value={String(project.id)}
-                                        >
-                                            {project.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground">
-                                Hanya sistem berjalan atau dalam pemeliharaan.
+                                Hanya menampilkan sistem dengan status Berjalan
+                                atau Dalam pemeliharaan.
                             </p>
                             <FieldError
                                 id="project_id-error"
@@ -319,7 +309,7 @@ export function FeatureRequestForm({
 
                 <Card className="gap-0 py-0 xl:sticky xl:top-16 xl:col-span-4">
                     <CardHeader className="border-b px-5 py-4">
-                        <CardTitle>Prioritas &amp; target</CardTitle>
+                        <CardTitle>Priority &amp; Target</CardTitle>
                         <CardDescription>
                             Target dihitung dengan hari kalender.
                         </CardDescription>
@@ -367,7 +357,7 @@ export function FeatureRequestForm({
                                 <Clock3 className="mt-0.5 size-4 text-primary" />
                                 <div>
                                     <p className="text-xs text-muted-foreground">
-                                        Target terpenuhi
+                                        Target selesai
                                     </p>
                                     <p className="mt-1 font-semibold tabular-nums">
                                         {dueDate}

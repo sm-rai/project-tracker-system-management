@@ -8,7 +8,12 @@ interface ProgressBarProps {
     className?: string;
 }
 
-export function ProgressBar({ value, showLabel = true, size = 'md', className }: ProgressBarProps) {
+export function ProgressBar({
+    value,
+    showLabel = true,
+    size = 'md',
+    className,
+}: ProgressBarProps) {
     const clampedValue = Math.min(100, Math.max(0, value));
 
     const heightClass = {
@@ -18,18 +23,26 @@ export function ProgressBar({ value, showLabel = true, size = 'md', className }:
     }[size];
 
     const isComplete = clampedValue >= 100;
-    const barColor = isComplete ? 'bg-[#3F7A4A]' : 'bg-[#AF4424]';
+    const barColor = isComplete ? 'bg-success' : 'bg-primary';
 
     return (
-        <div className={cn('flex items-center gap-2.5 w-full', className)}>
-            <div className={cn('flex-1 overflow-hidden rounded-full bg-[#E7DFD5]/60', heightClass)}>
+        <div className={cn('flex w-full items-center gap-2.5', className)}>
+            <div
+                className={cn(
+                    'flex-1 overflow-hidden rounded-full bg-muted',
+                    heightClass,
+                )}
+            >
                 <div
-                    className={cn('h-full transition-all duration-500 ease-out rounded-full', barColor)}
+                    className={cn(
+                        'h-full rounded-full transition-all duration-500 ease-out',
+                        barColor,
+                    )}
                     style={{ width: `${clampedValue}%` }}
                 />
             </div>
             {showLabel && (
-                <span className="text-xs font-semibold tabular-nums text-[#25211E] shrink-0 min-w-[42px] text-right">
+                <span className="min-w-[42px] shrink-0 text-right text-xs font-semibold text-foreground tabular-nums">
                     {clampedValue}%
                 </span>
             )}

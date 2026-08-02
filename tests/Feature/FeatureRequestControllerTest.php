@@ -134,7 +134,7 @@ test('editing a fulfilled request recalculates due date and on time result', fun
         ->and($featureRequest->is_on_time)->toBeTrue();
 });
 
-test('index exposes filters metrics and current week okr calculation', function () {
+test('index exposes filters and paginated feature requests', function () {
     Carbon::setTestNow('2026-07-30 12:00:00');
     $user = User::factory()->create();
     $project = Project::factory()->deployedRunning()->create(['name' => 'POS Atsiri']);
@@ -159,25 +159,20 @@ test('index exposes filters metrics and current week okr calculation', function 
     $response->assertOk()->assertInertia(fn ($page) => $page
         ->component('feature-requests/index', false)
         ->has('featureRequests.data', 1)
-        ->where('metrics.total', 2)
-        ->where('okr.percentage', 50)
-        ->where('okr.target', 90)
-        ->where('okr.achieved', false)
-        ->where('okr.total', 2)
-        ->where('okr.on_time', 1)
+        ->has('featureRequests.links')
         ->where('filters.search', 'Cetak')
     );
 });
 
-test('empty current week produces one hundred percent okr', function () {
+test('index does not load summary props', function () {
     Carbon::setTestNow('2026-07-30 12:00:00');
     $user = User::factory()->create();
 
     $this->actingAs($user)->get('/feature-requests')
         ->assertInertia(fn ($page) => $page
-            ->where('okr.percentage', 100)
-            ->where('okr.achieved', true)
-            ->where('okr.total', 0)
+            ->component('feature-requests/index', false)
+            ->missing('metrics')
+            ->missing('okr')
         );
 });
 

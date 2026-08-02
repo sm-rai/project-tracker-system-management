@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property bool|null $is_on_time
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Project|null $project
  */
 class Issue extends Model
 {

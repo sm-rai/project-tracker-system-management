@@ -31,7 +31,7 @@ export function LoginForm({
                     </CardTitle>
                     <CardDescription className="text-small">
                         Masukkan email dan password untuk mengakses Project
-                        Tracker
+                        Tracker.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -74,9 +74,7 @@ export function LoginForm({
                                 </Field>
                                 <Field>
                                     <Button type="submit" disabled={processing}>
-                                        {processing
-                                            ? 'Sedang masuk...'
-                                            : 'Masuk'}
+                                        {processing ? 'Sedang masuk…' : 'Masuk'}
                                     </Button>
                                 </Field>
                             </FieldGroup>

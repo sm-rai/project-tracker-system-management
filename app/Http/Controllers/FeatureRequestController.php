@@ -25,6 +25,19 @@ class FeatureRequestController extends Controller
         Gate::authorize('viewAny', FeatureRequest::class);
 
         $query = FeatureRequest::query()
+            ->select([
+                'id',
+                'project_id',
+                'title',
+                'description',
+                'priority',
+                'requested_at',
+                'due_date',
+                'fulfilled_at',
+                'fulfillment_note',
+                'status',
+                'is_on_time',
+            ])
             ->with('project:id,name,status')
             ->latest('requested_at')
             ->when($request->input('search'), function ($query, string $search): void {
@@ -40,32 +53,8 @@ class FeatureRequestController extends Controller
                 ->where('status', '!=', FeatureRequestStatus::Fulfilled->value)
                 ->whereDate('due_date', '<', now()->toDateString()));
 
-        $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $weekEnd = Carbon::now()->endOfWeek(Carbon::SUNDAY)->endOfDay();
-        $periodQuery = FeatureRequest::query()->whereBetween('requested_at', [$weekStart, $weekEnd]);
-        $periodTotal = (clone $periodQuery)->count();
-        $periodOnTime = (clone $periodQuery)->where('is_on_time', true)->count();
-        $percentage = $periodTotal === 0 ? 100.0 : round(($periodOnTime / $periodTotal) * 100, 1);
-
         return Inertia::render('feature-requests/index', [
             'featureRequests' => $query->paginate(10)->withQueryString(),
-            'metrics' => [
-                'total' => FeatureRequest::count(),
-                'open' => FeatureRequest::where('status', FeatureRequestStatus::Open->value)->count(),
-                'in_progress' => FeatureRequest::where('status', FeatureRequestStatus::InProgress->value)->count(),
-                'fulfilled' => FeatureRequest::where('status', FeatureRequestStatus::Fulfilled->value)->count(),
-                'overdue' => FeatureRequest::where('status', '!=', FeatureRequestStatus::Fulfilled->value)
-                    ->whereDate('due_date', '<', now()->toDateString())->count(),
-            ],
-            'okr' => [
-                'percentage' => $percentage,
-                'target' => 90,
-                'achieved' => $percentage >= 90,
-                'total' => $periodTotal,
-                'on_time' => $periodOnTime,
-                'period_start' => $weekStart->toDateString(),
-                'period_end' => $weekEnd->toDateString(),
-            ],
             'filters' => $request->only(['search', 'project_id', 'priority', 'status', 'overdue']),
             'deployedProjects' => $this->deployedProjects(),
             'priorities' => array_column(Priority::cases(), 'value'),

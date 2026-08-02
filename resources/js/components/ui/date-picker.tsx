@@ -1,6 +1,6 @@
 import * as React from "react"
 import { format, parseISO } from "date-fns"
-import { id } from "date-fns/locale"
+import { id as idLocale } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -19,6 +19,8 @@ interface DatePickerProps {
   className?: string
   disabled?: boolean
   id?: string
+  "aria-label"?: string
+  "aria-describedby"?: string
 }
 
 export function DatePicker({
@@ -27,6 +29,9 @@ export function DatePicker({
   placeholder = "Pilih tanggal",
   className,
   disabled = false,
+  id,
+  "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedBy,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -53,28 +58,31 @@ export function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
+          aria-label={ariaLabel}
+          aria-describedby={ariaDescribedBy}
           variant="outline"
           disabled={disabled}
           className={cn(
-            "h-9 w-full justify-start text-left font-normal border-[#E7DFD5] text-xs shadow-xs focus-visible:ring-[#AF4424]/30",
+            "h-11 w-full justify-start border-border text-left text-sm font-normal shadow-xs focus-visible:ring-ring/30 md:h-9 md:text-xs",
             !selectedDate && "text-muted-foreground",
             className
           )}
         >
           <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
           {selectedDate && !isNaN(selectedDate.getTime()) ? (
-            format(selectedDate, "dd MMMM yyyy", { locale: id })
+            format(selectedDate, "dd MMMM yyyy", { locale: idLocale })
           ) : (
             <span>{placeholder}</span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 border-[#E7DFD5] bg-card shadow-md" align="start">
+      <PopoverContent className="w-auto border-border bg-card p-0 shadow-md" align="start">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleSelect}
-          locale={id}
+          locale={idLocale}
         />
       </PopoverContent>
     </Popover>

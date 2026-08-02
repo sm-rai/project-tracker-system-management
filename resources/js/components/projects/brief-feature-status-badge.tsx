@@ -1,15 +1,18 @@
+import { IconCheck, IconCircleDot, IconClock } from '@tabler/icons-react';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { BriefFeatureStatusType } from '@/types/project';
-import { IconCheck, IconCircleDot, IconClock } from '@tabler/icons-react';
 
 interface BriefFeatureStatusBadgeProps {
     status: BriefFeatureStatusType;
     className?: string;
 }
 
-export function BriefFeatureStatusBadge({ status, className }: BriefFeatureStatusBadgeProps) {
+export function BriefFeatureStatusBadge({
+    status,
+    className,
+}: BriefFeatureStatusBadgeProps) {
     switch (status) {
         case 'todo':
             return (
@@ -21,7 +24,7 @@ export function BriefFeatureStatusBadge({ status, className }: BriefFeatureStatu
                     )}
                 >
                     <IconCircleDot className="size-3" />
-                    To Do
+                    Belum Dikerjakan
                 </Badge>
             );
         case 'in_progress':
@@ -29,12 +32,12 @@ export function BriefFeatureStatusBadge({ status, className }: BriefFeatureStatu
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-blue-500/30 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700',
+                        'gap-1 rounded-full border-info/30 bg-info-surface px-2 py-0.5 text-xs font-medium text-info',
                         className,
                     )}
                 >
                     <IconClock className="size-3" />
-                    In Progress
+                    Sedang Dikerjakan
                 </Badge>
             );
         case 'done':
@@ -42,12 +45,12 @@ export function BriefFeatureStatusBadge({ status, className }: BriefFeatureStatu
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-[#3F7A4A]/30 bg-[#E5F0E5] px-2 py-0.5 text-xs font-medium text-[#3F7A4A]',
+                        'gap-1 rounded-full border-success/30 bg-success-surface px-2 py-0.5 text-xs font-medium text-success',
                         className,
                     )}
                 >
                     <IconCheck className="size-3" />
-                    Done
+                    Selesai
                 </Badge>
             );
         default:

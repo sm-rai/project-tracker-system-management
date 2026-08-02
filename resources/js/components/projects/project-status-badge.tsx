@@ -1,7 +1,3 @@
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import type { ProjectStatusType } from '@/types/project';
 import {
     IconCalendarTime,
     IconChecklist,
@@ -10,25 +6,32 @@ import {
     IconRocket,
     IconTools,
 } from '@tabler/icons-react';
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import type { ProjectStatusType } from '@/types/project';
 
 interface ProjectStatusBadgeProps {
     status: ProjectStatusType;
     className?: string;
 }
 
-export function ProjectStatusBadge({ status, className }: ProjectStatusBadgeProps) {
+export function ProjectStatusBadge({
+    status,
+    className,
+}: ProjectStatusBadgeProps) {
     switch (status) {
         case 'planning':
             return (
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-[#9C842F]/30 bg-[#F2EACF] px-2.5 py-0.5 text-xs font-medium text-[#9C842F]',
+                        'gap-1 rounded-full border-pending/30 bg-pending-surface px-2.5 py-0.5 text-xs font-medium text-pending',
                         className,
                     )}
                 >
                     <IconCalendarTime className="size-3" />
-                    Planning
+                    Perencanaan
                 </Badge>
             );
         case 'in_progress':
@@ -36,12 +39,12 @@ export function ProjectStatusBadge({ status, className }: ProjectStatusBadgeProp
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-blue-500/30 bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700',
+                        'gap-1 rounded-full border-info/30 bg-info-surface px-2.5 py-0.5 text-xs font-medium text-info',
                         className,
                     )}
                 >
                     <IconClock className="size-3" />
-                    In Progress
+                    Sedang Berjalan
                 </Badge>
             );
         case 'on_hold':
@@ -49,12 +52,12 @@ export function ProjectStatusBadge({ status, className }: ProjectStatusBadgeProp
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-[#B9772E]/30 bg-[#F6E8D6] px-2.5 py-0.5 text-xs font-medium text-[#B9772E]',
+                        'gap-1 rounded-full border-warning/30 bg-warning-surface px-2.5 py-0.5 text-xs font-medium text-warning',
                         className,
                     )}
                 >
                     <IconPlayerPause className="size-3" />
-                    On Hold
+                    Ditunda
                 </Badge>
             );
         case 'completed_pending_deployment':
@@ -62,12 +65,12 @@ export function ProjectStatusBadge({ status, className }: ProjectStatusBadgeProp
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-purple-500/30 bg-purple-50 px-2.5 py-0.5 text-xs font-medium text-purple-700',
+                        'gap-1 rounded-full border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary',
                         className,
                     )}
                 >
                     <IconChecklist className="size-3" />
-                    Pending Deploy
+                    Menunggu Deployment
                 </Badge>
             );
         case 'deployed_running':
@@ -75,12 +78,12 @@ export function ProjectStatusBadge({ status, className }: ProjectStatusBadgeProp
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-[#3F7A4A]/30 bg-[#E5F0E5] px-2.5 py-0.5 text-xs font-medium text-[#3F7A4A]',
+                        'gap-1 rounded-full border-success/30 bg-success-surface px-2.5 py-0.5 text-xs font-medium text-success',
                         className,
                     )}
                 >
                     <IconRocket className="size-3" />
-                    Deployed (Running)
+                    Aktif
                 </Badge>
             );
         case 'deployed_maintenance':
@@ -88,12 +91,12 @@ export function ProjectStatusBadge({ status, className }: ProjectStatusBadgeProp
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-[#2F7C7A]/30 bg-[#DCEDEC] px-2.5 py-0.5 text-xs font-medium text-[#2F7C7A]',
+                        'gap-1 rounded-full border-info/30 bg-info-surface px-2.5 py-0.5 text-xs font-medium text-info',
                         className,
                     )}
                 >
                     <IconTools className="size-3" />
-                    Deployed (Maintenance)
+                    Pemeliharaan
                 </Badge>
             );
         default:

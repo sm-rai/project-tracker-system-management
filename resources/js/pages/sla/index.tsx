@@ -142,8 +142,11 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
         }
 
         window.requestAnimationFrame(() => {
+            const prefersReducedMotion = window.matchMedia(
+                '(prefers-reduced-motion: reduce)',
+            ).matches;
             document.getElementById('sla-form-errors')?.scrollIntoView({
-                behavior: 'smooth',
+                behavior: prefersReducedMotion ? 'auto' : 'smooth',
                 block: 'center',
             });
             document
@@ -232,9 +235,9 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                     <SiteHeader title="Pengaturan SLA" />
                     <main className="@container flex flex-1 flex-col gap-5 p-4 md:p-6">
                         <header className="max-w-3xl">
-                            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground">
                                 Atur target penyelesaian
-                            </h2>
+                            </h1>
                             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                                 Tetapkan jumlah hari kalender untuk penyelesaian
                                 issue dan feature request berdasarkan tingkat

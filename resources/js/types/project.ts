@@ -72,5 +72,7 @@ export interface ProjectSummary {
     total_projects: number;
     in_progress_count: number;
     deployed_count: number;
-    okr1_avg_realization: number;
+    okr1_total_projects: number;
+    okr1_evaluable_projects: number;
+    okr1_achieved_projects: number;
 }

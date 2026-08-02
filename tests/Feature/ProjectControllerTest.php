@@ -24,6 +24,23 @@ test('authenticated user can view projects list with pagination and search filte
     );
 });
 
+test('project index summarizes okr one by project instead of an average', function () {
+    $user = User::factory()->admin()->create();
+    $achievedProject = Project::factory()->inProgress()->create(['created_by' => $user->id]);
+    BriefFeature::factory()->done()->count(3)->create(['project_id' => $achievedProject->id]);
+    BriefFeature::factory()->todo()->create(['project_id' => $achievedProject->id]);
+    Project::factory()->inProgress()->create(['created_by' => $user->id]);
+
+    $this->actingAs($user)
+        ->get(route('projects.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('summary.okr1_total_projects', 2)
+            ->where('summary.okr1_evaluable_projects', 1)
+            ->where('summary.okr1_achieved_projects', 1)
+            ->missing('summary.okr1_avg_realization')
+        );
+});
+
 test('authenticated user can store new project with brief features and assigned users', function () {
     $admin = User::factory()->admin()->create();
     $dev1 = User::factory()->create(['name' => 'Developer Alpha']);
@@ -94,6 +111,32 @@ test('authenticated user can update project assigned developers and auto fill ac
     expect($project->actual_end_date)->not->toBeNull();
     expect($project->users)->toHaveCount(1);
     expect($project->users->first()->id)->toBe($dev->id);
+});
+
+test('legacy running project keeps unknown actual end date when edited', function () {
+    $user = User::factory()->admin()->create();
+    $project = Project::factory()->deployedRunning()->create([
+        'created_by' => $user->id,
+        'start_date' => null,
+        'target_end_date' => null,
+        'actual_end_date' => null,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->put(route('projects.update', $project), [
+            'name' => $project->name,
+            'description' => $project->description,
+            'status' => ProjectStatus::DeployedRunning->value,
+            'start_date' => null,
+            'target_end_date' => null,
+            'actual_end_date' => null,
+            'user_ids' => [],
+        ]);
+
+    $response->assertRedirect(route('projects.show', $project));
+    $project->refresh();
+
+    expect($project->actual_end_date)->toBeNull();
 });
 
 test('authenticated user can delete project', function () {

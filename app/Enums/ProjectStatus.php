@@ -14,12 +14,12 @@ enum ProjectStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Planning => 'Planning (Perencanaan)',
-            self::InProgress => 'In Progress (Development)',
-            self::OnHold => 'On Hold (Ditunda)',
-            self::CompletedPendingDeployment => 'Selesai (Pending Deploy)',
-            self::DeployedRunning => 'Deployed (Berjalan Normal)',
-            self::DeployedMaintenance => 'Deployed (Maintenance)',
+            self::Planning => 'Planning',
+            self::InProgress => 'In Progress',
+            self::OnHold => 'On Hold',
+            self::CompletedPendingDeployment => 'Pending Deploy',
+            self::DeployedRunning => 'Running',
+            self::DeployedMaintenance => 'Maintenance',
         };
     }
 }
