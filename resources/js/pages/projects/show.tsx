@@ -243,15 +243,15 @@ export default function ProjectShow({
                 <SidebarInset>
                     <SiteHeader title="Detail Project" />
 
-                    <div className="flex flex-1 flex-col gap-6 p-4 pt-0 md:p-6 md:pt-0">
+                    <div className="flex min-w-0 flex-1 flex-col gap-6 p-4 pt-0 md:p-6 md:pt-0">
                         {/* Back & Breadcrumb Header */}
-                        <div className="flex items-center justify-between pt-4 md:pt-2">
-                            <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 flex-col gap-3 pt-4 md:flex-row md:items-center md:justify-between md:pt-2">
+                            <div className="flex min-w-0 items-start gap-3">
                                 <Button
                                     asChild
                                     variant="outline"
                                     size="icon"
-                                    className="size-11 border-border hover:bg-background-soft md:size-8"
+                                    className="size-11 border-border hover:bg-background-soft lg:size-8"
                                 >
                                     <Link href="/projects">
                                         <span className="sr-only">
@@ -260,9 +260,9 @@ export default function ProjectShow({
                                         <IconArrowLeft className="size-4" />
                                     </Link>
                                 </Button>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h1 className="text-xl font-bold tracking-tight text-foreground">
+                                <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <h1 className="text-lg font-bold tracking-tight text-foreground md:text-xl">
                                             {project.name}
                                         </h1>
                                         <ProjectStatusBadge
@@ -276,12 +276,12 @@ export default function ProjectShow({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <Button
                                     asChild
                                     variant="outline"
                                     size="sm"
-                                    className="h-11 gap-1.5 border-border text-xs hover:bg-background-soft md:h-8"
+                                    className="h-11 gap-1.5 border-border text-xs hover:bg-background-soft lg:h-8"
                                 >
                                     <Link href={`/projects/${project.id}/edit`}>
                                         <IconPencil className="size-3.5" />
@@ -295,12 +295,12 @@ export default function ProjectShow({
                         <div className="grid gap-5 lg:grid-cols-3">
                             {/* Project Overview Card */}
                             <Card className="gap-0 border-border bg-card py-0 shadow-xs lg:col-span-2">
-                                <CardHeader className="flex flex-row items-center border-b border-border px-6 py-4">
-                                    <CardTitle className="flex w-full items-center justify-between text-base font-semibold text-foreground">
+                                <CardHeader className="flex w-full flex-col items-start gap-3 border-b border-border px-6 py-4 md:flex-row md:items-center md:justify-between">
+                                    <CardTitle className="flex w-full flex-col items-start gap-2 text-base font-semibold text-foreground md:flex-row md:items-center md:justify-between">
                                         <span>Informasi Ringkas Project</span>
                                         {/* Quick Status Dropdown */}
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-normal text-muted-foreground">
+                                        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:flex-nowrap">
+                                            <span className="shrink-0 text-xs font-normal text-muted-foreground">
                                                 Update Status:
                                             </span>
                                             <Select
@@ -309,7 +309,7 @@ export default function ProjectShow({
                                                     handleProjectStatusUpdate
                                                 }
                                             >
-                                                <SelectTrigger className="h-7 w-[170px] border-border text-xs">
+                                                <SelectTrigger className="h-11 w-full border-border text-xs data-[size=default]:h-11 lg:h-7 lg:w-[170px] lg:data-[size=default]:h-7">
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -485,11 +485,11 @@ export default function ProjectShow({
                         </div>
 
                         {/* Main Tabs: Brief Features vs Issue & Feature Requests */}
-                        <Tabs defaultValue="briefs" className="w-full">
-                            <TabsList className="border-border bg-background-soft">
+                        <Tabs defaultValue="briefs" className="w-full min-w-0">
+                            <TabsList className="h-auto w-full max-w-full min-w-0 justify-start overflow-x-auto border-border bg-background-soft">
                                 <TabsTrigger
                                     value="briefs"
-                                    className="gap-2 text-xs"
+                                    className="min-h-11 shrink-0 gap-2 text-xs lg:min-h-8"
                                 >
                                     <IconChecklist className="size-4" />
                                     <span>
@@ -499,7 +499,7 @@ export default function ProjectShow({
                                 <TabsTrigger
                                     value="issues"
                                     disabled={!is_deployed}
-                                    className="gap-2 text-xs disabled:opacity-50"
+                                    className="min-h-11 shrink-0 gap-2 text-xs disabled:opacity-50 lg:min-h-8"
                                 >
                                     <IconAlertCircle className="size-4" />
                                     <span>Issues & Feature Requests</span>
@@ -530,7 +530,7 @@ export default function ProjectShow({
                                             onClick={() =>
                                                 setAddModalOpen(true)
                                             }
-                                            className="h-8 gap-1.5 bg-primary text-xs text-primary-foreground shadow-xs hover:bg-primary-hover"
+                                            className="h-11 gap-1.5 bg-primary text-xs text-primary-foreground shadow-xs hover:bg-primary-hover lg:h-8"
                                         >
                                             <IconPlus className="size-3.5" />
                                             <span>Tambah Brief Feature</span>
@@ -595,7 +595,7 @@ export default function ProjectShow({
                                                                             )
                                                                         }
                                                                     >
-                                                                        <SelectTrigger className="h-8 w-[140px] border-border text-xs">
+                                                                        <SelectTrigger className="h-11 w-full border-border text-xs data-[size=default]:h-11 lg:h-8 lg:w-[140px] lg:data-[size=default]:h-8">
                                                                             <SelectValue>
                                                                                 <BriefFeatureStatusBadge
                                                                                     status={
@@ -662,7 +662,7 @@ export default function ProjectShow({
                                                                                     <Button
                                                                                         variant="ghost"
                                                                                         size="icon"
-                                                                                        className="size-8 text-muted-foreground hover:bg-background-soft hover:text-foreground"
+                                                                                        className="size-11 text-muted-foreground hover:bg-background-soft hover:text-foreground lg:size-8"
                                                                                         onClick={() =>
                                                                                             openEditModal(
                                                                                                 feat,
@@ -690,7 +690,7 @@ export default function ProjectShow({
                                                                                     <Button
                                                                                         variant="ghost"
                                                                                         size="icon"
-                                                                                        className="size-8 text-muted-foreground hover:bg-danger-surface hover:text-danger"
+                                                                                        className="size-11 text-muted-foreground hover:bg-danger-surface hover:text-danger lg:size-8"
                                                                                         onClick={() =>
                                                                                             setConfirmDeleteState(
                                                                                                 {
@@ -758,7 +758,7 @@ export default function ProjectShow({
                                                                             true,
                                                                         )
                                                                     }
-                                                                    className="mt-1 h-8 gap-1.5 bg-primary text-xs text-primary-foreground shadow-xs hover:bg-primary-hover"
+                                                                    className="mt-1 h-11 gap-1.5 bg-primary text-xs text-primary-foreground shadow-xs hover:bg-primary-hover lg:h-8"
                                                                 >
                                                                     <IconPlus className="size-3.5" />
                                                                     <span>
@@ -789,6 +789,7 @@ export default function ProjectShow({
                                                 asChild
                                                 size="sm"
                                                 variant="outline"
+                                                className="h-11 lg:h-8"
                                             >
                                                 <Link
                                                     href={issueCreate({
@@ -854,6 +855,7 @@ export default function ProjectShow({
                                                 asChild
                                                 size="sm"
                                                 variant="outline"
+                                                className="h-11 lg:h-8"
                                             >
                                                 <Link
                                                     href={featureRequestCreate({

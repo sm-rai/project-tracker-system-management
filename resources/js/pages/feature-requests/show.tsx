@@ -107,7 +107,12 @@ export default function Show({ featureRequest, can }: Props) {
                     <main className="flex flex-1 flex-col gap-5 p-4 md:p-6">
                         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                             <div className="flex items-start gap-3">
-                                <Button asChild variant="outline" size="icon">
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="icon"
+                                    className="size-11 lg:size-9"
+                                >
                                     <Link href={index()}>
                                         <span className="sr-only">
                                             Kembali ke daftar Feature Request
@@ -148,6 +153,7 @@ export default function Show({ featureRequest, can }: Props) {
                                 {featureRequest.status === 'open' && (
                                     <Button
                                         variant="outline"
+                                        className="h-11 lg:h-9"
                                         onClick={() =>
                                             router.patch(
                                                 start.url(featureRequest.id),
@@ -160,6 +166,7 @@ export default function Show({ featureRequest, can }: Props) {
                                 )}
                                 {featureRequest.status !== 'fulfilled' && (
                                     <Button
+                                        className="h-11 lg:h-9"
                                         onClick={() => setFulfillOpen(true)}
                                     >
                                         <CheckCircle2 className="size-4" />
@@ -169,6 +176,7 @@ export default function Show({ featureRequest, can }: Props) {
                                 {featureRequest.status === 'fulfilled' && (
                                     <Button
                                         variant="outline"
+                                        className="h-11 lg:h-9"
                                         onClick={() =>
                                             router.patch(
                                                 reopen.url(featureRequest.id),
@@ -179,7 +187,11 @@ export default function Show({ featureRequest, can }: Props) {
                                         Buka Kembali
                                     </Button>
                                 )}
-                                <Button asChild variant="outline">
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="h-11 lg:h-9"
+                                >
                                     <Link href={edit(featureRequest.id)}>
                                         <Pencil className="size-4" />
                                         Edit Feature Request
@@ -188,6 +200,7 @@ export default function Show({ featureRequest, can }: Props) {
                                 {can.delete && (
                                     <Button
                                         variant="destructive"
+                                        className="h-11 lg:h-9"
                                         onClick={() =>
                                             setDeleteConfirmOpen(true)
                                         }

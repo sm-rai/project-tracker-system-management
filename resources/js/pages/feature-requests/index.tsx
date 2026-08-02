@@ -282,7 +282,7 @@ export default function FeatureRequestsIndex({
                                         >
                                             <SelectTrigger
                                                 aria-label="Filter sistem"
-                                                className="h-11 w-full border-border bg-background text-sm sm:w-[190px] md:h-9"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[190px] lg:h-9"
                                             >
                                                 <SelectValue placeholder="Semua Sistem" />
                                             </SelectTrigger>
@@ -311,7 +311,7 @@ export default function FeatureRequestsIndex({
                                         >
                                             <SelectTrigger
                                                 aria-label="Filter prioritas"
-                                                className="h-11 w-full border-border bg-background text-sm sm:w-[150px] md:h-9"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[150px] lg:h-9"
                                             >
                                                 <SelectValue placeholder="Semua Prioritas" />
                                             </SelectTrigger>
@@ -336,7 +336,7 @@ export default function FeatureRequestsIndex({
                                         >
                                             <SelectTrigger
                                                 aria-label="Filter status feature request"
-                                                className="h-11 w-full border-border bg-background text-sm sm:w-[150px] md:h-9"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[150px] lg:h-9"
                                             >
                                                 <SelectValue placeholder="Semua Status" />
                                             </SelectTrigger>
@@ -374,7 +374,7 @@ export default function FeatureRequestsIndex({
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleResetFilters}
-                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto md:h-9"
+                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto lg:h-9"
                                     >
                                         <X className="mr-1 size-3" />
                                         Reset Filter
@@ -385,7 +385,7 @@ export default function FeatureRequestsIndex({
                             <Button
                                 asChild
                                 size="sm"
-                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover md:h-9"
+                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover lg:h-9"
                             >
                                 <Link href={create()}>
                                     <Plus className="size-4" />
@@ -471,7 +471,7 @@ export default function FeatureRequestsIndex({
                                                         asChild
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="size-8 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                        className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground lg:size-8"
                                                     >
                                                         <Link
                                                             href={show(
@@ -551,7 +551,7 @@ export default function FeatureRequestsIndex({
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs sm:pl-2.5',
+                                                        'h-11 gap-1 px-2.5 text-xs sm:pl-2.5 lg:h-8',
                                                         !prevLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}
@@ -595,7 +595,7 @@ export default function FeatureRequestsIndex({
                                                                             size: 'icon',
                                                                         },
                                                                     ),
-                                                                    'size-8 h-8 text-xs font-medium',
+                                                                    'size-11 h-11 text-xs font-medium lg:size-8 lg:h-8',
                                                                 )}
                                                             >
                                                                 {link.label}
@@ -614,7 +614,7 @@ export default function FeatureRequestsIndex({
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs sm:pr-2.5',
+                                                        'h-11 gap-1 px-2.5 text-xs sm:pr-2.5 lg:h-8',
                                                         !nextLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}

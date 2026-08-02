@@ -213,7 +213,7 @@ export default function ProjectsIndex({
                                 >
                                     <SelectTrigger
                                         aria-label="Filter status lifecycle"
-                                        className="h-11 w-full shrink-0 border-border bg-background text-sm sm:w-[220px] md:h-9"
+                                        className="h-11 w-full shrink-0 border-border bg-background text-sm sm:w-[220px] lg:h-9"
                                     >
                                         <SelectValue placeholder="Semua Lifecycle" />
                                     </SelectTrigger>
@@ -237,7 +237,7 @@ export default function ProjectsIndex({
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleResetFilters}
-                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto md:h-9"
+                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto lg:h-9"
                                     >
                                         <IconX className="mr-1 size-3" />
                                         Reset Filter
@@ -248,7 +248,7 @@ export default function ProjectsIndex({
                             <Button
                                 asChild
                                 size="sm"
-                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover md:h-9"
+                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover lg:h-9"
                             >
                                 <Link href="/projects/create">
                                     <IconPlus className="size-4" />
@@ -390,7 +390,7 @@ export default function ProjectsIndex({
                                                                         asChild
                                                                         variant="ghost"
                                                                         size="icon"
-                                                                        className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground md:size-8"
+                                                                        className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground lg:size-8"
                                                                     >
                                                                         <Link
                                                                             href={`/projects/${proj.id}`}
@@ -419,7 +419,7 @@ export default function ProjectsIndex({
                                                                         asChild
                                                                         variant="ghost"
                                                                         size="icon"
-                                                                        className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground md:size-8"
+                                                                        className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground lg:size-8"
                                                                     >
                                                                         <Link
                                                                             href={`/projects/${proj.id}/edit`}
@@ -444,7 +444,7 @@ export default function ProjectsIndex({
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="icon"
-                                                                        className="size-11 text-muted-foreground hover:bg-danger-surface hover:text-danger md:size-8"
+                                                                        className="size-11 text-muted-foreground hover:bg-danger-surface hover:text-danger lg:size-8"
                                                                         onClick={() =>
                                                                             setConfirmState(
                                                                                 {
@@ -532,7 +532,7 @@ export default function ProjectsIndex({
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs',
+                                                        'h-11 gap-1 px-2.5 text-xs lg:h-8',
                                                         !prevLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}
@@ -580,7 +580,7 @@ export default function ProjectsIndex({
                                                                             size: 'icon',
                                                                         },
                                                                     ),
-                                                                    'size-8 h-8 text-xs font-medium',
+                                                                    'size-11 h-11 text-xs font-medium lg:size-8 lg:h-8',
                                                                 )}
                                                             >
                                                                 {link.label}
@@ -599,7 +599,7 @@ export default function ProjectsIndex({
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs',
+                                                        'h-11 gap-1 px-2.5 text-xs lg:h-8',
                                                         !nextLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}

@@ -358,7 +358,7 @@ export default function IssuesIndexPage({
                                         >
                                             <SelectTrigger
                                                 aria-label="Filter sistem"
-                                                className="h-11 w-full border-border bg-background text-sm sm:w-[190px] md:h-9"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[190px] lg:h-9"
                                             >
                                                 <SelectValue placeholder="Semua Sistem" />
                                             </SelectTrigger>
@@ -390,7 +390,7 @@ export default function IssuesIndexPage({
                                         >
                                             <SelectTrigger
                                                 aria-label="Filter prioritas"
-                                                className="h-11 w-full border-border bg-background text-sm sm:w-[150px] md:h-9"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[150px] lg:h-9"
                                             >
                                                 <SelectValue placeholder="Semua Prioritas" />
                                             </SelectTrigger>
@@ -416,7 +416,7 @@ export default function IssuesIndexPage({
                                         >
                                             <SelectTrigger
                                                 aria-label="Filter status issue"
-                                                className="h-11 w-full border-border bg-background text-sm sm:w-[140px] md:h-9"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[140px] lg:h-9"
                                             >
                                                 <SelectValue placeholder="Semua Status" />
                                             </SelectTrigger>
@@ -441,7 +441,7 @@ export default function IssuesIndexPage({
                                         >
                                             <SelectTrigger
                                                 aria-label="Filter akar masalah"
-                                                className="h-11 w-full border-border bg-background text-sm sm:w-[160px] md:h-9"
+                                                className="h-11 w-full border-border bg-background text-sm sm:w-[160px] lg:h-9"
                                             >
                                                 <SelectValue placeholder="Semua Root Cause" />
                                             </SelectTrigger>
@@ -481,7 +481,7 @@ export default function IssuesIndexPage({
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleResetFilters}
-                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto md:h-9"
+                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto lg:h-9"
                                     >
                                         <X className="mr-1 size-3" />
                                         Reset Filter
@@ -492,7 +492,7 @@ export default function IssuesIndexPage({
                             <Button
                                 asChild
                                 size="sm"
-                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover md:h-9"
+                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover lg:h-9"
                             >
                                 <Link href="/issues/create">
                                     <Plus className="size-4" />
@@ -663,7 +663,7 @@ export default function IssuesIndexPage({
                                                                 asChild
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="size-8 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                                className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground lg:size-8"
                                                             >
                                                                 <Link
                                                                     href={`/issues/${issue.id}`}
@@ -685,7 +685,7 @@ export default function IssuesIndexPage({
                                                                         issue,
                                                                     )
                                                                 }
-                                                                className="size-11 text-muted-foreground hover:bg-danger-surface hover:text-danger md:size-8"
+                                                                className="size-11 text-muted-foreground hover:bg-danger-surface hover:text-danger lg:size-8"
                                                             >
                                                                 <Trash2 className="size-4" />
                                                                 <span className="sr-only">
@@ -758,7 +758,7 @@ export default function IssuesIndexPage({
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs sm:pl-2.5',
+                                                        'h-11 gap-1 px-2.5 text-xs sm:pl-2.5 lg:h-8',
                                                         !prevLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}
@@ -802,7 +802,7 @@ export default function IssuesIndexPage({
                                                                             size: 'icon',
                                                                         },
                                                                     ),
-                                                                    'size-8 h-8 text-xs font-medium',
+                                                                    'size-11 h-11 text-xs font-medium lg:size-8 lg:h-8',
                                                                 )}
                                                             >
                                                                 {link.label}
@@ -821,7 +821,7 @@ export default function IssuesIndexPage({
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs sm:pr-2.5',
+                                                        'h-11 gap-1 px-2.5 text-xs sm:pr-2.5 lg:h-8',
                                                         !nextLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}

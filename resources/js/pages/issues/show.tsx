@@ -222,7 +222,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     asChild
                                     variant="outline"
                                     size="icon"
-                                    className="size-11 shrink-0 md:size-9"
+                                    className="size-11 shrink-0 lg:size-9"
                                 >
                                     <Link href="/issues">
                                         <span className="sr-only">
@@ -275,7 +275,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                         onOpenChange={setResolveDialogOpen}
                                     >
                                         <DialogTrigger asChild>
-                                            <Button className="gap-2 bg-success text-success-foreground hover:bg-success/90">
+                                            <Button className="h-11 gap-2 bg-success text-success-foreground hover:bg-success/90 lg:h-9">
                                                 <CheckCircle2 className="h-4 w-4" />
                                                 Selesaikan Issue
                                             </Button>
@@ -338,7 +338,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                         onClick={() =>
                                             setReopenConfirmOpen(true)
                                         }
-                                        className="gap-2 border-warning/30 text-warning hover:bg-warning-surface"
+                                        className="h-11 gap-2 border-warning/30 text-warning hover:bg-warning-surface lg:h-9"
                                     >
                                         <RotateCcw className="h-4 w-4" />
                                         Buka Kembali Issue
@@ -350,6 +350,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     variant="outline"
                                     size="icon"
                                     aria-label="Edit issue"
+                                    className="size-11 lg:size-9"
                                 >
                                     <Link href={`/issues/${issue.id}/edit`}>
                                         <span className="sr-only">
@@ -363,7 +364,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     size="icon"
                                     aria-label="Hapus issue"
                                     onClick={() => setDeleteConfirmOpen(true)}
-                                    className="text-danger hover:bg-danger-surface hover:text-danger"
+                                    className="size-11 text-danger hover:bg-danger-surface hover:text-danger lg:size-9"
                                 >
                                     <Trash2 className="size-4" />
                                 </Button>

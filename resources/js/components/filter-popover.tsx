@@ -24,7 +24,7 @@ export function FilterPopover({ activeCount, children }: FilterPopoverProps) {
                 <Button
                     type="button"
                     variant="outline"
-                    className="h-11 w-full justify-between gap-2 sm:w-auto md:h-9"
+                    className="h-11 w-full justify-between gap-2 sm:w-auto lg:h-9"
                 >
                     <span className="flex items-center gap-2">
                         <SlidersHorizontal className="size-4" />

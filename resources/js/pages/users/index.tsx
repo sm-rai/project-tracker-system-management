@@ -277,7 +277,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                 >
                                     <SelectTrigger
                                         aria-label="Filter peran akses"
-                                        className="h-11 w-full border-border bg-background text-sm sm:w-[150px] md:h-9"
+                                        className="h-11 w-full border-border bg-background text-sm sm:w-[150px] lg:h-9"
                                     >
                                         <SelectValue placeholder="Semua Peran" />
                                     </SelectTrigger>
@@ -301,7 +301,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                 >
                                     <SelectTrigger
                                         aria-label="Filter status akun"
-                                        className="h-11 w-full border-border bg-background text-sm sm:w-[160px] md:h-9"
+                                        className="h-11 w-full border-border bg-background text-sm sm:w-[160px] lg:h-9"
                                     >
                                         <SelectValue placeholder="Semua Status" />
                                     </SelectTrigger>
@@ -323,7 +323,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleResetFilters}
-                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto md:h-9"
+                                        className="h-11 self-start text-xs text-muted-foreground hover:text-foreground sm:self-auto lg:h-9"
                                     >
                                         <IconX className="mr-1 size-3" />
                                         Reset Filter
@@ -334,7 +334,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                             {/* Create User Button */}
                             <Button
                                 size="sm"
-                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover md:h-9"
+                                className="h-11 gap-1.5 bg-primary font-medium text-primary-foreground shadow-xs hover:bg-primary-hover lg:h-9"
                                 onClick={() =>
                                     setUserModal({ open: true, user: null })
                                 }
@@ -484,7 +484,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="icon"
-                                                                            className="size-8 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                                            className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground lg:size-8"
                                                                             onClick={() =>
                                                                                 setUserModal(
                                                                                     {
@@ -516,7 +516,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="icon"
-                                                                                className="size-8 text-success hover:bg-success-surface hover:text-success"
+                                                                                className="size-11 text-success hover:bg-success-surface hover:text-success lg:size-8"
                                                                                 onClick={() =>
                                                                                     handleRestore(
                                                                                         u,
@@ -544,7 +544,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="icon"
-                                                                                className="size-8 text-muted-foreground hover:bg-danger-surface hover:text-danger disabled:pointer-events-none disabled:opacity-40"
+                                                                                className="size-11 text-muted-foreground hover:bg-danger-surface hover:text-danger disabled:pointer-events-none disabled:opacity-40 lg:size-8"
                                                                                 disabled={
                                                                                     isSelf
                                                                                 }
@@ -639,7 +639,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs sm:pl-2.5',
+                                                        'h-11 gap-1 px-2.5 text-xs sm:pl-2.5 lg:h-8',
                                                         !prevLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}
@@ -688,7 +688,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                                             size: 'icon',
                                                                         },
                                                                     ),
-                                                                    'size-8 h-8 text-xs font-medium',
+                                                                    'size-11 h-11 text-xs font-medium lg:size-8 lg:h-8',
                                                                 )}
                                                             >
                                                                 {link.label}
@@ -708,7 +708,7 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                             variant: 'ghost',
                                                             size: 'default',
                                                         }),
-                                                        'h-8 gap-1 px-2.5 text-xs sm:pr-2.5',
+                                                        'h-11 gap-1 px-2.5 text-xs sm:pr-2.5 lg:h-8',
                                                         !nextLink &&
                                                             'pointer-events-none opacity-40',
                                                     )}
