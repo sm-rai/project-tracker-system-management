@@ -48,7 +48,7 @@ function getStatusBadgeClass(status: string): string {
         return 'border-info/30 bg-info-surface text-info';
     }
 
-    return 'border-border bg-muted text-muted-foreground';
+    return 'border-neutral/30 bg-neutral-surface text-neutral';
 }
 
 export function SystemCombobox({

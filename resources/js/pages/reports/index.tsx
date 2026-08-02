@@ -206,7 +206,7 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                                 </SelectContent>
                                             </Select>
                                             {errors.period_type && (
-                                                <p className="text-xs text-destructive">
+                                                <p className="text-xs text-danger">
                                                     {errors.period_type}
                                                 </p>
                                             )}
@@ -254,7 +254,7 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                                     {errors.period_start_date && (
                                                         <p
                                                             id="period_start_date-error"
-                                                            className="text-xs text-destructive"
+                                                            className="text-xs text-danger"
                                                         >
                                                             {
                                                                 errors.period_start_date
@@ -288,7 +288,7 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                                     {errors.period_end_date && (
                                                         <p
                                                             id="period_end_date-error"
-                                                            className="text-xs text-destructive"
+                                                            className="text-xs text-danger"
                                                         >
                                                             {
                                                                 errors.period_end_date

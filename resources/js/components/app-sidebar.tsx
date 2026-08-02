@@ -4,11 +4,12 @@ import {
     IconBulb,
     IconClock,
     IconDashboard,
-    IconReportAnalytics,
+    IconFileAnalytics,
     IconFolderCode,
-    IconUsers,
     IconUserShield,
+    IconUsers,
 } from '@tabler/icons-react';
+import type { TablerIcon } from '@tabler/icons-react';
 import * as React from 'react';
 
 import { NavUser } from '@/components/nav-user';
@@ -27,6 +28,47 @@ import {
 import { index as featureRequestsIndex } from '@/routes/feature-requests';
 import type { User } from '@/types/auth';
 
+const menuItemClassName =
+    'h-9 transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary focus-visible:ring-2 focus-visible:ring-primary/30';
+
+interface NavigationItem {
+    label: string;
+    href: React.ComponentProps<typeof Link>['href'];
+    icon: TablerIcon;
+    isActive: (url: string) => boolean;
+}
+
+interface NavigationSection {
+    label: string;
+    items: NavigationItem[];
+}
+
+function NavigationMenuItem({
+    item,
+    url,
+}: {
+    item: NavigationItem;
+    url: string;
+}) {
+    const Icon = item.icon;
+
+    return (
+        <SidebarMenuItem>
+            <SidebarMenuButton
+                asChild
+                isActive={item.isActive(url)}
+                tooltip={item.label}
+                className={menuItemClassName}
+            >
+                <Link href={item.href} className="flex items-center gap-2.5">
+                    <Icon className="size-4" />
+                    <span>{item.label}</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+    );
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { props: pageProps, url } = usePage<{ auth: { user: User } }>();
     const user = pageProps.auth?.user || {
@@ -37,188 +79,149 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     const isAdmin = user.role === 'admin';
 
+    const navigationSections: NavigationSection[] = [
+        {
+            label: 'Ringkasan',
+            items: [
+                {
+                    label: 'Dashboard',
+                    href: '/dashboard',
+                    icon: IconDashboard,
+                    isActive: (currentUrl) =>
+                        currentUrl === '/' || currentUrl === '/dashboard',
+                },
+            ],
+        },
+        {
+            label: 'Pengelolaan',
+            items: [
+                {
+                    label: 'Project & Sistem',
+                    href: '/projects',
+                    icon: IconFolderCode,
+                    isActive: (currentUrl) =>
+                        currentUrl.startsWith('/projects'),
+                },
+                {
+                    label: 'Issue',
+                    href: '/issues',
+                    icon: IconAlertTriangle,
+                    isActive: (currentUrl) => currentUrl.startsWith('/issues'),
+                },
+                {
+                    label: 'Feature Request',
+                    href: featureRequestsIndex(),
+                    icon: IconBulb,
+                    isActive: (currentUrl) =>
+                        currentUrl.startsWith('/feature-requests'),
+                },
+            ],
+        },
+        {
+            label: 'Pelaporan',
+            items: [
+                {
+                    label: 'Laporan OKR',
+                    href: '/reports',
+                    icon: IconFileAnalytics,
+                    isActive: (currentUrl) => currentUrl.startsWith('/reports'),
+                },
+            ],
+        },
+        {
+            label: 'Konfigurasi',
+            items: [
+                {
+                    label: 'Pengaturan SLA',
+                    href: '/settings/sla',
+                    icon: IconClock,
+                    isActive: (currentUrl) =>
+                        currentUrl.startsWith('/settings/sla'),
+                },
+            ],
+        },
+    ];
+
     return (
         <Sidebar collapsible="offcanvas" {...props}>
-            <SidebarHeader className="border-b px-4 py-3">
+            <SidebarHeader className="border-b border-sidebar-border px-3 py-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             asChild
                             size="lg"
-                            className="hover:bg-transparent active:bg-transparent"
+                            className="h-auto min-h-16 p-2 hover:bg-transparent focus-visible:ring-2 focus-visible:ring-primary/30 active:bg-transparent [&>span:last-child]:overflow-visible [&>span:last-child]:text-clip [&>span:last-child]:whitespace-normal"
                         >
                             <Link
                                 href="/dashboard"
-                                className="flex items-center gap-3"
+                                className="flex min-w-0 items-center gap-3"
                             >
-                                <img
-                                    src="/images/Logo RAI Full.png"
-                                    alt="Rumah Atsiri Indonesia"
-                                    className="h-8 w-auto object-contain"
-                                />
-                                <div className="flex flex-col text-left leading-tight">
-                                    <span className="text-sm font-bold tracking-tight">
+                                <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary-surface p-2">
+                                    <img
+                                        src="/images/Logo RAI.png"
+                                        alt="Logo Rumah Atsiri Indonesia"
+                                        className="size-full object-contain"
+                                    />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                    <span className="block text-[15px] leading-tight font-semibold tracking-[-0.01em] whitespace-nowrap">
                                         Project Tracker
                                     </span>
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="mt-1 block text-xs leading-4 whitespace-nowrap text-muted-foreground">
                                         System Management
                                     </span>
-                                </div>
+                                </span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className="px-2 py-2">
-                {/* Navigasi Utama */}
-                <SidebarGroup>
-                    <SidebarGroupLabel className="text-xs font-medium tracking-wider text-muted-foreground/70 uppercase">
-                        Navigasi Utama
-                    </SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={
-                                        url === '/dashboard' || url === '/'
-                                    }
-                                    tooltip="Dashboard"
-                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
-                                >
-                                    <Link
-                                        href="/dashboard"
-                                        className="flex items-center gap-2.5"
-                                    >
-                                        <IconDashboard className="size-4" />
-                                        <span>Dashboard</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={url.startsWith(
-                                        '/feature-requests',
-                                    )}
-                                    tooltip="Feature Request"
-                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
-                                >
-                                    <Link
-                                        href={featureRequestsIndex()}
-                                        className="flex items-center gap-2.5"
-                                    >
-                                        <IconBulb className="size-4" />
-                                        <span>Feature Request</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={url.startsWith('/reports')}
-                                    tooltip="Laporan OKR"
-                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
-                                >
-                                    <Link
-                                        href="/reports"
-                                        className="flex items-center gap-2.5"
-                                    >
-                                        <IconReportAnalytics className="size-4" />
-                                        <span>Laporan OKR</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={url.startsWith('/projects')}
-                                    tooltip="Project & Sistem"
-                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
-                                >
-                                    <Link
-                                        href="/projects"
-                                        className="flex items-center gap-2.5"
-                                    >
-                                        <IconFolderCode className="size-4" />
-                                        <span>Project & Sistem</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={url.startsWith('/issues')}
-                                    tooltip="Issue"
-                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
-                                >
-                                    <Link
-                                        href="/issues"
-                                        className="flex items-center gap-2.5"
-                                    >
-                                        <IconAlertTriangle className="size-4" />
-                                        <span>Issue</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={url.startsWith('/settings/sla')}
-                                    tooltip="Pengaturan SLA"
-                                    className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
-                                >
-                                    <Link
-                                        href="/settings/sla"
-                                        className="flex items-center gap-2.5"
-                                    >
-                                        <IconClock className="size-4" />
-                                        <span>Pengaturan SLA</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
-                {/* Menu Admin (Kelola User) */}
-                {isAdmin && (
-                    <SidebarGroup className="mt-2">
-                        <SidebarGroupLabel className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
-                            <IconUserShield className="size-3.5 text-primary" />
-                            <span>Administrasi</span>
+            <SidebarContent className="px-2 py-3">
+                {navigationSections.map((section) => (
+                    <SidebarGroup key={section.label} className="px-0 py-1">
+                        <SidebarGroupLabel className="h-7 px-3 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                            {section.label}
                         </SidebarGroupLabel>
                         <SidebarGroupContent>
                             <SidebarMenu>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={url.startsWith('/users')}
-                                        tooltip="Manajemen User"
-                                        className="transition-colors hover:bg-background-soft data-[active=true]:bg-primary-surface data-[active=true]:font-semibold data-[active=true]:text-primary"
-                                    >
-                                        <Link
-                                            href="/users"
-                                            className="flex items-center gap-2.5"
-                                        >
-                                            <IconUsers className="size-4" />
-                                            <span>Manajemen User</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
+                                {section.items.map((item) => (
+                                    <NavigationMenuItem
+                                        key={item.label}
+                                        item={item}
+                                        url={url}
+                                    />
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                ))}
+
+                {isAdmin && (
+                    <SidebarGroup className="border-t border-sidebar-border px-0 pt-3">
+                        <SidebarGroupLabel className="h-7 gap-1.5 px-3 text-[10px] font-semibold tracking-[0.12em] text-primary uppercase">
+                            <IconUserShield className="size-3.5" />
+                            Administrasi
+                        </SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                <NavigationMenuItem
+                                    item={{
+                                        label: 'Manajemen User',
+                                        href: '/users',
+                                        icon: IconUsers,
+                                        isActive: (currentUrl) =>
+                                            currentUrl.startsWith('/users'),
+                                    }}
+                                    url={url}
+                                />
                             </SidebarMenu>
                         </SidebarGroupContent>
                     </SidebarGroup>
                 )}
             </SidebarContent>
 
-            <SidebarFooter className="border-t">
+            <SidebarFooter className="border-t border-sidebar-border p-2">
                 <NavUser user={user} />
             </SidebarFooter>
         </Sidebar>

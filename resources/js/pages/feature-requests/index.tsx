@@ -81,7 +81,14 @@ function StatusBadge({ request }: { request: FeatureRequest }) {
         new Date(request.due_date) < new Date(new Date().setHours(0, 0, 0, 0));
 
     if (overdue) {
-        return <Badge variant="destructive">Overdue</Badge>;
+        return (
+            <Badge
+                variant="outline"
+                className="border-danger/20 bg-danger-surface text-danger"
+            >
+                Overdue
+            </Badge>
+        );
     }
 
     const className =

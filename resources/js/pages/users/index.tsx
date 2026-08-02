@@ -50,7 +50,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useFlashToast } from '@/hooks/use-flash-toast';
 import { cn } from '@/lib/utils';
 import { UserFormModal } from '@/pages/users/user-form-modal';
 import type { User } from '@/types/auth';
@@ -80,8 +79,6 @@ interface UsersPageProps {
 }
 
 export default function UsersIndex({ users, filters }: UsersPageProps) {
-    useFlashToast();
-
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const currentUser = auth?.user;
 

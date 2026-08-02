@@ -1,6 +1,6 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Clock3, Save, ShieldAlert } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import type { FormEvent } from 'react';
 
 import {
@@ -28,6 +28,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import { index } from '@/routes/feature-requests';
 import type { DeployedProject } from '@/types/feature-request';
 
@@ -68,7 +69,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
     }
 
     return (
-        <p id={id} className="text-xs font-medium text-destructive">
+        <p id={id} className="text-xs font-medium text-danger">
             {message}
         </p>
     );
@@ -98,35 +99,20 @@ export function FeatureRequestForm({
     slaConfigs,
 }: Props) {
     const form = useForm<FormData>(initialData);
-    const isSubmitting = useRef(false);
+    const { markSubmitting, markFinished, unsavedChangesDialog } =
+        useUnsavedChanges(form.isDirty);
     const slaDays = slaConfigs[form.data.priority] ?? 3;
     const dueDate = useMemo(
         () => targetDate(form.data.requested_at, slaDays),
         [form.data.requested_at, slaDays],
     );
 
-    useEffect(() => {
-        const removeGuard = router.on('before', (event) => {
-            if (
-                form.isDirty &&
-                !isSubmitting.current &&
-                !window.confirm(
-                    'Perubahan belum disimpan. Tetap tinggalkan halaman?',
-                )
-            ) {
-                event.preventDefault();
-            }
-        });
-
-        return removeGuard;
-    }, [form.isDirty]);
-
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        isSubmitting.current = true;
+        markSubmitting();
         const options = {
             onFinish: () => {
-                isSubmitting.current = false;
+                markFinished();
             },
         };
 
@@ -144,242 +130,260 @@ export function FeatureRequestForm({
     >;
 
     return (
-        <div className="flex flex-1 flex-col gap-5 p-4 md:p-6">
-            <div className="flex items-start gap-3">
-                <Button asChild variant="outline" size="icon">
-                    <Link href={index()} aria-label="Kembali">
-                        <ArrowLeft className="size-4" />
-                    </Link>
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-semibold tracking-tight">
-                        {mode === 'create'
-                            ? 'Tambah Feature Request'
-                            : 'Edit Feature Request'}
-                    </h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Jelaskan kebutuhan sistem dan target pemenuhannya
-                        berdasarkan SLA.
-                    </p>
+        <>
+            <div className="flex flex-1 flex-col gap-5 p-4 md:p-6">
+                <div className="flex items-start gap-3">
+                    <Button asChild variant="outline" size="icon">
+                        <Link href={index()} aria-label="Kembali">
+                            <ArrowLeft className="size-4" />
+                        </Link>
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            {mode === 'create'
+                                ? 'Tambah Feature Request'
+                                : 'Edit Feature Request'}
+                        </h1>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Jelaskan kebutuhan sistem dan target pemenuhannya
+                            berdasarkan SLA.
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <form
-                onSubmit={submit}
-                className="grid gap-5 xl:grid-cols-12 xl:items-start"
-            >
-                {errors.length > 0 && (
-                    <Alert variant="destructive" className="xl:col-span-12">
-                        <ShieldAlert />
-                        <AlertTitle>Periksa kembali formulir</AlertTitle>
-                        <AlertDescription>
-                            <ul className="list-disc space-y-1 pl-4">
-                                {errors.map(([field, message]) => (
-                                    <li key={field}>
-                                        <a
-                                            href={`#${field}`}
-                                            className="underline underline-offset-2"
-                                        >
-                                            {fieldLabels[field]}: {message}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </AlertDescription>
-                    </Alert>
-                )}
+                <form
+                    onSubmit={submit}
+                    className="grid gap-5 xl:grid-cols-12 xl:items-start"
+                >
+                    {errors.length > 0 && (
+                        <Alert variant="destructive" className="xl:col-span-12">
+                            <ShieldAlert />
+                            <AlertTitle>Periksa kembali formulir</AlertTitle>
+                            <AlertDescription>
+                                <ul className="list-disc space-y-1 pl-4">
+                                    {errors.map(([field, message]) => (
+                                        <li key={field}>
+                                            <a
+                                                href={`#${field}`}
+                                                className="underline underline-offset-2"
+                                            >
+                                                {fieldLabels[field]}: {message}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </AlertDescription>
+                        </Alert>
+                    )}
 
-                <Card className="gap-0 py-0 xl:col-span-8">
-                    <CardHeader className="border-b px-5 py-5">
-                        <CardTitle>Informasi permintaan</CardTitle>
-                        <CardDescription>
-                            Pilih sistem operasional dan jelaskan hasil yang
-                            dibutuhkan.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-5 px-5 py-5">
-                        <div className="grid gap-2">
-                            <Label htmlFor="project_id">Sistem terkait</Label>
-                            <SystemCombobox
-                                id="project_id"
-                                projects={deployedProjects}
-                                value={form.data.project_id}
-                                onValueChange={(value) =>
-                                    form.setData('project_id', value)
-                                }
-                                placeholder="Pilih sistem terkait"
-                                ariaInvalid={Boolean(form.errors.project_id)}
-                                ariaDescribedBy={
-                                    form.errors.project_id
-                                        ? 'project_id-error project_id-help'
-                                        : 'project_id-help'
-                                }
-                            />
-                            <p
-                                id="project_id-help"
-                                className="text-xs leading-relaxed text-muted-foreground"
-                            >
-                                Hanya menampilkan sistem dengan status Berjalan
-                                atau Dalam pemeliharaan.
-                            </p>
-                            <FieldError
-                                id="project_id-error"
-                                message={form.errors.project_id}
-                            />
-                        </div>
+                    <Card className="gap-0 py-0 xl:col-span-8">
+                        <CardHeader className="border-b px-5 py-5">
+                            <CardTitle>Informasi permintaan</CardTitle>
+                            <CardDescription>
+                                Pilih sistem operasional dan jelaskan hasil yang
+                                dibutuhkan.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-5 px-5 py-5">
+                            <div className="grid gap-2">
+                                <Label htmlFor="project_id">
+                                    Sistem terkait
+                                </Label>
+                                <SystemCombobox
+                                    id="project_id"
+                                    projects={deployedProjects}
+                                    value={form.data.project_id}
+                                    onValueChange={(value) =>
+                                        form.setData('project_id', value)
+                                    }
+                                    placeholder="Pilih sistem terkait"
+                                    ariaInvalid={Boolean(
+                                        form.errors.project_id,
+                                    )}
+                                    ariaDescribedBy={
+                                        form.errors.project_id
+                                            ? 'project_id-error project_id-help'
+                                            : 'project_id-help'
+                                    }
+                                />
+                                <p
+                                    id="project_id-help"
+                                    className="text-xs leading-relaxed text-muted-foreground"
+                                >
+                                    Hanya menampilkan sistem dengan status
+                                    Berjalan atau Dalam pemeliharaan.
+                                </p>
+                                <FieldError
+                                    id="project_id-error"
+                                    message={form.errors.project_id}
+                                />
+                            </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="title">Ringkasan permintaan</Label>
-                            <Input
-                                id="title"
-                                value={form.data.title}
-                                onChange={(event) =>
-                                    form.setData('title', event.target.value)
-                                }
-                                placeholder="Contoh: Tambahkan approval berjenjang"
-                                aria-invalid={Boolean(form.errors.title)}
-                                aria-describedby={
-                                    form.errors.title
-                                        ? 'title-error'
-                                        : undefined
-                                }
-                            />
-                            <FieldError
-                                id="title-error"
-                                message={form.errors.title}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="description">
-                                Kebutuhan dan konteks
-                            </Label>
-                            <Textarea
-                                id="description"
-                                rows={7}
-                                value={form.data.description}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'description',
-                                        event.target.value,
-                                    )
-                                }
-                                placeholder="Jelaskan kebutuhan pengguna, tujuan, dan hasil yang diharapkan."
-                                aria-invalid={Boolean(form.errors.description)}
-                                aria-describedby={
-                                    form.errors.description
-                                        ? 'description-error'
-                                        : undefined
-                                }
-                            />
-                            <FieldError
-                                id="description-error"
-                                message={form.errors.description}
-                            />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="requested_at">
-                                Waktu permintaan diterima
-                            </Label>
-                            <Input
-                                id="requested_at"
-                                type="datetime-local"
-                                value={form.data.requested_at}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'requested_at',
-                                        event.target.value,
-                                    )
-                                }
-                                aria-invalid={Boolean(form.errors.requested_at)}
-                                aria-describedby={
-                                    form.errors.requested_at
-                                        ? 'requested_at-error'
-                                        : undefined
-                                }
-                            />
-                            <FieldError
-                                id="requested_at-error"
-                                message={form.errors.requested_at}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="gap-0 py-0 xl:sticky xl:top-16 xl:col-span-4">
-                    <CardHeader className="border-b px-5 py-4">
-                        <CardTitle>Priority &amp; Target</CardTitle>
-                        <CardDescription>
-                            Target dihitung dengan hari kalender.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-4 px-5 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="priority">Prioritas</Label>
-                            <Select
-                                value={form.data.priority}
-                                onValueChange={(value) =>
-                                    form.setData('priority', value)
-                                }
-                            >
-                                <SelectTrigger
-                                    id="priority"
-                                    aria-invalid={Boolean(form.errors.priority)}
+                            <div className="grid gap-2">
+                                <Label htmlFor="title">
+                                    Ringkasan permintaan
+                                </Label>
+                                <Input
+                                    id="title"
+                                    value={form.data.title}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'title',
+                                            event.target.value,
+                                        )
+                                    }
+                                    placeholder="Contoh: Tambahkan approval berjenjang"
+                                    aria-invalid={Boolean(form.errors.title)}
                                     aria-describedby={
-                                        form.errors.priority
-                                            ? 'priority-error'
+                                        form.errors.title
+                                            ? 'title-error'
                                             : undefined
                                     }
-                                >
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {priorities.map((priority) => (
-                                        <SelectItem
-                                            key={priority}
-                                            value={priority}
-                                        >
-                                            {priorityLabels[priority]} ·{' '}
-                                            {slaConfigs[priority]} hari
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FieldError
-                                id="priority-error"
-                                message={form.errors.priority}
-                            />
-                        </div>
+                                />
+                                <FieldError
+                                    id="title-error"
+                                    message={form.errors.title}
+                                />
+                            </div>
 
-                        <div className="rounded-lg bg-muted/60 p-4">
-                            <div className="flex gap-3">
-                                <Clock3 className="mt-0.5 size-4 text-primary" />
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Target selesai
-                                    </p>
-                                    <p className="mt-1 font-semibold tabular-nums">
-                                        {dueDate}
-                                    </p>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        SLA {slaDays} hari kalender
-                                    </p>
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">
+                                    Kebutuhan dan konteks
+                                </Label>
+                                <Textarea
+                                    id="description"
+                                    rows={7}
+                                    value={form.data.description}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'description',
+                                            event.target.value,
+                                        )
+                                    }
+                                    placeholder="Jelaskan kebutuhan pengguna, tujuan, dan hasil yang diharapkan."
+                                    aria-invalid={Boolean(
+                                        form.errors.description,
+                                    )}
+                                    aria-describedby={
+                                        form.errors.description
+                                            ? 'description-error'
+                                            : undefined
+                                    }
+                                />
+                                <FieldError
+                                    id="description-error"
+                                    message={form.errors.description}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="requested_at">
+                                    Waktu permintaan diterima
+                                </Label>
+                                <Input
+                                    id="requested_at"
+                                    type="datetime-local"
+                                    value={form.data.requested_at}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'requested_at',
+                                            event.target.value,
+                                        )
+                                    }
+                                    aria-invalid={Boolean(
+                                        form.errors.requested_at,
+                                    )}
+                                    aria-describedby={
+                                        form.errors.requested_at
+                                            ? 'requested_at-error'
+                                            : undefined
+                                    }
+                                />
+                                <FieldError
+                                    id="requested_at-error"
+                                    message={form.errors.requested_at}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="gap-0 py-0 xl:sticky xl:top-16 xl:col-span-4">
+                        <CardHeader className="border-b px-5 py-4">
+                            <CardTitle>Priority &amp; Target</CardTitle>
+                            <CardDescription>
+                                Target dihitung dengan hari kalender.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-4 px-5 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="priority">Prioritas</Label>
+                                <Select
+                                    value={form.data.priority}
+                                    onValueChange={(value) =>
+                                        form.setData('priority', value)
+                                    }
+                                >
+                                    <SelectTrigger
+                                        id="priority"
+                                        aria-invalid={Boolean(
+                                            form.errors.priority,
+                                        )}
+                                        aria-describedby={
+                                            form.errors.priority
+                                                ? 'priority-error'
+                                                : undefined
+                                        }
+                                    >
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {priorities.map((priority) => (
+                                            <SelectItem
+                                                key={priority}
+                                                value={priority}
+                                            >
+                                                {priorityLabels[priority]} ·{' '}
+                                                {slaConfigs[priority]} hari
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FieldError
+                                    id="priority-error"
+                                    message={form.errors.priority}
+                                />
+                            </div>
+
+                            <div className="rounded-lg bg-muted/60 p-4">
+                                <div className="flex gap-3">
+                                    <Clock3 className="mt-0.5 size-4 text-primary" />
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Target selesai
+                                        </p>
+                                        <p className="mt-1 font-semibold tabular-nums">
+                                            {dueDate}
+                                        </p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            SLA {slaDays} hari kalender
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="grid grid-cols-2 gap-3 border-t px-5 py-4">
-                        <Button asChild variant="outline">
-                            <Link href={index()}>Batal</Link>
-                        </Button>
-                        <Button type="submit" disabled={form.processing}>
-                            <Save className="size-4" />
-                            {form.processing ? 'Menyimpan…' : 'Simpan'}
-                        </Button>
-                    </CardFooter>
-                </Card>
-            </form>
-        </div>
+                        </CardContent>
+                        <CardFooter className="grid grid-cols-2 gap-3 border-t px-5 py-4">
+                            <Button asChild variant="outline">
+                                <Link href={index()}>Batal</Link>
+                            </Button>
+                            <Button type="submit" disabled={form.processing}>
+                                <Save className="size-4" />
+                                {form.processing ? 'Menyimpan…' : 'Simpan'}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </form>
+            </div>
+            {unsavedChangesDialog}
+        </>
     );
 }

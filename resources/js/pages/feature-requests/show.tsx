@@ -64,6 +64,14 @@ function fullDate(value: string) {
     }).format(new Date(value));
 }
 
+function statusBadgeClass(status: string): string {
+    return status === 'fulfilled'
+        ? 'border-success/20 bg-success-surface text-success'
+        : status === 'in_progress'
+          ? 'border-pending/20 bg-pending-surface text-pending'
+          : 'border-info/20 bg-info-surface text-info';
+}
+
 export default function Show({ featureRequest, can }: Props) {
     const [fulfillOpen, setFulfillOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -109,11 +117,19 @@ export default function Show({ featureRequest, can }: Props) {
                                 </Button>
                                 <div>
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <Badge variant="outline">
+                                        <Badge
+                                            variant="outline"
+                                            className={statusBadgeClass(
+                                                featureRequest.status,
+                                            )}
+                                        >
                                             {labels[featureRequest.status]}
                                         </Badge>
                                         {overdue && (
-                                            <Badge variant="destructive">
+                                            <Badge
+                                                variant="outline"
+                                                className="border-danger/20 bg-danger-surface text-danger"
+                                            >
                                                 Overdue
                                             </Badge>
                                         )}
@@ -184,7 +200,7 @@ export default function Show({ featureRequest, can }: Props) {
                         </div>
 
                         {overdue && (
-                            <div className="flex gap-3 rounded-lg border border-destructive/25 bg-destructive/10 p-4 text-destructive">
+                            <div className="flex gap-3 rounded-lg border border-danger/25 bg-danger-surface p-4 text-danger">
                                 <ClockAlert className="mt-0.5 size-5 shrink-0" />
                                 <div>
                                     <p className="font-medium">
@@ -276,7 +292,7 @@ export default function Show({ featureRequest, can }: Props) {
                                                     className={
                                                         featureRequest.is_on_time
                                                             ? 'mt-2 border-success/20 bg-success-surface text-success'
-                                                            : 'mt-2 border-destructive/25 bg-destructive/10 text-destructive'
+                                                            : 'mt-2 border-danger/25 bg-danger-surface text-danger'
                                                     }
                                                 >
                                                     {featureRequest.is_on_time

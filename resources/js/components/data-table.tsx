@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
     closestCenter,
     DndContext,
@@ -7,9 +6,8 @@ import {
     TouchSensor,
     useSensor,
     useSensors,
-    type DragEndEvent,
-    type UniqueIdentifier,
 } from '@dnd-kit/core';
+import type { DragEndEvent, UniqueIdentifier } from '@dnd-kit/core';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
     arrayMove,
@@ -41,25 +39,27 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
-    type ColumnDef,
-    type ColumnFiltersState,
-    type Row,
-    type SortingState,
-    type VisibilityState,
 } from '@tanstack/react-table';
+import type {
+    ColumnDef,
+    ColumnFiltersState,
+    Row,
+    SortingState,
+    VisibilityState,
+} from '@tanstack/react-table';
+import * as React from 'react';
+import toast from 'react-hot-toast';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
-import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-    type ChartConfig,
 } from '@/components/ui/chart';
+import type { ChartConfig } from '@/components/ui/chart';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     Drawer,
@@ -98,6 +98,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const schema = z.object({
     id: z.number(),
@@ -191,7 +192,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         cell: ({ row }) => (
             <Badge variant="outline" className="px-1.5 text-muted-foreground">
                 {row.original.status === 'Done' ? (
-                    <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
+                    <IconCircleCheckFilled className="fill-success" />
                 ) : (
                     <IconLoader />
                 )}
@@ -405,10 +406,12 @@ export function DataTable({
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
+
         if (active && over && active.id !== over.id) {
             setData((data) => {
                 const oldIndex = dataIds.indexOf(active.id);
                 const newIndex = dataIds.indexOf(over.id);
+
                 return arrayMove(data, oldIndex, newIndex);
             });
         }

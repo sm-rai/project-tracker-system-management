@@ -48,7 +48,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useFlashToast } from '@/hooks/use-flash-toast';
 import { cn } from '@/lib/utils';
 import type {
     PaginatedProjects,
@@ -81,8 +80,6 @@ export default function ProjectsIndex({
     filters,
     statuses,
 }: ProjectsIndexProps) {
-    useFlashToast();
-
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState<string>(
         filters.status || 'all',

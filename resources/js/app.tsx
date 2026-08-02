@@ -1,9 +1,11 @@
 import '../css/app.css';
 
-import { createInertiaApp  } from '@inertiajs/react';
-import type {ResolvedComponent} from '@inertiajs/react';
+import { createInertiaApp } from '@inertiajs/react';
+import type { ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from 'react-hot-toast';
+
+import { FlashToastListener } from '@/hooks/use-flash-toast';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Project Tracker';
 
@@ -16,36 +18,38 @@ createInertiaApp({
     },
     setup({ el, App, props }) {
         if (!el) {
-return;
-}
+            return;
+        }
 
         createRoot(el).render(
             <>
                 <App {...props} />
+                <FlashToastListener initialFlash={props.initialPage.flash} />
                 <Toaster
                     position="top-center"
                     toastOptions={{
                         duration: 4000,
                         style: {
-                            background: '#FFFFFF',
-                            color: '#25211E',
-                            border: '1px solid #E7DFD5',
+                            background: 'var(--card)',
+                            color: 'var(--foreground)',
+                            border: '1px solid var(--border)',
                             fontSize: '13px',
                             fontWeight: 500,
                             borderRadius: '8px',
                             padding: '10px 16px',
-                            boxShadow: '0 4px 16px rgba(37, 33, 30, 0.08)',
+                            boxShadow:
+                                '0 4px 16px color-mix(in srgb, var(--foreground) 8%, transparent)',
                         },
                         success: {
                             iconTheme: {
-                                primary: '#3F7A4A',
-                                secondary: '#FFFFFF',
+                                primary: 'var(--success)',
+                                secondary: 'var(--success-foreground)',
                             },
                         },
                         error: {
                             iconTheme: {
-                                primary: '#DC2626',
-                                secondary: '#FFFFFF',
+                                primary: 'var(--danger)',
+                                secondary: 'var(--danger-foreground)',
                             },
                         },
                     }}
@@ -54,6 +58,6 @@ return;
         );
     },
     progress: {
-        color: '#AF4424',
+        color: 'var(--primary)',
     },
 });

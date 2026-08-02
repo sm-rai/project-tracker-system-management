@@ -52,7 +52,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useFlashToast } from '@/hooks/use-flash-toast';
 import {
     create as featureRequestCreate,
     show as featureRequestShow,
@@ -77,8 +76,6 @@ export default function ProjectShow({
     brief_feature_statuses,
     project_statuses,
 }: ProjectShowProps) {
-    useFlashToast();
-
     // State for Add Brief Feature Modal
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [newFeatureName, setNewFeatureName] = useState('');
@@ -533,7 +530,7 @@ export default function ProjectShow({
                                             onClick={() =>
                                                 setAddModalOpen(true)
                                             }
-                                            className="h-8 gap-1.5 bg-primary text-xs text-white shadow-xs hover:bg-primary-hover"
+                                            className="h-8 gap-1.5 bg-primary text-xs text-primary-foreground shadow-xs hover:bg-primary-hover"
                                         >
                                             <IconPlus className="size-3.5" />
                                             <span>Tambah Brief Feature</span>
@@ -761,7 +758,7 @@ export default function ProjectShow({
                                                                             true,
                                                                         )
                                                                     }
-                                                                    className="mt-1 h-8 gap-1.5 bg-primary text-xs text-white shadow-xs hover:bg-primary-hover"
+                                                                    className="mt-1 h-8 gap-1.5 bg-primary text-xs text-primary-foreground shadow-xs hover:bg-primary-hover"
                                                                 >
                                                                     <IconPlus className="size-3.5" />
                                                                     <span>
@@ -1010,7 +1007,7 @@ export default function ProjectShow({
                             <Button
                                 type="submit"
                                 size="sm"
-                                className="bg-primary text-white hover:bg-primary-hover"
+                                className="bg-primary text-primary-foreground hover:bg-primary-hover"
                             >
                                 Simpan Brief Feature
                             </Button>
@@ -1117,7 +1114,7 @@ export default function ProjectShow({
                             <Button
                                 type="submit"
                                 size="sm"
-                                className="bg-primary text-white hover:bg-primary-hover"
+                                className="bg-primary text-primary-foreground hover:bg-primary-hover"
                             >
                                 Update Brief Feature
                             </Button>

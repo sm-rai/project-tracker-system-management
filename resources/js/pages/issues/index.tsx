@@ -617,8 +617,8 @@ export default function IssuesIndexPage({
                                                                 </Badge>
                                                                 {isOverdue && (
                                                                     <Badge
-                                                                        variant="destructive"
-                                                                        className="px-1.5 py-0 text-xs"
+                                                                        variant="outline"
+                                                                        className="border-danger/20 bg-danger-surface px-1.5 py-0 text-xs text-danger"
                                                                     >
                                                                         Overdue
                                                                     </Badge>

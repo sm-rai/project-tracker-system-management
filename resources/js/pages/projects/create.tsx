@@ -52,7 +52,8 @@ export default function CreateProject({
         user_ids: [] as number[],
         brief_features: [] as BriefFeatureInput[],
     });
-    const { markSubmitting, markFinished } = useUnsavedChanges(isDirty);
+    const { markSubmitting, markFinished, unsavedChangesDialog } =
+        useUnsavedChanges(isDirty);
     const isExistingSystem =
         data.status === 'deployed_running' ||
         data.status === 'deployed_maintenance';
@@ -554,6 +555,7 @@ export default function CreateProject({
                     </div>
                 </SidebarInset>
             </SidebarProvider>
+            {unsavedChangesDialog}
         </>
     );
 }

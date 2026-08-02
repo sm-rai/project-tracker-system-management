@@ -39,7 +39,7 @@ export function ProjectStatusBadge({
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-info/30 bg-info-surface px-2.5 py-0.5 text-xs font-medium text-info',
+                        'gap-1 rounded-full border-pending/30 bg-pending-surface px-2.5 py-0.5 text-xs font-medium text-pending',
                         className,
                     )}
                 >
@@ -65,7 +65,7 @@ export function ProjectStatusBadge({
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary',
+                        'gap-1 rounded-full border-pending/30 bg-pending-surface px-2.5 py-0.5 text-xs font-medium text-pending',
                         className,
                     )}
                 >

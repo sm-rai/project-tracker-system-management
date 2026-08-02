@@ -86,6 +86,20 @@ function metricBasis(metric: ReportOkrMetric): string {
     return `${metric.on_time_items} dari ${metric.total_items} item tepat waktu`;
 }
 
+function statusBadgeClass(status: string): string {
+    switch (status) {
+        case 'resolved':
+        case 'fulfilled':
+            return 'border-success/20 bg-success-surface text-success';
+        case 'in_progress':
+            return 'border-pending/20 bg-pending-surface text-pending';
+        case 'open':
+            return 'border-info/20 bg-info-surface text-info';
+        default:
+            return 'border-neutral/20 bg-neutral-surface text-neutral';
+    }
+}
+
 function OkrCard({ metric }: { metric: ReportOkrMetric }) {
     const isEmpty = metric.total_items === 0;
 
@@ -251,8 +265,8 @@ function ProjectRows({ projects }: { projects: ReportProjectItem[] }) {
                                 variant="outline"
                                 className={
                                     project.is_active_development
-                                        ? 'border-info/20 bg-info-surface text-info'
-                                        : ''
+                                        ? 'border-pending/20 bg-pending-surface text-pending'
+                                        : 'border-success/20 bg-success-surface text-success'
                                 }
                             >
                                 {project.status_label}
@@ -344,7 +358,10 @@ function IssueRows({
                         </TableCell>
                         <TableCell>{issue.project_name}</TableCell>
                         <TableCell>
-                            <Badge variant="outline">
+                            <Badge
+                                variant="outline"
+                                className={statusBadgeClass(issue.status)}
+                            >
                                 {labels[issue.status]}
                             </Badge>
                         </TableCell>
@@ -355,7 +372,10 @@ function IssueRows({
                                     Tepat waktu
                                 </Badge>
                             ) : (
-                                <Badge variant="secondary">
+                                <Badge
+                                    variant="outline"
+                                    className="border-warning/20 bg-warning-surface text-warning"
+                                >
                                     Open / terlambat
                                 </Badge>
                             )}
@@ -402,7 +422,10 @@ function FeatureRequestRows({
                         </TableCell>
                         <TableCell>{request.project_name}</TableCell>
                         <TableCell>
-                            <Badge variant="outline">
+                            <Badge
+                                variant="outline"
+                                className={statusBadgeClass(request.status)}
+                            >
                                 {labels[request.status]}
                             </Badge>
                         </TableCell>
@@ -413,7 +436,10 @@ function FeatureRequestRows({
                                     Tepat waktu
                                 </Badge>
                             ) : (
-                                <Badge variant="secondary">
+                                <Badge
+                                    variant="outline"
+                                    className="border-warning/20 bg-warning-surface text-warning"
+                                >
                                     Open / terlambat
                                 </Badge>
                             )}

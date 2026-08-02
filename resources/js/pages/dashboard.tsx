@@ -66,12 +66,12 @@ const statusColors: Record<
     DashboardProjectStatusDistribution['value'],
     string
 > = {
-    planning: 'var(--info)',
+    planning: 'var(--pending)',
     in_progress: 'var(--pending)',
     on_hold: 'var(--warning)',
-    completed_pending_deployment: 'var(--primary)',
+    completed_pending_deployment: 'var(--pending)',
     deployed_running: 'var(--success)',
-    deployed_maintenance: 'var(--neutral)',
+    deployed_maintenance: 'var(--info)',
 };
 
 const chartConfig = {

@@ -19,7 +19,7 @@ export function BriefFeatureStatusBadge({
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-muted-foreground/30 bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground',
+                        'gap-1 rounded-full border-neutral/30 bg-neutral-surface px-2 py-0.5 text-xs font-medium text-neutral',
                         className,
                     )}
                 >
@@ -32,7 +32,7 @@ export function BriefFeatureStatusBadge({
                 <Badge
                     variant="outline"
                     className={cn(
-                        'gap-1 rounded-full border-info/30 bg-info-surface px-2 py-0.5 text-xs font-medium text-info',
+                        'gap-1 rounded-full border-pending/30 bg-pending-surface px-2 py-0.5 text-xs font-medium text-pending',
                         className,
                     )}
                 >

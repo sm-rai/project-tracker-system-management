@@ -1,6 +1,6 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Clock, Save, ShieldAlert } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { FormEvent } from 'react';
 
 import { SystemCombobox } from '@/components/projects/system-combobox';
@@ -24,6 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 interface Project {
     id: number;
@@ -91,7 +92,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
     }
 
     return (
-        <p id={id} className="text-xs font-medium text-destructive">
+        <p id={id} className="text-xs font-medium text-danger">
             {message}
         </p>
     );
@@ -129,7 +130,11 @@ export function IssueForm({
 }: IssueFormProps) {
     const { data, setData, post, put, processing, errors, isDirty } =
         useForm<IssueFormData>(initialData);
-    const isSubmittingRef = useRef(false);
+    const { markSubmitting, markFinished, unsavedChangesDialog } =
+        useUnsavedChanges(
+            isDirty,
+            'Perubahan pada formulir belum disimpan. Tetap tinggalkan halaman?',
+        );
 
     const currentSlaDays = slaConfigs[data.priority] || 3;
     const selectedRootCause = rootCauseOptions[data.root_cause_category];
@@ -156,45 +161,13 @@ export function IssueForm({
         });
     }, [errorEntries]);
 
-    useEffect(() => {
-        const removeInertiaGuard = router.on('before', (event) => {
-            if (!isDirty || isSubmittingRef.current) {
-                return;
-            }
-
-            if (
-                !window.confirm(
-                    'Perubahan pada formulir belum disimpan. Tetap tinggalkan halaman?',
-                )
-            ) {
-                event.preventDefault();
-            }
-        });
-
-        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            if (!isDirty || isSubmittingRef.current) {
-                return;
-            }
-
-            event.preventDefault();
-            event.returnValue = '';
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            removeInertiaGuard();
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, [isDirty]);
-
     const handleSubmit = (event: FormEvent) => {
         event.preventDefault();
-        isSubmittingRef.current = true;
+        markSubmitting();
 
         const options = {
             onFinish: () => {
-                isSubmittingRef.current = false;
+                markFinished();
             },
         };
 
@@ -216,6 +189,7 @@ export function IssueForm({
     const submitLabel = mode === 'create' ? 'Simpan Issue' : 'Perbarui Issue';
 
     return (
+        <>
         <div className="@container flex flex-1 flex-col gap-5 p-4 md:p-6">
             <div className="flex items-start gap-3">
                 <Button
@@ -224,9 +198,14 @@ export function IssueForm({
                     size="icon"
                     className="size-11 shrink-0 md:size-9"
                 >
-                    <Link href="/issues" aria-label="Kembali ke daftar issue">
+                        <Link
+                            href="/issues"
+                            aria-label="Kembali ke daftar issue"
+                        >
                         <ArrowLeft className="size-4" />
-                        <span className="sr-only">Kembali ke daftar issue</span>
+                            <span className="sr-only">
+                                Kembali ke daftar issue
+                            </span>
                     </Link>
                 </Button>
                 <div className="min-w-0">
@@ -323,7 +302,7 @@ export function IssueForm({
                             <div className="grid gap-2">
                                 <Label htmlFor="title">
                                     Ringkasan issue{' '}
-                                    <span className="text-destructive">*</span>
+                                        <span className="text-danger">*</span>
                                 </Label>
                                 <Input
                                     id="title"
@@ -335,7 +314,9 @@ export function IssueForm({
                                     className="h-11 md:h-9"
                                     aria-invalid={Boolean(errors.title)}
                                     aria-describedby={
-                                        errors.title ? 'title-error' : undefined
+                                            errors.title
+                                                ? 'title-error'
+                                                : undefined
                                     }
                                     required
                                 />
@@ -348,7 +329,7 @@ export function IssueForm({
                             <div className="grid gap-2">
                                 <Label htmlFor="description">
                                     Kronologi dan dampak{' '}
-                                    <span className="text-destructive">*</span>
+                                        <span className="text-danger">*</span>
                                 </Label>
                                 <Textarea
                                     id="description"
@@ -362,7 +343,9 @@ export function IssueForm({
                                         )
                                     }
                                     className="min-h-32 resize-y"
-                                    aria-invalid={Boolean(errors.description)}
+                                        aria-invalid={Boolean(
+                                            errors.description,
+                                        )}
                                     aria-describedby={
                                         errors.description
                                             ? 'description-error'
@@ -379,7 +362,7 @@ export function IssueForm({
                             <div className="grid gap-2">
                                 <Label htmlFor="reported_at">
                                     Waktu dilaporkan{' '}
-                                    <span className="text-destructive">*</span>
+                                        <span className="text-danger">*</span>
                                 </Label>
                                 <Input
                                     id="reported_at"
@@ -392,7 +375,9 @@ export function IssueForm({
                                         )
                                     }
                                     className="h-11 md:h-9"
-                                    aria-invalid={Boolean(errors.reported_at)}
+                                        aria-invalid={Boolean(
+                                            errors.reported_at,
+                                        )}
                                     aria-describedby={
                                         errors.reported_at
                                             ? 'reported_at-error reported_at-help'
@@ -404,8 +389,8 @@ export function IssueForm({
                                     id="reported_at-help"
                                     className="text-xs leading-relaxed text-muted-foreground"
                                 >
-                                    Waktu saat ini terisi otomatis. Ubah jika
-                                    issue dilaporkan setelah kejadian.
+                                        Waktu saat ini terisi otomatis. Ubah
+                                        jika issue dilaporkan setelah kejadian.
                                 </p>
                                 <FieldError
                                     id="reported_at-error"
@@ -418,8 +403,8 @@ export function IssueForm({
                     <Card className="order-3 min-w-0 gap-0 border-border py-0 shadow-xs xl:order-none">
                         <CardContent className="px-5 py-4">
                             <p className="text-xs leading-relaxed text-muted-foreground">
-                                Pastikan ringkasan, waktu laporan, dan prioritas
-                                sudah sesuai sebelum menyimpan.
+                                    Pastikan ringkasan, waktu laporan, dan
+                                    prioritas sudah sesuai sebelum menyimpan.
                             </p>
                         </CardContent>
                         <CardFooter className="grid grid-cols-2 gap-3 border-t border-border px-5 py-3">
@@ -449,15 +434,15 @@ export function IssueForm({
                                 Klasifikasi &amp; target
                             </CardTitle>
                             <CardDescription>
-                                Tentukan urgensi dan dugaan awal untuk membantu
-                                proses tindak lanjut.
+                                    Tentukan urgensi dan dugaan awal untuk
+                                    membantu proses tindak lanjut.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-4 px-5 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="priority">
                                     Prioritas penanganan{' '}
-                                    <span className="text-destructive">*</span>
+                                        <span className="text-danger">*</span>
                                 </Label>
                                 <Select
                                     value={data.priority}
@@ -468,7 +453,9 @@ export function IssueForm({
                                     <SelectTrigger
                                         id="priority"
                                         className="w-full min-w-0 data-[size=default]:h-11 md:data-[size=default]:h-9"
-                                        aria-invalid={Boolean(errors.priority)}
+                                            aria-invalid={Boolean(
+                                                errors.priority,
+                                            )}
                                         aria-describedby={
                                             errors.priority
                                                 ? 'priority-error'
@@ -485,7 +472,8 @@ export function IssueForm({
                                             >
                                                 {priorityLabels[priority] ||
                                                     priority}{' '}
-                                                · {slaConfigs[priority] || 3}{' '}
+                                                    ·{' '}
+                                                    {slaConfigs[priority] || 3}{' '}
                                                 hari
                                             </SelectItem>
                                         ))}
@@ -511,10 +499,11 @@ export function IssueForm({
                                             {targetDate}
                                         </p>
                                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                                            Dihitung otomatis dari waktu laporan
-                                            dan SLA{' '}
+                                                Dihitung otomatis dari waktu
+                                                laporan dan SLA{' '}
                                             <span className="font-medium tabular-nums">
-                                                {currentSlaDays} hari kalender
+                                                    {currentSlaDays} hari
+                                                    kalender
                                             </span>
                                             .
                                         </p>
@@ -525,12 +514,15 @@ export function IssueForm({
                             <div className="grid gap-2">
                                 <Label htmlFor="root_cause_category">
                                     Dugaan penyebab{' '}
-                                    <span className="text-destructive">*</span>
+                                        <span className="text-danger">*</span>
                                 </Label>
                                 <Select
                                     value={data.root_cause_category}
                                     onValueChange={(value) =>
-                                        setData('root_cause_category', value)
+                                            setData(
+                                                'root_cause_category',
+                                                value,
+                                            )
                                     }
                                 >
                                     <SelectTrigger
@@ -548,7 +540,9 @@ export function IssueForm({
                                         <SelectValue placeholder="Pilih dugaan penyebab">
                                             {selectedRootCause ? (
                                                 <span className="max-w-full truncate">
-                                                    {selectedRootCause.label}
+                                                        {
+                                                            selectedRootCause.label
+                                                        }
                                                 </span>
                                             ) : null}
                                         </SelectValue>
@@ -559,8 +553,9 @@ export function IssueForm({
                                                 key={rootCause}
                                                 value={rootCause}
                                                 textValue={
-                                                    rootCauseOptions[rootCause]
-                                                        ?.label || rootCause
+                                                        rootCauseOptions[
+                                                            rootCause
+                                                        ]?.label || rootCause
                                                 }
                                             >
                                                 {rootCauseOptions[rootCause]
@@ -577,9 +572,9 @@ export function IssueForm({
                                         Panduan dugaan penyebab
                                     </p>
                                     <p>
-                                        Pilih kategori berdasarkan dugaan awal.
-                                        Kategori dapat diperbarui setelah
-                                        investigasi.
+                                            Pilih kategori berdasarkan dugaan
+                                            awal. Kategori dapat diperbarui
+                                            setelah investigasi.
                                     </p>
                                     <ul className="grid gap-1.5">
                                         {rootCauses.map((rootCause) => {
@@ -614,5 +609,7 @@ export function IssueForm({
                 </p>
             </form>
         </div>
+            {unsavedChangesDialog}
+        </>
     );
 }

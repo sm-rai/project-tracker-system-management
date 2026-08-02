@@ -28,7 +28,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { useFlashToast } from '@/hooks/use-flash-toast';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import type { User } from '@/types/auth';
 
@@ -38,15 +37,14 @@ interface EditUserPageProps {
 }
 
 export default function EditUser({ user }: EditUserPageProps) {
-    useFlashToast();
-
     const { data, setData, put, processing, errors, isDirty } = useForm({
         name: user.name || '',
         email: user.email || '',
         role: user.role || 'user',
         password: '',
     });
-    const { markSubmitting, markFinished } = useUnsavedChanges(isDirty);
+    const { markSubmitting, markFinished, unsavedChangesDialog } =
+        useUnsavedChanges(isDirty);
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -302,6 +300,7 @@ export default function EditUser({ user }: EditUserPageProps) {
                     </div>
                 </SidebarInset>
             </SidebarProvider>
+            {unsavedChangesDialog}
         </>
     );
 }

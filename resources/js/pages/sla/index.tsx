@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import {
     AlertTriangle,
     CheckCircle2,
@@ -7,7 +7,7 @@ import {
     Save,
     ShieldCheck,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { FormEvent } from 'react';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -26,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { useFlashToast } from '@/hooks/use-flash-toast';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
 type Priority = 'urgent' | 'normal' | 'low';
 
@@ -102,8 +102,6 @@ function getPreviewDate(daysValue: string): string {
 }
 
 export default function SlaConfigPage({ configs }: SlaConfigProps) {
-    useFlashToast();
-
     const initialConfigs: Record<Priority, string> = {
         urgent: String(configs.urgent ?? 1),
         normal: String(configs.normal ?? 3),
@@ -123,7 +121,11 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
     } = useForm<SlaValues>({
         configs: initialConfigs,
     });
-    const isSubmittingRef = useRef(false);
+    const { markSubmitting, markFinished, unsavedChangesDialog } =
+        useUnsavedChanges(
+            isDirty,
+            'Perubahan SLA belum diterapkan. Tetap tinggalkan halaman?',
+        );
 
     const priorityErrors = useMemo(
         () =>
@@ -155,38 +157,6 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
         });
     }, [priorityErrors]);
 
-    useEffect(() => {
-        const removeInertiaGuard = router.on('before', (event) => {
-            if (!isDirty || isSubmittingRef.current) {
-                return;
-            }
-
-            if (
-                !window.confirm(
-                    'Perubahan SLA belum diterapkan. Tetap tinggalkan halaman?',
-                )
-            ) {
-                event.preventDefault();
-            }
-        });
-
-        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            if (!isDirty || isSubmittingRef.current) {
-                return;
-            }
-
-            event.preventDefault();
-            event.returnValue = '';
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            removeInertiaGuard();
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, [isDirty]);
-
     const handleValueChange = (priority: Priority, value: string) => {
         setData('configs', {
             ...data.configs,
@@ -197,7 +167,7 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
 
     const handleSubmit = (event: FormEvent) => {
         event.preventDefault();
-        isSubmittingRef.current = true;
+        markSubmitting();
 
         put('/settings/sla', {
             preserveScroll: true,
@@ -205,7 +175,7 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                 setDefaults();
             },
             onFinish: () => {
-                isSubmittingRef.current = false;
+                markFinished();
             },
         });
     };
@@ -377,7 +347,7 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                                                     {error && (
                                                         <p
                                                             id={`configs-${priority.value}-error`}
-                                                            className="max-w-xs text-xs font-medium text-destructive sm:text-right"
+                                                            className="max-w-xs text-xs font-medium text-danger sm:text-right"
                                                         >
                                                             {error}
                                                         </p>
@@ -502,6 +472,7 @@ export default function SlaConfigPage({ configs }: SlaConfigProps) {
                     </main>
                 </SidebarInset>
             </SidebarProvider>
+            {unsavedChangesDialog}
         </>
     );
 }

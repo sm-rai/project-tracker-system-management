@@ -2,19 +2,29 @@
     --export-primary: #af4424;
     --export-primary-surface: #f3e3de;
     --export-foreground: #25211e;
-    --export-muted-foreground: #756e66;
+    --export-muted-foreground: #625b54;
     --export-border: #e7dfd5;
     --export-muted: #eeeae4;
     --export-background: #faf7f2;
     --export-card: #ffffff;
-    --export-success: #3f7a4a;
+    --export-success: #315f3a;
     --export-success-surface: #e5f0e5;
-    --export-warning: #b9772e;
+    --export-warning: #8a571f;
     --export-warning-surface: #f6e8d6;
-    --export-info: #2f7c7a;
+    --export-info: #286b69;
     --export-info-surface: #dcedec;
-    --export-danger: #dc2626;
+    --export-danger: #b42318;
     --export-danger-surface: #fee2e2;
+    --export-success-border: color-mix(
+        in srgb,
+        var(--export-success) 30%,
+        transparent
+    );
+    --export-warning-border: color-mix(
+        in srgb,
+        var(--export-warning) 30%,
+        transparent
+    );
 }
 
 * {
@@ -26,7 +36,7 @@ body {
     margin: 0;
     padding: 0;
     color: var(--export-foreground);
-    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif;
     font-size: 12px;
     line-height: 1.5;
 }
@@ -180,13 +190,13 @@ body {
 }
 
 .export-status-success {
-    border-color: #b8d5b9;
+    border-color: var(--export-success-border);
     background: var(--export-success-surface);
     color: var(--export-success);
 }
 
 .export-status-warning {
-    border-color: #e4c898;
+    border-color: var(--export-warning-border);
     background: var(--export-warning-surface);
     color: var(--export-warning);
 }
@@ -476,7 +486,7 @@ body {
 
 @media print {
     body {
-        background: #ffffff;
+        background: var(--export-card);
     }
 
     .export-pdf {

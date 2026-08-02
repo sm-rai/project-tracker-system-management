@@ -96,78 +96,80 @@
         'Plus Jakarta Sans', -apple-system, 'Segoe UI', sans-serif;
 
     /* Rumah Atsiri - Neutral & Surface */
-    --background: #faf7f2;
     --background-soft: #faf7f2;
+    --background: var(--background-soft);
     --foreground: #25211e;
 
     --card: #ffffff;
-    --card-foreground: #25211e;
-    --popover: #ffffff;
-    --popover-foreground: #25211e;
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
 
     /* Rumah Atsiri - Brand */
     --primary: #af4424;
     --primary-hover: #8c361d;
-    --primary-foreground: #ffffff;
+    --primary-foreground: var(--card);
     --primary-surface: #f3e3de;
 
-    --secondary: #ffffff;
-    --secondary-foreground: #25211e;
+    --secondary: var(--card);
+    --secondary-foreground: var(--foreground);
 
     --muted: #eeeae4;
-    --muted-foreground: #756e66;
+    --muted-foreground: #625b54;
 
-    --accent: #f3e3de;
-    --accent-foreground: #af4424;
+    --accent: var(--primary-surface);
+    --accent-foreground: var(--primary);
 
-    --destructive: #dc2626;
-    --destructive-foreground: #ffffff;
+    /* Compatibility aliases for shadcn destructive variants. */
+    --destructive: var(--danger);
+    --destructive-foreground: var(--danger-foreground);
 
     --border: #e7dfd5;
-    --input: #e7dfd5;
-    --ring: #af4424;
+    --input: var(--border);
+    --ring: var(--primary);
 
     /* Rumah Atsiri - Semantic */
+    /* These accessible solid values are the canonical UI semantic palette. */
     --success: #315f3a;
-    --success-foreground: #ffffff;
+    --success-foreground: var(--card);
     --success-surface: #e5f0e5;
 
     --warning: #8a571f;
-    --warning-foreground: #ffffff;
+    --warning-foreground: var(--card);
     --warning-surface: #f6e8d6;
 
     --pending: #6f5d20;
-    --pending-foreground: #ffffff;
+    --pending-foreground: var(--card);
     --pending-surface: #f2eacf;
 
     --info: #286b69;
-    --info-foreground: #ffffff;
+    --info-foreground: var(--card);
     --info-surface: #dcedec;
 
     --danger: #b42318;
-    --danger-foreground: #ffffff;
+    --danger-foreground: var(--card);
     --danger-surface: #fee2e2;
 
-    --neutral: #756e66;
-    --neutral-foreground: #ffffff;
+    --neutral: #625b54;
+    --neutral-foreground: var(--card);
     --neutral-surface: #eeeae4;
 
     /* Charts / BI - derived from semantic palette */
-    --chart-1: #3f7a4a;
-    --chart-2: #2f7c7a;
-    --chart-3: #b9772e;
-    --chart-4: #9c842f;
-    --chart-5: #af4424;
+    --chart-1: var(--success);
+    --chart-2: var(--info);
+    --chart-3: var(--warning);
+    --chart-4: var(--pending);
+    --chart-5: var(--primary);
 
     /* Sidebar / Navigation */
-    --sidebar: #ffffff;
-    --sidebar-foreground: #25211e;
-    --sidebar-primary: #af4424;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #faf7f2;
-    --sidebar-accent-foreground: #25211e;
-    --sidebar-border: #e7dfd5;
-    --sidebar-ring: #af4424;
+    --sidebar: var(--card);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--background-soft);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
 
     /* Typography scale */
     --text-h1: 600 28px/1.3 var(--font-sans-family);
@@ -233,12 +235,13 @@
 }
 
 .dark {
-    --sidebar: hsl(240 5.9% 10%);
-    --sidebar-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-primary: hsl(224.3 76.3% 48%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(240 3.7% 15.9%);
-    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-border: hsl(240 3.7% 15.9%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+    /* Keep generated dark-mode hooks aligned until a dark palette is defined. */
+    --sidebar: var(--card);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--background-soft);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
 }

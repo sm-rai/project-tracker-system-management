@@ -50,7 +50,8 @@ export default function EditProject({
             : '',
         user_ids: assigned_user_ids,
     });
-    const { markSubmitting, markFinished } = useUnsavedChanges(isDirty);
+    const { markSubmitting, markFinished, unsavedChangesDialog } =
+        useUnsavedChanges(isDirty);
 
     const handleUserToggle = (userId: number) => {
         if (data.user_ids.includes(userId)) {
@@ -412,6 +413,7 @@ export default function EditProject({
                     </div>
                 </SidebarInset>
             </SidebarProvider>
+            {unsavedChangesDialog}
         </>
     );
 }
