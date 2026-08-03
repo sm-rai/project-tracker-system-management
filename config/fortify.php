@@ -161,16 +161,9 @@ return [
     |
     */
 
-    // MVP scope: login only (single admin user, no self-registration).
-    // Reset password, 2FA, and passkeys are planned for a future phase.
     'features' => [
-        // Features::registration(),
-        // Features::resetPasswords(),
-        // Features::emailVerification(),
-        // Features::updateProfileInformation(),
-        // Features::updatePasswords(),
-        // Features::twoFactorAuthentication(),
-        // Features::passkeys(),
+        Features::resetPasswords(),
+        Features::updatePasswords(),
     ],
 
 ];

@@ -4,6 +4,7 @@ use App\Http\Controllers\BriefFeatureController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeatureRequestController;
 use App\Http\Controllers\IssueController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportSnapshotController;
 use App\Http\Controllers\ReportSnapshotExportController;
@@ -17,6 +18,7 @@ Route::get('/', fn () => redirect()->route('dashboard'))
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 
     Route::get('/reports', [ReportSnapshotController::class, 'index'])->name('reports.index');
     Route::post('/reports', [ReportSnapshotController::class, 'store'])->name('reports.store');
