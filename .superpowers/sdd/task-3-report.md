@@ -61,3 +61,10 @@ Wayfinder was regenerated with `php artisan wayfinder:generate --no-interaction 
 
 - Repository-wide ESLint is not clean because of the pre-existing out-of-scope findings listed above.
 - Vite emits its existing advisory warning that optional `fontaine` is not installed; the production build nevertheless exits successfully.
+
+## Inline security hardening after review
+
+- Added `PasswordResetLinkResponse` and bound it to both Fortify success and failure reset-link response contracts.
+- Known and unknown valid email addresses now receive the same neutral status without an email validation error, preventing account enumeration.
+- Added a regression test that posts both paths, asserts matching status/no errors, and confirms no notification is sent for an unknown address.
+- Verification after hardening: `php artisan test --compact` passed 124 tests/694 assertions; `vendor/bin/pint --dirty --format agent`, targeted ESLint, `npm run types:check`, `npm run build`, and `git diff --check` passed.
