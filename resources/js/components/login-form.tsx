@@ -1,4 +1,4 @@
-import { Form } from '@inertiajs/react';
+import { Form, Link, usePage } from '@inertiajs/react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,11 +17,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { store } from '@/routes/login';
+import { request } from '@/routes/password';
 
 export function LoginForm({
     className,
     ...props
 }: React.ComponentProps<'div'>) {
+    const { status } = usePage<{ status?: string | null }>().props;
+
     return (
         <div className={cn('flex flex-col gap-6', className)} {...props}>
             <Card>
@@ -38,6 +41,17 @@ export function LoginForm({
                     <Form {...store.form()} resetOnError>
                         {({ errors, processing }) => (
                             <FieldGroup>
+                                {status && (
+                                    <p
+                                        role="status"
+                                        aria-live="polite"
+                                        className="rounded-md border border-border bg-muted/50 px-3 py-2 text-muted-foreground text-small"
+                                    >
+                                        {status === 'Password has been reset.'
+                                            ? 'Password berhasil diperbarui. Silakan masuk dengan password baru Anda.'
+                                            : status}
+                                    </p>
+                                )}
                                 <Field data-invalid={!!errors.email}>
                                     <FieldLabel htmlFor="email">
                                         Email
@@ -57,9 +71,17 @@ export function LoginForm({
                                     />
                                 </Field>
                                 <Field data-invalid={!!errors.password}>
-                                    <FieldLabel htmlFor="password">
-                                        Password
-                                    </FieldLabel>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <FieldLabel htmlFor="password">
+                                            Password
+                                        </FieldLabel>
+                                        <Link
+                                            href={request.url()}
+                                            className="text-primary underline-offset-4 text-small hover:underline"
+                                        >
+                                            Lupa Password?
+                                        </Link>
+                                    </div>
                                     <Input
                                         id="password"
                                         name="password"
