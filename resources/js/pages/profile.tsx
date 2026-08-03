@@ -51,7 +51,9 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                                             <UserRound className="size-5" />
                                         </div>
                                         <div>
-                                            <CardTitle>Identitas Saya</CardTitle>
+                                            <CardTitle>
+                                                Identitas Saya
+                                            </CardTitle>
                                             <CardDescription>
                                                 Informasi akun yang terdaftar di
                                                 Project Tracker.
@@ -115,7 +117,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                                                     <p
                                                         role="status"
                                                         aria-live="polite"
-                                                        className="flex items-center gap-2 rounded-md border border-success/20 bg-success-surface px-3 py-2 text-small text-success"
+                                                        className="flex items-center gap-2 rounded-md border border-success/20 bg-success-surface px-3 py-2 text-success text-small"
                                                     >
                                                         <CheckCircle2 className="size-4" />
                                                         Password berhasil
