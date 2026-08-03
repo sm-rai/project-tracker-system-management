@@ -29,5 +29,6 @@ yarn-error.log
 /.impeccable
 /.codex
 /.agents
+/.worktrees
 /.github/hooks
 /.github/skills
