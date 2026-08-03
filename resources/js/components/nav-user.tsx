@@ -1,7 +1,8 @@
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     IconChevronUp,
     IconLogout,
+    IconUser,
     IconUserCheck,
     IconUserShield,
 } from '@tabler/icons-react';
@@ -21,6 +22,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
+import { show as profile } from '@/routes/profile';
 
 export function NavUser({
     user,
@@ -120,6 +122,15 @@ export function NavUser({
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            asChild
+                            className="cursor-pointer rounded-md px-2 py-2"
+                        >
+                            <Link href={profile.url()}>
+                                <IconUser className="mr-2 size-4" />
+                                Profil Saya
+                            </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={handleLogout}
                             className="cursor-pointer rounded-md px-2 py-2 text-danger focus:bg-danger-surface focus:text-danger"

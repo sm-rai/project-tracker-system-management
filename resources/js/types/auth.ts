@@ -13,3 +13,8 @@ export type User = {
 export type Auth = {
     user: User;
 };
+
+export interface ProfileUser {
+    name: string;
+    email: string;
+}
