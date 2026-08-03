@@ -32,6 +32,34 @@ test('guests can request a password reset link for an existing email', function 
     Notification::assertSentTo($user, ResetPassword::class);
 });
 
+test('forgot password does not reveal whether the email is registered', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $unknownResponse = $this->from('/forgot-password')->post('/forgot-password', [
+        'email' => 'not-registered@example.com',
+    ]);
+
+    $unknownResponse
+        ->assertRedirect('/forgot-password')
+        ->assertSessionHas('status')
+        ->assertSessionMissing('errors');
+
+    Notification::assertNothingSent();
+
+    $knownResponse = $this->from('/forgot-password')->post('/forgot-password', [
+        'email' => $user->email,
+    ]);
+
+    $knownResponse
+        ->assertRedirect('/forgot-password')
+        ->assertSessionHas('status', $unknownResponse->getSession()->get('status'))
+        ->assertSessionMissing('errors');
+
+    Notification::assertSentTo($user, ResetPassword::class);
+});
+
 test('guests can reset their password with a raw broker token', function () {
     $user = User::factory()->create(['password' => 'password']);
     $token = Password::broker('users')->createToken($user);
