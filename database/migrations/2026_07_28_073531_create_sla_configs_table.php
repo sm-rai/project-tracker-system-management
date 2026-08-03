@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sla_configs', function (Blueprint $table) {
             $table->id();
             $table->string('priority')->unique();
-            $table->integer('target_resolution_days');
+            $table->integer('target_resolution_hours');
             $table->timestamp('updated_at')->nullable();
         });
     }

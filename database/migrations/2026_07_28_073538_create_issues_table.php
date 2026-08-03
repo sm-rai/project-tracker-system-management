@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('priority')->index();
             $table->string('root_cause_category');
             $table->timestamp('reported_at');
-            $table->date('due_date');
+            $table->timestamp('due_date');
             $table->timestamp('resolved_at')->nullable();
             $table->string('status')->default('open')->index();
             $table->text('resolution_note')->nullable();

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('period_end_date');
             $table->string('period_type');
             $table->decimal('okr1_avg_percentage', 5, 2)->default(0);
+            $table->decimal('okr1_project_achievement_percentage', 5, 2)->nullable();
             $table->decimal('okr2_issue_percentage', 5, 2)->default(100);
             $table->decimal('okr2_feature_request_percentage', 5, 2)->default(100);
             $table->json('project_breakdown_json');

@@ -18,8 +18,9 @@ return new class extends Migration
             $table->text('description');
             $table->string('priority')->index();
             $table->timestamp('requested_at');
-            $table->date('due_date');
+            $table->timestamp('due_date');
             $table->timestamp('fulfilled_at')->nullable();
+            $table->text('fulfillment_note')->nullable();
             $table->string('status')->default('open')->index();
             $table->boolean('is_on_time')->nullable();
             $table->timestamps();
