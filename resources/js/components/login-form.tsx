@@ -109,7 +109,31 @@ export function LoginForm({
                         <div className="h-px flex-1 bg-border" />
                     </div>
                     <Button variant="outline" className="w-full" asChild>
-                        <a href={googleRedirect.url()}>Masuk dengan Google</a>
+                        <a href={googleRedirect.url()}>
+                            <svg
+                                aria-hidden="true"
+                                className="size-4"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    fill="#4285F4"
+                                    d="M21.35 12.27c0-.79-.07-1.55-.22-2.27H12v4.3h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.15c1.85-1.7 2.9-4.2 2.9-7.42Z"
+                                />
+                                <path
+                                    fill="#34A853"
+                                    d="M12 21c2.43 0 4.47-.8 5.96-2.17l-3.15-2.45c-.83.56-1.89.9-2.81.9-2.43 0-4.49-1.64-5.23-3.84H3.52v2.52A9 9 0 0 0 12 21Z"
+                                />
+                                <path
+                                    fill="#FBBC05"
+                                    d="M6.77 13.44A5.4 5.4 0 0 1 6.5 12c0-.5.1-.98.27-1.44V8.04H3.52A9 9 0 0 0 3 12c0 1.43.34 2.78.95 3.96l2.82-2.52Z"
+                                />
+                                <path
+                                    fill="#EA4335"
+                                    d="M12 6.72c1.32 0 2.5.45 3.43 1.34L18 5.49C16.46 4.02 14.43 3 12 3a9 9 0 0 0-8.48 5.04l2.82 2.52c1.17-2.2 3.23-3.84 5.66-3.84Z"
+                                />
+                            </svg>
+                            <span>Masuk dengan Google</span>
+                        </a>
                     </Button>
                 </CardContent>
             </Card>
