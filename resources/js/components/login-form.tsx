@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { redirect as googleRedirect } from '@/routes/auth/google';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
@@ -102,6 +103,14 @@ export function LoginForm({
                             </FieldGroup>
                         )}
                     </Form>
+                    <div className="my-4 flex items-center gap-3 text-muted-foreground text-small">
+                        <div className="h-px flex-1 bg-border" />
+                        <span>atau</span>
+                        <div className="h-px flex-1 bg-border" />
+                    </div>
+                    <Button variant="outline" className="w-full" asChild>
+                        <a href={googleRedirect.url()}>Masuk dengan Google</a>
+                    </Button>
                 </CardContent>
             </Card>
         </div>
