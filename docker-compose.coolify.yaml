@@ -1,0 +1,118 @@
+services:
+  app:
+    image: project-tracker-system-management-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      SERVICE_FQDN_APP_8080: https://tracker-sm.atsiriwellforce.com
+      APP_NAME: "${APP_NAME:-Project Tracker System Management}"
+      APP_ENV: production
+      APP_KEY: "${APP_KEY:?Set APP_KEY in Coolify}"
+      APP_DEBUG: "false"
+      APP_URL: https://tracker-sm.atsiriwellforce.com
+      APP_LOCALE: id
+      APP_FALLBACK_LOCALE: en
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_PORT: "3306"
+      DB_DATABASE: "${MYSQL_DATABASE_NAME:-project_tracker}"
+      DB_USERNAME: "${MYSQL_APPLICATION_USER:-project_tracker}"
+      DB_PASSWORD: "${SERVICE_PASSWORD_64_MYSQL}"
+      SESSION_DRIVER: database
+      SESSION_SECURE_COOKIE: "true"
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      DB_QUEUE_RETRY_AFTER: "120"
+      FILESYSTEM_DISK: local
+      BROWSERSHOT_CHROME_PATH: /usr/bin/chromium
+      BROWSERSHOT_NODE_BINARY: /usr/local/bin/node
+      BROWSERSHOT_NPM_BINARY: /usr/local/bin/npm
+      MAIL_MAILER: "${MAIL_MAILER:-log}"
+      MAIL_SCHEME: "${MAIL_SCHEME:-null}"
+      MAIL_HOST: "${MAIL_HOST:-127.0.0.1}"
+      MAIL_PORT: "${MAIL_PORT:-2525}"
+      MAIL_USERNAME: "${MAIL_USERNAME:-null}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD:-null}"
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-hello@example.com}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME:-Project Tracker System Management}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
+      GOOGLE_REDIRECT_URI: https://tracker-sm.atsiriwellforce.com/auth/google/callback
+    expose:
+      - "8080"
+    volumes:
+      - app-storage:/var/www/html/storage/app
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+
+  worker:
+    image: project-tracker-system-management-app
+    command: worker
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      APP_NAME: "${APP_NAME:-Project Tracker System Management}"
+      APP_ENV: production
+      APP_KEY: "${APP_KEY:?Set APP_KEY in Coolify}"
+      APP_DEBUG: "false"
+      APP_URL: https://tracker-sm.atsiriwellforce.com
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_PORT: "3306"
+      DB_DATABASE: "${MYSQL_DATABASE_NAME:-project_tracker}"
+      DB_USERNAME: "${MYSQL_APPLICATION_USER:-project_tracker}"
+      DB_PASSWORD: "${SERVICE_PASSWORD_64_MYSQL}"
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      DB_QUEUE_RETRY_AFTER: "120"
+      FILESYSTEM_DISK: local
+      BROWSERSHOT_CHROME_PATH: /usr/bin/chromium
+      BROWSERSHOT_NODE_BINARY: /usr/local/bin/node
+      BROWSERSHOT_NPM_BINARY: /usr/local/bin/npm
+      MAIL_MAILER: "${MAIL_MAILER:-log}"
+      MAIL_SCHEME: "${MAIL_SCHEME:-null}"
+      MAIL_HOST: "${MAIL_HOST:-127.0.0.1}"
+      MAIL_PORT: "${MAIL_PORT:-2525}"
+      MAIL_USERNAME: "${MAIL_USERNAME:-null}"
+      MAIL_PASSWORD: "${MAIL_PASSWORD:-null}"
+      MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-hello@example.com}"
+      MAIL_FROM_NAME: "${MAIL_FROM_NAME:-Project Tracker System Management}"
+    volumes:
+      - app-storage:/var/www/html/storage/app
+
+  database:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE_NAME:-project_tracker}"
+      MYSQL_USER: "${MYSQL_APPLICATION_USER:-project_tracker}"
+      MYSQL_PASSWORD: "${SERVICE_PASSWORD_64_MYSQL}"
+      MYSQL_ROOT_PASSWORD: "${SERVICE_PASSWORD_64_MYSQLROOT}"
+    volumes:
+      - database-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  app-storage:
+  database-data:

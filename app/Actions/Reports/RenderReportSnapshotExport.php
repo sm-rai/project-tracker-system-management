@@ -26,7 +26,7 @@ class RenderReportSnapshotExport
 
     private function browsershot(string $html): Browsershot
     {
-        $browsershot = Browsershot::html($html);
+        $browsershot = Browsershot::html($html)->noSandbox();
         $chromePath = config('services.browsershot.chrome_path');
         $nodeBinary = config('services.browsershot.node_binary');
         $npmBinary = config('services.browsershot.npm_binary');
