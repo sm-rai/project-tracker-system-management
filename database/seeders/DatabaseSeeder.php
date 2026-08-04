@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Priority;
 use App\Enums\UserRole;
-use App\Models\SlaConfig;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -27,28 +25,5 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        User::updateOrCreate(
-            ['email' => 'erwintra88@gmail.com'],
-            [
-                'name' => 'Erwin',
-                'password' => 'password',
-                'role' => UserRole::User,
-            ],
-        );
-
-        SlaConfig::updateOrCreate(
-            ['priority' => Priority::Urgent],
-            ['target_resolution_hours' => 24],
-        );
-
-        SlaConfig::updateOrCreate(
-            ['priority' => Priority::Normal],
-            ['target_resolution_hours' => 72],
-        );
-
-        SlaConfig::updateOrCreate(
-            ['priority' => Priority::Low],
-            ['target_resolution_hours' => 168],
-        );
     }
 }
