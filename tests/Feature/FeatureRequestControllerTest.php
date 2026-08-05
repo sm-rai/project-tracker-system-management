@@ -60,6 +60,43 @@ test('fulfillment note is optional and late fulfillment is recorded', function (
         ->and($featureRequest->is_on_time)->toBeFalse();
 });
 
+test('feature request can be fulfilled at a historical time', function () {
+    Carbon::setTestNow('2026-08-05 12:00:00');
+    $user = User::factory()->create();
+    $featureRequest = FeatureRequest::factory()->create([
+        'requested_at' => '2026-08-04 09:00:00',
+        'priority' => 'normal',
+    ]);
+
+    $this->actingAs($user)
+        ->patch("/feature-requests/{$featureRequest->id}/fulfill", [
+            'fulfilled_at' => '2026-08-04 16:30:00',
+            'fulfillment_note' => 'Fitur sudah dirilis kemarin.',
+        ])
+        ->assertRedirect();
+
+    $featureRequest->refresh();
+
+    expect($featureRequest->status)->toBe(FeatureRequestStatus::Fulfilled)
+        ->and($featureRequest->fulfilled_at->format('Y-m-d H:i:s'))->toBe('2026-08-04 16:30:00')
+        ->and($featureRequest->is_on_time)->toBeTrue();
+});
+
+test('feature request cannot be fulfilled in the future', function () {
+    Carbon::setTestNow('2026-08-05 12:00:00');
+    $user = User::factory()->create();
+    $featureRequest = FeatureRequest::factory()->create();
+
+    $this->actingAs($user)
+        ->patch("/feature-requests/{$featureRequest->id}/fulfill", [
+            'fulfilled_at' => '2026-08-06 09:00:00',
+        ])
+        ->assertSessionHasErrors('fulfilled_at');
+
+    expect($featureRequest->fresh()->fulfilled_at)->toBeNull()
+        ->and($featureRequest->fresh()->status)->toBe(FeatureRequestStatus::Open);
+});
+
 test('guest is redirected from feature request pages', function () {
     $this->get('/feature-requests')->assertRedirect('/login');
 });

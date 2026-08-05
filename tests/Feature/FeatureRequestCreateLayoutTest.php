@@ -44,3 +44,13 @@ test('feature request form follows the shared operational form spacing', functio
             'className="grid gap-5 px-5 py-5 md:px-6 md:py-6"',
         );
 });
+
+test('feature request fulfillment dialog captures a completion datetime', function () {
+    $source = File::get(resource_path('js/pages/feature-requests/show.tsx'));
+
+    expect($source)
+        ->toContain('fulfilled_at: localDateTime()')
+        ->toContain("import { DateTimePicker } from '@/components/ui/date-time-picker';")
+        ->toContain("fulfillForm.setData('fulfilled_at', value)")
+        ->toContain('id="fulfilled_at"');
+});

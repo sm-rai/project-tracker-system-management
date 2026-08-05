@@ -29,6 +29,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import {
     Dialog,
     DialogContent,
@@ -64,6 +65,13 @@ function fullDate(value: string) {
     }).format(new Date(value));
 }
 
+function localDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+
+    return now.toISOString().slice(0, 16);
+}
+
 function statusBadgeClass(status: string): string {
     return status === 'fulfilled'
         ? 'border-success/20 bg-success-surface text-success'
@@ -75,7 +83,10 @@ function statusBadgeClass(status: string): string {
 export default function Show({ featureRequest, can }: Props) {
     const [fulfillOpen, setFulfillOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-    const fulfillForm = useForm({ fulfillment_note: '' });
+    const fulfillForm = useForm({
+        fulfilled_at: localDateTime(),
+        fulfillment_note: '',
+    });
     const overdue =
         featureRequest.status !== 'fulfilled' &&
         new Date(featureRequest.due_date) < new Date();
@@ -88,6 +99,11 @@ export default function Show({ featureRequest, can }: Props) {
                 fulfillForm.reset();
             },
         });
+    };
+
+    const openFulfillDialog = () => {
+        fulfillForm.setData('fulfilled_at', localDateTime());
+        setFulfillOpen(true);
     };
 
     const remove = () => {
@@ -166,7 +182,7 @@ export default function Show({ featureRequest, can }: Props) {
                                 {featureRequest.status !== 'fulfilled' && (
                                     <Button
                                         className="h-11 lg:h-9"
-                                        onClick={() => setFulfillOpen(true)}
+                                        onClick={openFulfillDialog}
                                     >
                                         <CheckCircle2 className="size-4" />
                                         Tandai Terpenuhi
@@ -329,29 +345,69 @@ export default function Show({ featureRequest, can }: Props) {
                             Tandai Feature Request sebagai Terpenuhi
                         </DialogTitle>
                         <DialogDescription>
-                            Waktu pemenuhan dan status tepat waktu akan dihitung
-                            otomatis.
+                            Default-nya sekarang. Jika fitur sudah selesai
+                            sebelumnya, pilih waktu selesainya; status tepat
+                            waktu akan dihitung otomatis.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-2">
-                        <Label htmlFor="fulfillment_note">
-                            Catatan pemenuhan{' '}
-                            <span className="text-muted-foreground">
-                                (opsional)
-                            </span>
-                        </Label>
-                        <Textarea
-                            id="fulfillment_note"
-                            rows={5}
-                            value={fulfillForm.data.fulfillment_note}
-                            onChange={(event) =>
-                                fulfillForm.setData(
-                                    'fulfillment_note',
-                                    event.target.value,
-                                )
-                            }
-                            placeholder="Contoh: Fitur dirilis dan sudah diverifikasi pengguna."
-                        />
+                        <div className="grid gap-2">
+                            <Label htmlFor="fulfilled_at">
+                                Waktu pemenuhan
+                            </Label>
+                            <DateTimePicker
+                                id="fulfilled_at"
+                                value={fulfillForm.data.fulfilled_at}
+                                onChange={(value) =>
+                                    fulfillForm.setData('fulfilled_at', value)
+                                }
+                                aria-invalid={Boolean(
+                                    fulfillForm.errors.fulfilled_at,
+                                )}
+                                aria-describedby={
+                                    fulfillForm.errors.fulfilled_at
+                                        ? 'fulfilled_at-error'
+                                        : 'fulfilled_at-help'
+                                }
+                            />
+                            <p
+                                id="fulfilled_at-help"
+                                className="text-xs leading-relaxed text-muted-foreground"
+                            >
+                                Isi waktu sebenarnya fitur selesai. Waktu
+                                sebelumnya diperbolehkan, tetapi tidak boleh
+                                melewati waktu sekarang.
+                            </p>
+                            {fulfillForm.errors.fulfilled_at && (
+                                <p
+                                    id="fulfilled_at-error"
+                                    className="text-sm text-danger"
+                                    role="alert"
+                                >
+                                    {fulfillForm.errors.fulfilled_at}
+                                </p>
+                            )}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="fulfillment_note">
+                                Catatan pemenuhan{' '}
+                                <span className="text-muted-foreground">
+                                    (opsional)
+                                </span>
+                            </Label>
+                            <Textarea
+                                id="fulfillment_note"
+                                rows={5}
+                                value={fulfillForm.data.fulfillment_note}
+                                onChange={(event) =>
+                                    fulfillForm.setData(
+                                        'fulfillment_note',
+                                        event.target.value,
+                                    )
+                                }
+                                placeholder="Contoh: Fitur dirilis dan sudah diverifikasi pengguna."
+                            />
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button

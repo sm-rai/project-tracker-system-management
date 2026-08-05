@@ -143,8 +143,18 @@ class FeatureRequestController extends Controller
             throw ValidationException::withMessages(['status' => 'Feature request ini sudah terpenuhi.']);
         }
 
-        $validated = $request->validate(['fulfillment_note' => ['nullable', 'string']]);
-        $featureRequest->fulfill($validated['fulfillment_note'] ?? null);
+        $validated = $request->validate([
+            'fulfilled_at' => ['nullable', 'date', 'before_or_equal:now'],
+            'fulfillment_note' => ['nullable', 'string'],
+        ], [
+            'fulfilled_at.date' => 'Waktu pemenuhan tidak valid.',
+            'fulfilled_at.before_or_equal' => 'Waktu pemenuhan tidak boleh di masa depan.',
+        ]);
+
+        $featureRequest->fulfill(
+            $validated['fulfillment_note'] ?? null,
+            $validated['fulfilled_at'] ?? null,
+        );
 
         return back()->with('success', 'Feature request berhasil ditandai terpenuhi.');
     }

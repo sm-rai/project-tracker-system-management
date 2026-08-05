@@ -94,9 +94,9 @@ class FeatureRequest extends Model
         $this->save();
     }
 
-    public function fulfill(?string $note = null): void
+    public function fulfill(?string $note = null, ?string $fulfilledAt = null): void
     {
-        $this->fulfilled_at = now();
+        $this->fulfilled_at = $fulfilledAt ?? now();
         if ($note !== null) {
             $this->fulfillment_note = $note;
         }
