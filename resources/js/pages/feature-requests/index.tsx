@@ -405,28 +405,28 @@ export default function FeatureRequestsIndex({
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-border bg-card">
-                            <Table>
+                            <Table className="min-w-[980px] table-fixed">
                                 <TableHeader>
                                     <TableRow className="border-border hover:bg-transparent">
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[32%] text-xs font-medium text-muted-foreground">
                                             Feature Request
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[16%] text-xs font-medium text-muted-foreground">
                                             Sistem
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[10%] text-xs font-medium text-muted-foreground">
                                             Prioritas
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[14%] text-xs font-medium text-muted-foreground">
                                             Status
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[12%] text-xs font-medium text-muted-foreground">
                                             Diterima
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[12%] text-xs font-medium text-muted-foreground">
                                             Target
                                         </TableHead>
-                                        <TableHead className="h-10 text-right text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[4%] text-right text-xs font-medium text-muted-foreground">
                                             Aksi
                                         </TableHead>
                                     </TableRow>
@@ -438,7 +438,7 @@ export default function FeatureRequestsIndex({
                                                 key={request.id}
                                                 className="border-border transition-colors hover:bg-muted/30"
                                             >
-                                                <TableCell>
+                                                <TableCell className="whitespace-normal">
                                                     <div className="flex min-w-0 flex-col gap-0.5">
                                                         <Link
                                                             href={show(
@@ -448,7 +448,7 @@ export default function FeatureRequestsIndex({
                                                         >
                                                             {request.title}
                                                         </Link>
-                                                        <span className="line-clamp-1 text-xs text-muted-foreground">
+                                                        <span className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                                                             {
                                                                 request.description
                                                             }
