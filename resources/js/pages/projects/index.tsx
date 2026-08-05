@@ -286,23 +286,14 @@ export default function ProjectsIndex({
                                                 key={proj.id}
                                                 className="border-border transition-colors hover:bg-muted/30"
                                             >
-                                                {/* Project Name & Description */}
+                                                {/* Project Name */}
                                                 <TableCell>
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <Link
-                                                            href={`/projects/${proj.id}`}
-                                                            className="text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline"
-                                                        >
-                                                            {proj.name}
-                                                        </Link>
-                                                        {proj.description && (
-                                                            <p className="line-clamp-1 text-xs text-muted-foreground">
-                                                                {
-                                                                    proj.description
-                                                                }
-                                                            </p>
-                                                        )}
-                                                    </div>
+                                                    <Link
+                                                        href={`/projects/${proj.id}`}
+                                                        className="text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline"
+                                                    >
+                                                        {proj.name}
+                                                    </Link>
                                                 </TableCell>
 
                                                 {/* Status Badge */}
