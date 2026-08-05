@@ -29,7 +29,14 @@ export default function Create({
     return (
         <>
             <Head title="Catat Feature Request" />
-            <SidebarProvider>
+            <SidebarProvider
+                style={
+                    {
+                        '--sidebar-width': 'calc(var(--spacing) * 72)',
+                        '--header-height': 'calc(var(--spacing) * 12)',
+                    } as React.CSSProperties
+                }
+            >
                 <AppSidebar variant="inset" />
                 <SidebarInset>
                     <SiteHeader title="Feature Request" />

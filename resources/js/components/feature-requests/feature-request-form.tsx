@@ -18,6 +18,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -133,20 +134,25 @@ export function FeatureRequestForm({
 
     return (
         <>
-            <div className="flex flex-1 flex-col gap-5 p-4 md:p-6">
+            <div className="@container flex flex-1 flex-col gap-5 p-4 md:p-6">
                 <div className="flex items-start gap-3">
-                    <Button asChild variant="outline" size="icon">
+                    <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-11 shrink-0 md:size-9"
+                    >
                         <Link href={index()} aria-label="Kembali">
                             <ArrowLeft className="size-4" />
                         </Link>
                     </Button>
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">
+                    <div className="min-w-0">
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
                             {mode === 'create'
                                 ? 'Tambah Feature Request'
                                 : 'Edit Feature Request'}
                         </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-0.5 max-w-3xl text-sm leading-relaxed text-muted-foreground">
                             Jelaskan kebutuhan sistem dan target pemenuhannya
                             berdasarkan SLA.
                         </p>
@@ -155,7 +161,7 @@ export function FeatureRequestForm({
 
                 <form
                     onSubmit={submit}
-                    className="grid gap-5 xl:grid-cols-12 xl:items-start"
+                    className="grid w-full gap-5 xl:grid-cols-12 xl:items-start"
                 >
                     {errors.length > 0 && (
                         <Alert variant="destructive" className="xl:col-span-12">
@@ -178,15 +184,17 @@ export function FeatureRequestForm({
                         </Alert>
                     )}
 
-                    <Card className="gap-0 py-0 xl:col-span-8">
-                        <CardHeader className="border-b px-5 py-5">
-                            <CardTitle>Informasi permintaan</CardTitle>
+                    <Card className="min-w-0 gap-0 border-border py-0 shadow-xs xl:col-span-8">
+                        <CardHeader className="border-b border-border px-5 py-5 md:px-6">
+                            <CardTitle className="text-base">
+                                Informasi permintaan
+                            </CardTitle>
                             <CardDescription>
                                 Pilih sistem operasional dan jelaskan hasil yang
                                 dibutuhkan.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-5 px-5 py-5">
+                        <CardContent className="grid gap-5 px-5 py-5 md:px-6 md:py-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="project_id">
                                     Sistem terkait
@@ -282,15 +290,11 @@ export function FeatureRequestForm({
                                 <Label htmlFor="requested_at">
                                     Waktu permintaan diterima
                                 </Label>
-                                <Input
+                                <DateTimePicker
                                     id="requested_at"
-                                    type="datetime-local"
                                     value={form.data.requested_at}
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'requested_at',
-                                            event.target.value,
-                                        )
+                                    onChange={(value) =>
+                                        form.setData('requested_at', value)
                                     }
                                     aria-invalid={Boolean(
                                         form.errors.requested_at,
@@ -309,9 +313,11 @@ export function FeatureRequestForm({
                         </CardContent>
                     </Card>
 
-                    <Card className="gap-0 py-0 xl:sticky xl:top-16 xl:col-span-4">
-                        <CardHeader className="border-b px-5 py-4">
-                            <CardTitle>Priority &amp; Target</CardTitle>
+                    <Card className="min-w-0 gap-0 border-border py-0 shadow-xs xl:sticky xl:top-16 xl:col-span-4">
+                        <CardHeader className="border-b border-border px-5 py-4">
+                            <CardTitle className="text-base">
+                                Priority &amp; Target
+                            </CardTitle>
                             <CardDescription>
                                 Target dihitung berdasarkan waktu berjalan,
                                 termasuk malam dan akhir pekan.
@@ -374,7 +380,7 @@ export function FeatureRequestForm({
                                 </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="grid grid-cols-2 gap-3 border-t px-5 py-4">
+                        <CardFooter className="grid grid-cols-2 gap-3 border-t border-border px-5 py-4">
                             <Button asChild variant="outline">
                                 <Link href={index()}>Batal</Link>
                             </Button>

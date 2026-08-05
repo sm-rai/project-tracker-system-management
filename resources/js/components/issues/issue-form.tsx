@@ -14,6 +14,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -365,26 +366,21 @@ export function IssueForm({
                                     Waktu dilaporkan{' '}
                                         <span className="text-danger">*</span>
                                 </Label>
-                                <Input
+                                <DateTimePicker
                                     id="reported_at"
-                                    type="datetime-local"
                                     value={data.reported_at}
-                                    onChange={(event) =>
-                                        setData(
-                                            'reported_at',
-                                            event.target.value,
-                                        )
+                                    onChange={(value) =>
+                                        setData('reported_at', value)
                                     }
-                                    className="h-11 md:h-9"
-                                        aria-invalid={Boolean(
-                                            errors.reported_at,
-                                        )}
+                                    aria-invalid={Boolean(
+                                        errors.reported_at,
+                                    )}
                                     aria-describedby={
                                         errors.reported_at
                                             ? 'reported_at-error reported_at-help'
                                             : 'reported_at-help'
                                     }
-                                    required
+                                    aria-required
                                 />
                                 <p
                                     id="reported_at-help"
