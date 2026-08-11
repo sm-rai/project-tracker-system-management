@@ -502,25 +502,25 @@ export default function IssuesIndexPage({
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-border bg-card">
-                            <Table className="min-w-[1040px]">
+                            <Table className="min-w-[980px] table-fixed">
                                 <TableHeader>
                                     <TableRow className="border-border hover:bg-transparent">
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[23%] text-xs font-medium text-muted-foreground">
                                             Sistem
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[29%] text-xs font-medium text-muted-foreground">
                                             Issue
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[12%] text-xs font-medium text-muted-foreground">
                                             Prioritas
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[16%] text-xs font-medium text-muted-foreground">
                                             Waktu Lapor
                                         </TableHead>
-                                        <TableHead className="h-10 text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[12%] text-xs font-medium text-muted-foreground">
                                             Status
                                         </TableHead>
-                                        <TableHead className="h-10 text-right text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[8%] text-right text-xs font-medium text-muted-foreground">
                                             Aksi
                                         </TableHead>
                                     </TableRow>
@@ -557,19 +557,14 @@ export default function IssuesIndexPage({
                                                             )}
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex min-w-0 flex-col gap-0.5">
+                                                    <TableCell className="min-w-0 whitespace-normal">
+                                                        <div className="min-w-0">
                                                             <Link
                                                                 href={`/issues/${issue.id}`}
-                                                                className="line-clamp-1 text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline"
+                                                                className="block truncate text-sm font-medium text-foreground transition-colors hover:text-primary hover:underline"
                                                             >
                                                                 {issue.title}
                                                             </Link>
-                                                            <span className="line-clamp-1 text-xs text-muted-foreground">
-                                                                {
-                                                                    issue.description
-                                                                }
-                                                            </span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
