@@ -58,6 +58,7 @@ services:
       start_period: 40s
 
   worker:
+    exclude_from_hc: true
     image: project-tracker-system-management-app
     command: worker
     restart: unless-stopped
