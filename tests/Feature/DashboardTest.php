@@ -30,7 +30,7 @@ test('authenticated user receives dashboard summary component and period metadat
             ->where('dashboard.period.start', '2026-07-27')
             ->where('dashboard.period.end', '2026-08-02')
             ->where('dashboard.period.label', '27 Jul 2026 - 2 Agu 2026')
-            ->where('dashboard.period.generated_at', '2026-07-30 12:00')
+            ->where('dashboard.period.generated_at', '2026-07-30 19:00')
         );
 });
 

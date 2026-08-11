@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { formatAppLongDateTime } from '@/lib/datetime';
 
 type Priority = 'urgent' | 'normal' | 'low';
 
@@ -93,13 +94,7 @@ function getPreviewDate(hoursValue: string): string {
     const targetDate = new Date();
     targetDate.setTime(targetDate.getTime() + hours * 60 * 60 * 1000);
 
-    return new Intl.DateTimeFormat('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(targetDate);
+    return formatAppLongDateTime(targetDate);
 }
 
 export default function SlaConfigPage({ configs }: SlaConfigProps) {

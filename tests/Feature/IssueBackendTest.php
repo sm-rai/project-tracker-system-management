@@ -4,6 +4,7 @@ use App\Models\Issue;
 use App\Models\Project;
 use App\Models\SlaConfig;
 use App\Models\User;
+use App\Support\AppDateTime;
 use Carbon\Carbon;
 
 beforeEach(function () {
@@ -24,7 +25,7 @@ test('user can create issue and due date is calculated based on sla config', fun
     $user = User::factory()->create();
     $project = Project::factory()->create(['status' => 'deployed_running']);
 
-    $reportedAt = '2026-08-01 10:00:00';
+    $reportedAt = '2026-08-01 16:00:00';
     $response = $this->actingAs($user)->post(route('issues.store'), [
         'project_id' => $project->id,
         'title' => 'Error Server 500 saat Checkout',
@@ -38,7 +39,8 @@ test('user can create issue and due date is calculated based on sla config', fun
 
     $issue = Issue::first();
     expect($issue->title)->toBe('Error Server 500 saat Checkout');
-    expect($issue->due_date->format('Y-m-d H:i:s'))->toBe('2026-08-02 10:00:00');
+    expect($issue->reported_at->format('Y-m-d H:i:s'))->toBe('2026-08-01 09:00:00');
+    expect($issue->due_date->format('Y-m-d H:i:s'))->toBe('2026-08-02 09:00:00');
     expect($issue->status->value)->toBe('open');
 });
 
@@ -124,8 +126,8 @@ test('user can resolve issue at a valid historical time', function () {
     $user = User::factory()->create();
     $issue = Issue::factory()->create([
         'priority' => 'urgent',
-        'reported_at' => '2026-08-01 10:00:00',
-        'due_date' => '2026-08-02 10:00:00',
+        'reported_at' => AppDateTime::fromUserInput('2026-08-01 10:00:00'),
+        'due_date' => AppDateTime::fromUserInput('2026-08-02 10:00:00'),
         'status' => 'open',
     ]);
 
@@ -139,7 +141,7 @@ test('user can resolve issue at a valid historical time', function () {
     $response->assertRedirect();
     $issue->refresh();
 
-    expect($issue->resolved_at?->format('Y-m-d H:i:s'))->toBe('2026-08-02 09:30:00');
+    expect($issue->resolved_at?->format('Y-m-d H:i:s'))->toBe('2026-08-02 02:30:00');
     expect($issue->is_on_time)->toBeTrue();
     expect($issue->resolution_note)->toBe('Perbaikan sudah selesai kemarin.');
 });
@@ -147,8 +149,8 @@ test('user can resolve issue at a valid historical time', function () {
 test('late historical resolution is marked as late', function () {
     $user = User::factory()->create();
     $issue = Issue::factory()->create([
-        'reported_at' => '2026-08-01 10:00:00',
-        'due_date' => '2026-08-02 10:00:00',
+        'reported_at' => AppDateTime::fromUserInput('2026-08-01 10:00:00'),
+        'due_date' => AppDateTime::fromUserInput('2026-08-02 10:00:00'),
         'status' => 'open',
     ]);
 
@@ -161,15 +163,15 @@ test('late historical resolution is marked as late', function () {
     $response->assertRedirect();
     $issue->refresh();
 
-    expect($issue->resolved_at?->format('Y-m-d H:i:s'))->toBe('2026-08-02 10:00:01');
+    expect($issue->resolved_at?->format('Y-m-d H:i:s'))->toBe('2026-08-02 03:00:01');
     expect($issue->is_on_time)->toBeFalse();
 });
 
 test('resolution before reported time is rejected', function () {
     $user = User::factory()->create();
     $issue = Issue::factory()->create([
-        'reported_at' => '2026-08-01 10:00:00',
-        'due_date' => '2026-08-02 10:00:00',
+        'reported_at' => AppDateTime::fromUserInput('2026-08-01 10:00:00'),
+        'due_date' => AppDateTime::fromUserInput('2026-08-02 10:00:00'),
         'status' => 'open',
     ]);
 
@@ -190,18 +192,18 @@ test('resolution before reported time is rejected', function () {
 test('resolution in the future is rejected', function () {
     $user = User::factory()->create();
     $issue = Issue::factory()->create([
-        'reported_at' => '2026-08-01 10:00:00',
-        'due_date' => '2026-08-02 10:00:00',
+        'reported_at' => AppDateTime::fromUserInput('2026-08-01 10:00:00'),
+        'due_date' => AppDateTime::fromUserInput('2026-08-02 10:00:00'),
         'status' => 'open',
     ]);
 
-    Carbon::setTestNow('2026-08-03 10:00:00');
+    Carbon::setTestNow(AppDateTime::fromUserInput('2026-08-03 12:00:00'));
 
     $response = $this
         ->actingAs($user)
         ->from(route('issues.show', $issue))
         ->patch(route('issues.resolve', $issue), [
-            'resolved_at' => '2026-08-03 10:00:01',
+            'resolved_at' => '2026-08-03 12:00:01',
         ]);
 
     $response->assertRedirect(route('issues.show', $issue));

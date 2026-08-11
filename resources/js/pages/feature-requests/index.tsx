@@ -40,6 +40,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { formatAppDateTime } from '@/lib/datetime';
 import { cn } from '@/lib/utils';
 import { create, index, show } from '@/routes/feature-requests';
 import type {
@@ -103,24 +104,6 @@ function StatusBadge({ request }: { request: FeatureRequest }) {
             {labelFor(request.status)}
         </Badge>
     );
-}
-
-function date(value: string) {
-    return new Intl.DateTimeFormat('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    }).format(new Date(value));
-}
-
-function dateTime(value: string) {
-    return new Intl.DateTimeFormat('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(value));
 }
 
 export default function FeatureRequestsIndex({
@@ -471,10 +454,14 @@ export default function FeatureRequestsIndex({
                                                     />
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground tabular-nums">
-                                                    {date(request.requested_at)}
+                                                    {formatAppDateTime(
+                                                        request.requested_at,
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground tabular-nums">
-                                                    {dateTime(request.due_date)}
+                                                    {formatAppDateTime(
+                                                        request.due_date,
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <Button

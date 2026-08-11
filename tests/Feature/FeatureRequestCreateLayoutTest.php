@@ -49,7 +49,8 @@ test('feature request fulfillment dialog captures a completion datetime', functi
     $source = File::get(resource_path('js/pages/feature-requests/show.tsx'));
 
     expect($source)
-        ->toContain('fulfilled_at: localDateTime()')
+        ->toContain('fulfilled_at: formatAppDateTimeInput()')
+        ->toContain("from '@/lib/datetime'")
         ->toContain("import { DateTimePicker } from '@/components/ui/date-time-picker';")
         ->toContain("fulfillForm.setData('fulfilled_at', value)")
         ->toContain('id="fulfilled_at"');

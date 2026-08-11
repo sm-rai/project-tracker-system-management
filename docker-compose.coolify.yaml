@@ -16,6 +16,7 @@ services:
       APP_KEY: "${APP_KEY:?Set APP_KEY in Coolify}"
       APP_DEBUG: "false"
       APP_URL: https://tracker-sm.atsiriwellforce.com
+      APP_BUSINESS_TIMEZONE: Asia/Jakarta
       APP_LOCALE: id
       APP_FALLBACK_LOCALE: en
       LOG_CHANNEL: stderr
@@ -71,6 +72,7 @@ services:
       APP_KEY: "${APP_KEY:?Set APP_KEY in Coolify}"
       APP_DEBUG: "false"
       APP_URL: https://tracker-sm.atsiriwellforce.com
+      APP_BUSINESS_TIMEZONE: Asia/Jakarta
       LOG_CHANNEL: stderr
       LOG_LEVEL: "${LOG_LEVEL:-info}"
       DB_CONNECTION: mysql

@@ -32,6 +32,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { formatAppDateTime } from '@/lib/datetime';
 import type {
     ReportDetail,
     ReportFeatureRequestItem,
@@ -67,13 +68,7 @@ function dateTime(value: string | null): string {
         return '-';
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(value));
+    return formatAppDateTime(value);
 }
 
 function metricBasis(metric: ReportOkrMetric): string {

@@ -9,7 +9,8 @@ use App\Http\Requests\SaveFeatureRequestRequest;
 use App\Models\FeatureRequest;
 use App\Models\Project;
 use App\Models\SlaConfig;
-use Carbon\Carbon;
+use App\Support\AppDateTime;
+use Closure;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,7 +77,10 @@ class FeatureRequestController extends Controller
 
     public function store(SaveFeatureRequestRequest $request): RedirectResponse
     {
-        $featureRequest = FeatureRequest::create($request->validated());
+        $validated = $request->validated();
+        $validated['requested_at'] = AppDateTime::fromUserInput($validated['requested_at']);
+
+        $featureRequest = FeatureRequest::create($validated);
 
         return redirect()->route('feature-requests.show', $featureRequest)
             ->with('success', 'Feature request berhasil dicatat.');
@@ -105,7 +109,9 @@ class FeatureRequestController extends Controller
     public function update(SaveFeatureRequestRequest $request, FeatureRequest $featureRequest): RedirectResponse
     {
         $validated = $request->validated();
-        $validated['due_date'] = Carbon::parse($validated['requested_at'])
+        $requestedAt = AppDateTime::fromUserInput($validated['requested_at']);
+        $validated['requested_at'] = $requestedAt;
+        $validated['due_date'] = $requestedAt
             ->addHours(SlaConfig::hoursForPriority(Priority::from($validated['priority'])));
         $featureRequest->forceFill($validated)->save();
 
@@ -144,16 +150,34 @@ class FeatureRequestController extends Controller
         }
 
         $validated = $request->validate([
-            'fulfilled_at' => ['nullable', 'date', 'before_or_equal:now'],
+            'fulfilled_at' => [
+                'nullable',
+                'date',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    try {
+                        $fulfilledAt = AppDateTime::fromUserInput((string) $value);
+                    } catch (\Throwable) {
+                        return;
+                    }
+
+                    if ($fulfilledAt->gt(now())) {
+                        $fail('Waktu pemenuhan tidak boleh di masa depan.');
+                    }
+                },
+            ],
             'fulfillment_note' => ['nullable', 'string'],
         ], [
             'fulfilled_at.date' => 'Waktu pemenuhan tidak valid.',
             'fulfilled_at.before_or_equal' => 'Waktu pemenuhan tidak boleh di masa depan.',
         ]);
 
+        $fulfilledAt = isset($validated['fulfilled_at'])
+            ? AppDateTime::fromUserInput($validated['fulfilled_at'])->toDateTimeString()
+            : null;
+
         $featureRequest->fulfill(
             $validated['fulfillment_note'] ?? null,
-            $validated['fulfilled_at'] ?? null,
+            $fulfilledAt,
         );
 
         return back()->with('success', 'Feature request berhasil ditandai terpenuhi.');

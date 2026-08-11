@@ -10,6 +10,7 @@ use App\Models\FeatureRequest;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\ReportSnapshot;
+use App\Support\AppDateTime;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -23,8 +24,8 @@ class GenerateReportSnapshot
         $featureRequestBreakdown = $this->buildFeatureRequestBreakdown($periodStart, $periodEnd);
 
         return ReportSnapshot::create([
-            'period_start_date' => $periodStart->toDateString(),
-            'period_end_date' => $periodEnd->toDateString(),
+            'period_start_date' => AppDateTime::inBusinessTimezone($periodStart)->toDateString(),
+            'period_end_date' => AppDateTime::inBusinessTimezone($periodEnd)->toDateString(),
             'period_type' => $periodType,
             'okr1_project_achievement_percentage' => $projectBreakdown['project_achievement_percentage'],
             'okr2_issue_percentage' => $issueBreakdown['okr_percentage'],
@@ -208,9 +209,9 @@ class GenerateReportSnapshot
                 'priority' => $issue->priority->value,
                 'root_cause_category' => $issue->root_cause_category->value,
                 'status' => $issue->status->value,
-                'reported_at' => $issue->reported_at->toDateTimeString(),
-                'due_date' => $issue->due_date->toDateTimeString(),
-                'resolved_at' => $issue->resolved_at?->toDateTimeString(),
+                'reported_at' => $issue->reported_at->toIso8601String(),
+                'due_date' => $issue->due_date->toIso8601String(),
+                'resolved_at' => $issue->resolved_at?->toIso8601String(),
                 'is_on_time' => $issue->is_on_time,
             ];
         }
@@ -233,9 +234,9 @@ class GenerateReportSnapshot
                 'project_name' => $featureRequest->project->name,
                 'priority' => $featureRequest->priority->value,
                 'status' => $featureRequest->status->value,
-                'requested_at' => $featureRequest->requested_at->toDateTimeString(),
-                'due_date' => $featureRequest->due_date->toDateTimeString(),
-                'fulfilled_at' => $featureRequest->fulfilled_at?->toDateTimeString(),
+                'requested_at' => $featureRequest->requested_at->toIso8601String(),
+                'due_date' => $featureRequest->due_date->toIso8601String(),
+                'fulfilled_at' => $featureRequest->fulfilled_at?->toIso8601String(),
                 'is_on_time' => $featureRequest->is_on_time,
             ];
         }

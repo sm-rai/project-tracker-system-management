@@ -43,6 +43,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { formatAppDateTime } from '@/lib/datetime';
 import { cn } from '@/lib/utils';
 
 interface Project {
@@ -573,17 +574,8 @@ export default function IssuesIndexPage({
                                                         )}
                                                     </TableCell>
                                                     <TableCell className="text-sm text-muted-foreground tabular-nums">
-                                                        {new Date(
+                                                        {formatAppDateTime(
                                                             issue.reported_at,
-                                                        ).toLocaleDateString(
-                                                            'id-ID',
-                                                            {
-                                                                day: 'numeric',
-                                                                month: 'short',
-                                                                year: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit',
-                                                            },
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
@@ -632,17 +624,8 @@ export default function IssuesIndexPage({
                                                             <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                                                 <Clock className="size-3 text-muted-foreground/70" />
                                                                 Target:{' '}
-                                                                {new Date(
+                                                                {formatAppDateTime(
                                                                     issue.due_date,
-                                                                ).toLocaleDateString(
-                                                                    'id-ID',
-                                                                    {
-                                                                        day: 'numeric',
-                                                                        month: 'short',
-                                                                        year: 'numeric',
-                                                                        hour: '2-digit',
-                                                                        minute: '2-digit',
-                                                                    },
                                                                 )}
                                                             </span>
                                                         </div>

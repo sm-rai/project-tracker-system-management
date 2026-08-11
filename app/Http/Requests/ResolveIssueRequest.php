@@ -3,10 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\Issue;
+use App\Support\AppDateTime;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Carbon;
 
 class ResolveIssueRequest extends FormRequest
 {
@@ -32,7 +32,7 @@ class ResolveIssueRequest extends FormRequest
                         return;
                     }
 
-                    $resolvedAt = Carbon::parse((string) $value);
+                    $resolvedAt = AppDateTime::fromUserInput((string) $value);
 
                     if ($resolvedAt->lt($issue->reported_at)) {
                         $fail('Waktu selesai tidak boleh mendahului waktu laporan.');

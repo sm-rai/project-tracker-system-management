@@ -1,5 +1,4 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { format } from 'date-fns';
 import {
     ArrowLeft,
     CalendarClock,
@@ -31,6 +30,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import {
     Dialog,
     DialogContent,
@@ -40,10 +40,10 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Label } from '@/components/ui/label';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
+import { formatAppDateTime, formatAppDateTimeInput } from '@/lib/datetime';
 
 interface Project {
     id: number;
@@ -93,16 +93,6 @@ const projectStatusLabels: Record<string, string> = {
     deployed_maintenance: 'Dalam pemeliharaan',
 };
 
-function formatDateTime(value: string): string {
-    return new Intl.DateTimeFormat('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(value));
-}
-
 function DetailRow({
     label,
     children,
@@ -126,7 +116,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
     const { data, setData, patch, processing, errors } = useForm({
-        resolved_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        resolved_at: formatAppDateTimeInput(),
         resolution_note: issue.resolution_note || '',
     });
 
@@ -439,7 +429,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     <p className="mt-1 text-sm leading-relaxed">
                                         Penanganan issue ini melewati batas
                                         waktu pada{' '}
-                                        {formatDateTime(issue.due_date)}.
+                                        {formatAppDateTime(issue.due_date)}.
                                     </p>
                                 </div>
                             </div>
@@ -471,7 +461,9 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     <p className="mt-1 text-sm leading-relaxed">
                                         Diselesaikan pada{' '}
                                         {issue.resolved_at
-                                            ? formatDateTime(issue.resolved_at)
+                                            ? formatAppDateTime(
+                                                  issue.resolved_at,
+                                              )
                                             : '-'}{' '}
                                         —{' '}
                                         {issue.is_on_time
@@ -551,7 +543,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                         <DetailRow label="Dilaporkan">
                                             <span className="inline-flex items-center justify-end gap-1.5 tabular-nums">
                                                 <CalendarClock className="size-3.5 text-muted-foreground" />
-                                                {formatDateTime(
+                                                {formatAppDateTime(
                                                     issue.reported_at,
                                                 )}
                                             </span>
@@ -564,13 +556,15 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                                         : 'font-semibold text-warning'
                                                 }
                                             >
-                                                {formatDateTime(issue.due_date)}
+                                                {formatAppDateTime(
+                                                    issue.due_date,
+                                                )}
                                             </span>
                                         </DetailRow>
                                         {issue.resolved_at && (
                                             <DetailRow label="Diselesaikan">
                                                 <span className="tabular-nums">
-                                                    {formatDateTime(
+                                                    {formatAppDateTime(
                                                         issue.resolved_at,
                                                     )}
                                                 </span>

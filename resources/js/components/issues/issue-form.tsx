@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { formatAppLongDateTime, parseAppDateTimeInput } from '@/lib/datetime';
 
 interface Project {
     id: number;
@@ -103,7 +104,7 @@ function getTargetDate(reportedAt: string, slaHours: number): string {
         return 'Menunggu waktu laporan';
     }
 
-    const targetDate = new Date(reportedAt);
+    const targetDate = parseAppDateTimeInput(reportedAt);
 
     if (Number.isNaN(targetDate.getTime())) {
         return 'Waktu laporan belum valid';
@@ -111,13 +112,7 @@ function getTargetDate(reportedAt: string, slaHours: number): string {
 
     targetDate.setTime(targetDate.getTime() + slaHours * 60 * 60 * 1000);
 
-    return new Intl.DateTimeFormat('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(targetDate);
+    return formatAppLongDateTime(targetDate);
 }
 
 export function IssueForm({

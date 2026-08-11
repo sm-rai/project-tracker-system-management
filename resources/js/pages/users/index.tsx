@@ -50,6 +50,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { formatAppDateOnly } from '@/lib/datetime';
 import { cn } from '@/lib/utils';
 import { UserFormModal } from '@/pages/users/user-form-modal';
 import type { User } from '@/types/auth';
@@ -459,15 +460,8 @@ export default function UsersIndex({ users, filters }: UsersPageProps) {
                                                     {/* Date */}
                                                     <TableCell className="text-sm text-muted-foreground tabular-nums">
                                                         {u.created_at
-                                                            ? new Date(
+                                                            ? formatAppDateOnly(
                                                                   u.created_at,
-                                                              ).toLocaleDateString(
-                                                                  'id-ID',
-                                                                  {
-                                                                      day: 'numeric',
-                                                                      month: 'short',
-                                                                      year: 'numeric',
-                                                                  },
                                                               )
                                                             : '-'}
                                                     </TableCell>

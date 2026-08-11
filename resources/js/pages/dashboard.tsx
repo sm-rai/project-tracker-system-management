@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { formatAppDateTime } from '@/lib/datetime';
 import type {
     DashboardAttentionItem,
     DashboardData,
@@ -80,16 +81,6 @@ const chartConfig = {
         color: 'var(--primary)',
     },
 } satisfies ChartConfig;
-
-function formatDate(value: string): string {
-    return new Intl.DateTimeFormat('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(value));
-}
 
 function percentageWidth(value: number): string {
     return `${Math.min(Math.max(value, 0), 100)}%`;
@@ -382,7 +373,7 @@ function AttentionList({
                                     </p>
                                     <p className="mt-1 truncate text-xs text-muted-foreground">
                                         {item.project_name} · target{' '}
-                                        {formatDate(item.due_date)}
+                                        {formatAppDateTime(item.due_date)}
                                     </p>
                                 </div>
                                 <div className="flex shrink-0 items-center gap-2">

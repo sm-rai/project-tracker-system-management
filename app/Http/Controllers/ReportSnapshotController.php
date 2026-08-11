@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Reports\GenerateReportSnapshot;
 use App\Http\Requests\StoreReportSnapshotRequest;
 use App\Models\ReportSnapshot;
+use App\Support\AppDateTime;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -14,7 +15,7 @@ class ReportSnapshotController extends Controller
 {
     public function index(): Response
     {
-        $now = CarbonImmutable::now();
+        $now = AppDateTime::nowInBusinessTimezone();
         $periodStart = $now->startOfWeek()->startOfDay();
         $periodEnd = $now->endOfWeek()->endOfDay();
 
@@ -41,13 +42,16 @@ class ReportSnapshotController extends Controller
         $periodType = (string) $validated['period_type'];
 
         if ($periodType === ReportSnapshot::PeriodCustomRange) {
-            $periodStart = CarbonImmutable::parse((string) $validated['period_start_date'])->startOfDay();
-            $periodEnd = CarbonImmutable::parse((string) $validated['period_end_date'])->endOfDay();
+            $periodStart = AppDateTime::startOfBusinessDate((string) $validated['period_start_date']);
+            $periodEnd = AppDateTime::endOfBusinessDate((string) $validated['period_end_date']);
         } else {
-            $now = CarbonImmutable::now();
+            $now = AppDateTime::nowInBusinessTimezone();
             $periodStart = $now->startOfWeek()->startOfDay();
             $periodEnd = $now->endOfWeek()->endOfDay();
         }
+
+        $periodStart = $periodStart->utc();
+        $periodEnd = $periodEnd->utc();
 
         $snapshot = $generateReportSnapshot->handle($periodStart, $periodEnd, $periodType);
 
@@ -72,10 +76,10 @@ class ReportSnapshotController extends Controller
             'id' => $snapshot->id,
             'period_type' => $snapshot->period_type,
             'period_label' => $this->formatDateRange(
-                CarbonImmutable::parse($snapshot->period_start_date),
-                CarbonImmutable::parse($snapshot->period_end_date),
+                CarbonImmutable::parse($snapshot->period_start_date, AppDateTime::businessTimezone()),
+                CarbonImmutable::parse($snapshot->period_end_date, AppDateTime::businessTimezone()),
             ),
-            'generated_at' => $snapshot->generated_at->format('Y-m-d H:i'),
+            'generated_at' => AppDateTime::inBusinessTimezone($snapshot->generated_at)->format('Y-m-d H:i'),
             'okr' => [
                 'brief_realization' => $projectOkr,
                 'issue_on_time' => (float) $snapshot->okr2_issue_percentage,
@@ -97,11 +101,11 @@ class ReportSnapshotController extends Controller
                 'start' => $snapshot->period_start_date->toDateString(),
                 'end' => $snapshot->period_end_date->toDateString(),
                 'label' => $this->formatDateRange(
-                    CarbonImmutable::parse($snapshot->period_start_date),
-                    CarbonImmutable::parse($snapshot->period_end_date),
+                    CarbonImmutable::parse($snapshot->period_start_date, AppDateTime::businessTimezone()),
+                    CarbonImmutable::parse($snapshot->period_end_date, AppDateTime::businessTimezone()),
                 ),
             ],
-            'generated_at' => $snapshot->generated_at->format('Y-m-d H:i'),
+            'generated_at' => AppDateTime::inBusinessTimezone($snapshot->generated_at)->format('Y-m-d H:i'),
             'okr' => [
                 'brief_realization' => [
                     'key' => 'brief_realization',

@@ -41,6 +41,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Textarea } from '@/components/ui/textarea';
+import { formatAppDateTimeInput, formatAppLongDateTime } from '@/lib/datetime';
 import { edit, index } from '@/routes/feature-requests';
 import type { FeatureRequest } from '@/types/feature-request';
 
@@ -58,20 +59,6 @@ const labels: Record<string, string> = {
     low: 'Rendah',
 };
 
-function fullDate(value: string) {
-    return new Intl.DateTimeFormat('id-ID', {
-        dateStyle: 'long',
-        timeStyle: 'short',
-    }).format(new Date(value));
-}
-
-function localDateTime() {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-
-    return now.toISOString().slice(0, 16);
-}
-
 function statusBadgeClass(status: string): string {
     return status === 'fulfilled'
         ? 'border-success/20 bg-success-surface text-success'
@@ -84,7 +71,7 @@ export default function Show({ featureRequest, can }: Props) {
     const [fulfillOpen, setFulfillOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const fulfillForm = useForm({
-        fulfilled_at: localDateTime(),
+        fulfilled_at: formatAppDateTimeInput(),
         fulfillment_note: '',
     });
     const overdue =
@@ -102,7 +89,7 @@ export default function Show({ featureRequest, can }: Props) {
     };
 
     const openFulfillDialog = () => {
-        fulfillForm.setData('fulfilled_at', localDateTime());
+        fulfillForm.setData('fulfilled_at', formatAppDateTimeInput());
         setFulfillOpen(true);
     };
 
@@ -282,7 +269,7 @@ export default function Show({ featureRequest, can }: Props) {
                                                 Diterima
                                             </p>
                                             <p className="mt-1 text-sm font-medium tabular-nums">
-                                                {fullDate(
+                                                {formatAppLongDateTime(
                                                     featureRequest.requested_at,
                                                 )}
                                             </p>
@@ -295,12 +282,9 @@ export default function Show({ featureRequest, can }: Props) {
                                                 Target
                                             </p>
                                             <p className="mt-1 text-sm font-medium tabular-nums">
-                                                {new Date(
+                                                {formatAppLongDateTime(
                                                     featureRequest.due_date,
-                                                ).toLocaleString('id-ID', {
-                                                    dateStyle: 'long',
-                                                    timeStyle: 'short',
-                                                })}
+                                                )}
                                             </p>
                                         </div>
                                     </div>
@@ -312,7 +296,7 @@ export default function Show({ featureRequest, can }: Props) {
                                                     Terpenuhi
                                                 </p>
                                                 <p className="mt-1 text-sm font-medium tabular-nums">
-                                                    {fullDate(
+                                                    {formatAppLongDateTime(
                                                         featureRequest.fulfilled_at,
                                                     )}
                                                 </p>

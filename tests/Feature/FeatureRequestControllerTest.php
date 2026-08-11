@@ -78,7 +78,7 @@ test('feature request can be fulfilled at a historical time', function () {
     $featureRequest->refresh();
 
     expect($featureRequest->status)->toBe(FeatureRequestStatus::Fulfilled)
-        ->and($featureRequest->fulfilled_at->format('Y-m-d H:i:s'))->toBe('2026-08-04 16:30:00')
+        ->and($featureRequest->fulfilled_at->format('Y-m-d H:i:s'))->toBe('2026-08-04 09:30:00')
         ->and($featureRequest->is_on_time)->toBeTrue();
 });
 
@@ -116,7 +116,7 @@ test('authenticated user can create a feature request for a deployed project', f
     $featureRequest = FeatureRequest::first();
 
     $response->assertRedirect("/feature-requests/{$featureRequest->id}");
-    expect($featureRequest->due_date->format('Y-m-d H:i:s'))->toBe('2026-08-02 09:00:00')
+    expect($featureRequest->due_date->format('Y-m-d H:i:s'))->toBe('2026-08-02 02:00:00')
         ->and($featureRequest->status)->toBe(FeatureRequestStatus::Open);
 });
 
@@ -167,7 +167,7 @@ test('editing a fulfilled request recalculates due date and on time result', fun
 
     $featureRequest->refresh();
 
-    expect($featureRequest->due_date->format('Y-m-d H:i:s'))->toBe('2026-07-08 09:00:00')
+    expect($featureRequest->due_date->format('Y-m-d H:i:s'))->toBe('2026-07-08 02:00:00')
         ->and($featureRequest->is_on_time)->toBeTrue();
 });
 

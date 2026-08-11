@@ -11,7 +11,7 @@ use App\Http\Requests\SaveIssueRequest;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\SlaConfig;
-use Carbon\Carbon;
+use App\Support\AppDateTime;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -121,7 +121,7 @@ class IssueController extends Controller
     {
         $validated = $request->validated();
 
-        $reportedAt = Carbon::parse($validated['reported_at']);
+        $reportedAt = AppDateTime::fromUserInput($validated['reported_at']);
         $priorityEnum = Priority::from($validated['priority']);
         $targetHours = SlaConfig::hoursForPriority($priorityEnum);
 
@@ -179,7 +179,7 @@ class IssueController extends Controller
     {
         $validated = $request->validated();
 
-        $reportedAt = Carbon::parse($validated['reported_at']);
+        $reportedAt = AppDateTime::fromUserInput($validated['reported_at']);
         $priorityEnum = Priority::from($validated['priority']);
         $targetHours = SlaConfig::hoursForPriority($priorityEnum);
 
@@ -203,7 +203,7 @@ class IssueController extends Controller
         $validated = $request->validated();
 
         $issue->resolved_at = isset($validated['resolved_at'])
-            ? Carbon::parse($validated['resolved_at'])
+            ? AppDateTime::fromUserInput($validated['resolved_at'])
             : now();
         $issue->resolution_note = $validated['resolution_note'] ?? null;
         $issue->save();

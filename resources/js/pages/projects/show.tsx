@@ -52,6 +52,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { formatAppDateOnly, formatAppDateTime } from '@/lib/datetime';
 import {
     create as featureRequestCreate,
     show as featureRequestShow,
@@ -345,15 +346,8 @@ export default function ProjectShow({
                                             </p>
                                             <p className="mt-0.5 text-sm font-medium text-foreground tabular-nums">
                                                 {project.start_date
-                                                    ? new Date(
+                                                    ? formatAppDateOnly(
                                                           project.start_date,
-                                                      ).toLocaleDateString(
-                                                          'id-ID',
-                                                          {
-                                                              day: 'numeric',
-                                                              month: 'short',
-                                                              year: 'numeric',
-                                                          },
                                                       )
                                                     : '-'}
                                             </p>
@@ -364,15 +358,8 @@ export default function ProjectShow({
                                             </p>
                                             <p className="mt-0.5 text-sm font-medium text-foreground tabular-nums">
                                                 {project.target_end_date
-                                                    ? new Date(
+                                                    ? formatAppDateOnly(
                                                           project.target_end_date,
-                                                      ).toLocaleDateString(
-                                                          'id-ID',
-                                                          {
-                                                              day: 'numeric',
-                                                              month: 'short',
-                                                              year: 'numeric',
-                                                          },
                                                       )
                                                     : '-'}
                                             </p>
@@ -383,15 +370,8 @@ export default function ProjectShow({
                                             </p>
                                             <p className="mt-0.5 text-sm font-medium text-foreground tabular-nums">
                                                 {project.actual_end_date
-                                                    ? new Date(
+                                                    ? formatAppDateOnly(
                                                           project.actual_end_date,
-                                                      ).toLocaleDateString(
-                                                          'id-ID',
-                                                          {
-                                                              day: 'numeric',
-                                                              month: 'short',
-                                                              year: 'numeric',
-                                                          },
                                                       )
                                                     : '-'}
                                             </p>
@@ -632,17 +612,8 @@ export default function ProjectShow({
                                                                         <div className="flex items-center gap-1.5 text-success">
                                                                             <IconCheck className="size-3.5" />
                                                                             <span>
-                                                                                {new Date(
+                                                                                {formatAppDateTime(
                                                                                     feat.completed_at,
-                                                                                ).toLocaleDateString(
-                                                                                    'id-ID',
-                                                                                    {
-                                                                                        day: 'numeric',
-                                                                                        month: 'short',
-                                                                                        year: 'numeric',
-                                                                                        hour: '2-digit',
-                                                                                        minute: '2-digit',
-                                                                                    },
                                                                                 )}
                                                                             </span>
                                                                         </div>

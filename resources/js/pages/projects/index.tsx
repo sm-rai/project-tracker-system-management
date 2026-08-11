@@ -48,6 +48,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { formatAppDateOnly } from '@/lib/datetime';
 import { cn } from '@/lib/utils';
 import type {
     PaginatedProjects,
@@ -350,15 +351,8 @@ export default function ProjectsIndex({
                                                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                                             <IconCalendar className="size-3.5 shrink-0" />
                                                             <span>
-                                                                {new Date(
+                                                                {formatAppDateOnly(
                                                                     proj.target_end_date,
-                                                                ).toLocaleDateString(
-                                                                    'id-ID',
-                                                                    {
-                                                                        day: 'numeric',
-                                                                        month: 'short',
-                                                                        year: 'numeric',
-                                                                    },
                                                                 )}
                                                             </span>
                                                         </div>

@@ -3,6 +3,7 @@
 namespace App\Actions\Reports;
 
 use App\Models\ReportSnapshot;
+use App\Support\AppDateTime;
 use Carbon\CarbonImmutable;
 
 class BuildReportExportData
@@ -20,13 +21,13 @@ class BuildReportExportData
             'snapshot' => [
                 'id' => $snapshot->id,
                 'period_label' => $this->formatDateRange(
-                    CarbonImmutable::parse($snapshot->period_start_date),
-                    CarbonImmutable::parse($snapshot->period_end_date),
+                    CarbonImmutable::parse($snapshot->period_start_date, AppDateTime::businessTimezone()),
+                    CarbonImmutable::parse($snapshot->period_end_date, AppDateTime::businessTimezone()),
                 ),
                 'period_type_label' => $snapshot->period_type === ReportSnapshot::PeriodWeeklyDefault
                     ? 'Minggu berjalan'
                     : 'Rentang tanggal',
-                'generated_at' => $snapshot->generated_at->format('d M Y, H:i'),
+                'generated_at' => AppDateTime::inBusinessTimezone($snapshot->generated_at)->format('d M Y, H:i'),
             ],
             'okr' => [
                 'brief_realization' => $this->projectMetric($projects),
@@ -138,6 +139,8 @@ class BuildReportExportData
 
     private function formatDate(CarbonImmutable $date): string
     {
+        $date = AppDateTime::inBusinessTimezone($date);
+
         $months = [
             1 => 'Jan',
             2 => 'Feb',
@@ -158,6 +161,8 @@ class BuildReportExportData
 
     private function formatDateTime(CarbonImmutable $date): string
     {
+        $date = AppDateTime::inBusinessTimezone($date);
+
         return sprintf('%s, %s', $this->formatDate($date), $date->format('H:i'));
     }
 
@@ -169,10 +174,10 @@ class BuildReportExportData
     {
         return array_map(function (array $issue): array {
             $issue['reported_at_label'] = $this->formatDate(
-                CarbonImmutable::parse($issue['reported_at']),
+                AppDateTime::inBusinessTimezone((string) $issue['reported_at']),
             );
             $issue['due_date_label'] = $this->formatDateTime(
-                CarbonImmutable::parse($issue['due_date']),
+                AppDateTime::inBusinessTimezone((string) $issue['due_date']),
             );
 
             return $issue;
@@ -187,10 +192,10 @@ class BuildReportExportData
     {
         return array_map(function (array $request): array {
             $request['requested_at_label'] = $this->formatDate(
-                CarbonImmutable::parse($request['requested_at']),
+                AppDateTime::inBusinessTimezone((string) $request['requested_at']),
             );
             $request['due_date_label'] = $this->formatDateTime(
-                CarbonImmutable::parse($request['due_date']),
+                AppDateTime::inBusinessTimezone((string) $request['due_date']),
             );
 
             return $request;

@@ -9,6 +9,7 @@ use App\Enums\ProjectStatus;
 use App\Models\FeatureRequest;
 use App\Models\Issue;
 use App\Models\Project;
+use App\Support\AppDateTime;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 
@@ -17,9 +18,11 @@ class BuildDashboardData
     /** @return array<string, mixed> */
     public function handle(): array
     {
-        $now = CarbonImmutable::now();
+        $now = AppDateTime::nowInBusinessTimezone();
         $periodStart = $now->startOfWeek(Carbon::MONDAY)->startOfDay();
         $periodEnd = $now->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $periodStartUtc = $periodStart->utc();
+        $periodEndUtc = $periodEnd->utc();
 
         return [
             'period' => [
@@ -30,8 +33,8 @@ class BuildDashboardData
             ],
             'okr' => [
                 'brief_realization' => $this->buildBriefRealizationMetric(),
-                'issue_on_time' => $this->buildIssueOnTimeMetric($periodStart, $periodEnd),
-                'feature_request_on_time' => $this->buildFeatureRequestOnTimeMetric($periodStart, $periodEnd),
+                'issue_on_time' => $this->buildIssueOnTimeMetric($periodStartUtc, $periodEndUtc),
+                'feature_request_on_time' => $this->buildFeatureRequestOnTimeMetric($periodStartUtc, $periodEndUtc),
             ],
             'operational' => $this->buildOperationalHealth(),
             'projectStatusDistribution' => $this->buildProjectStatusDistribution(),
@@ -228,7 +231,7 @@ class BuildDashboardData
                 'project_name' => $this->projectName($issue->project_id),
                 'priority' => $issue->priority->value,
                 'status' => $issue->status->value,
-                'due_date' => $issue->due_date->toDateTimeString(),
+                'due_date' => $issue->due_date->toIso8601String(),
                 'hours_overdue' => (int) $issue->due_date->diffInHours(now()),
                 'href' => route('issues.show', $issue, false),
             ])
@@ -252,7 +255,7 @@ class BuildDashboardData
                 'project_name' => $this->projectName($featureRequest->project_id),
                 'priority' => $featureRequest->priority->value,
                 'status' => $featureRequest->status->value,
-                'due_date' => $featureRequest->due_date->toDateTimeString(),
+                'due_date' => $featureRequest->due_date->toIso8601String(),
                 'hours_overdue' => (int) $featureRequest->due_date->diffInHours(now()),
                 'href' => route('feature-requests.show', $featureRequest, false),
             ])

@@ -5,6 +5,7 @@ import { IssueForm } from '@/components/issues/issue-form';
 import type { IssueFormData } from '@/components/issues/issue-form';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { formatAppDateTimeInput } from '@/lib/datetime';
 
 interface Project {
     id: number;
@@ -19,13 +20,6 @@ interface IssueCreateProps {
     slaConfigs: Record<string, number>;
 }
 
-function getCurrentLocalIso(): string {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-
-    return now.toISOString().slice(0, 16);
-}
-
 export default function IssueCreatePage({
     deployedProjects,
     priorities,
@@ -38,7 +32,7 @@ export default function IssueCreatePage({
         description: '',
         priority: 'normal',
         root_cause_category: '',
-        reported_at: getCurrentLocalIso(),
+        reported_at: formatAppDateTimeInput(),
     };
 
     return (

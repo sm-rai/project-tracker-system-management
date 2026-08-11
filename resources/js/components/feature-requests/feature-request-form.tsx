@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { formatAppLongDateTime, parseAppDateTimeInput } from '@/lib/datetime';
 import { index } from '@/routes/feature-requests';
 import type { DeployedProject } from '@/types/feature-request';
 
@@ -81,16 +82,10 @@ function targetDate(requestedAt: string, hours: number) {
         return 'Menunggu waktu permintaan';
     }
 
-    const date = new Date(requestedAt);
+    const date = parseAppDateTimeInput(requestedAt);
     date.setTime(date.getTime() + hours * 60 * 60 * 1000);
 
-    return new Intl.DateTimeFormat('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
+    return formatAppLongDateTime(date);
 }
 
 export function FeatureRequestForm({

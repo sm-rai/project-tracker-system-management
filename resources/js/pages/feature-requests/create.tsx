@@ -4,6 +4,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { FeatureRequestForm } from '@/components/feature-requests/feature-request-form';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { formatAppDateTimeInput } from '@/lib/datetime';
 import type { DeployedProject } from '@/types/feature-request';
 
 interface Props {
@@ -11,13 +12,6 @@ interface Props {
     priorities: string[];
     slaConfigs: Record<string, number>;
     initialProjectId: number | null;
-}
-
-function localDateTime() {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-
-    return now.toISOString().slice(0, 16);
 }
 
 export default function Create({
@@ -52,7 +46,7 @@ export default function Create({
                             title: '',
                             description: '',
                             priority: 'normal',
-                            requested_at: localDateTime(),
+                            requested_at: formatAppDateTimeInput(),
                         }}
                     />
                 </SidebarInset>
