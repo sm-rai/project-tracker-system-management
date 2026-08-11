@@ -6,6 +6,7 @@ use App\Enums\IssueStatus;
 use App\Enums\Priority;
 use App\Enums\ProjectStatus;
 use App\Enums\RootCauseCategory;
+use App\Http\Requests\ResolveIssueRequest;
 use App\Http\Requests\SaveIssueRequest;
 use App\Models\Issue;
 use App\Models\Project;
@@ -197,13 +198,13 @@ class IssueController extends Controller
         return redirect()->route('issues.index')->with('success', 'Issue berhasil diperbarui.');
     }
 
-    public function resolve(Request $request, Issue $issue): RedirectResponse
+    public function resolve(ResolveIssueRequest $request, Issue $issue): RedirectResponse
     {
-        $validated = $request->validate([
-            'resolution_note' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
-        $issue->resolved_at = now();
+        $issue->resolved_at = isset($validated['resolved_at'])
+            ? Carbon::parse($validated['resolved_at'])
+            : now();
         $issue->resolution_note = $validated['resolution_note'] ?? null;
         $issue->save();
 
