@@ -115,8 +115,98 @@ test('user can resolve issue and is_on_time is computed accurately', function ()
     $issue->refresh();
 
     expect($issue->status->value)->toBe('resolved');
+    expect($issue->resolved_at?->format('Y-m-d H:i:s'))->toBe('2026-08-02 10:00:00');
     expect($issue->is_on_time)->toBeTrue();
     expect($issue->resolution_note)->toBe('Perbaikan query database berhasil dilakukan.');
+});
+
+test('user can resolve issue at a valid historical time', function () {
+    $user = User::factory()->create();
+    $issue = Issue::factory()->create([
+        'priority' => 'urgent',
+        'reported_at' => '2026-08-01 10:00:00',
+        'due_date' => '2026-08-02 10:00:00',
+        'status' => 'open',
+    ]);
+
+    Carbon::setTestNow('2026-08-03 10:00:00');
+
+    $response = $this->actingAs($user)->patch(route('issues.resolve', $issue), [
+        'resolved_at' => '2026-08-02 09:30:00',
+        'resolution_note' => 'Perbaikan sudah selesai kemarin.',
+    ]);
+
+    $response->assertRedirect();
+    $issue->refresh();
+
+    expect($issue->resolved_at?->format('Y-m-d H:i:s'))->toBe('2026-08-02 09:30:00');
+    expect($issue->is_on_time)->toBeTrue();
+    expect($issue->resolution_note)->toBe('Perbaikan sudah selesai kemarin.');
+});
+
+test('late historical resolution is marked as late', function () {
+    $user = User::factory()->create();
+    $issue = Issue::factory()->create([
+        'reported_at' => '2026-08-01 10:00:00',
+        'due_date' => '2026-08-02 10:00:00',
+        'status' => 'open',
+    ]);
+
+    Carbon::setTestNow('2026-08-03 10:00:00');
+
+    $response = $this->actingAs($user)->patch(route('issues.resolve', $issue), [
+        'resolved_at' => '2026-08-02 10:00:01',
+    ]);
+
+    $response->assertRedirect();
+    $issue->refresh();
+
+    expect($issue->resolved_at?->format('Y-m-d H:i:s'))->toBe('2026-08-02 10:00:01');
+    expect($issue->is_on_time)->toBeFalse();
+});
+
+test('resolution before reported time is rejected', function () {
+    $user = User::factory()->create();
+    $issue = Issue::factory()->create([
+        'reported_at' => '2026-08-01 10:00:00',
+        'due_date' => '2026-08-02 10:00:00',
+        'status' => 'open',
+    ]);
+
+    Carbon::setTestNow('2026-08-03 10:00:00');
+
+    $response = $this
+        ->actingAs($user)
+        ->from(route('issues.show', $issue))
+        ->patch(route('issues.resolve', $issue), [
+            'resolved_at' => '2026-08-01 09:59:59',
+        ]);
+
+    $response->assertRedirect(route('issues.show', $issue));
+    $response->assertSessionHasErrors('resolved_at');
+    expect($issue->fresh()->status->value)->toBe('open');
+});
+
+test('resolution in the future is rejected', function () {
+    $user = User::factory()->create();
+    $issue = Issue::factory()->create([
+        'reported_at' => '2026-08-01 10:00:00',
+        'due_date' => '2026-08-02 10:00:00',
+        'status' => 'open',
+    ]);
+
+    Carbon::setTestNow('2026-08-03 10:00:00');
+
+    $response = $this
+        ->actingAs($user)
+        ->from(route('issues.show', $issue))
+        ->patch(route('issues.resolve', $issue), [
+            'resolved_at' => '2026-08-03 10:00:01',
+        ]);
+
+    $response->assertRedirect(route('issues.show', $issue));
+    $response->assertSessionHasErrors('resolved_at');
+    expect($issue->fresh()->status->value)->toBe('open');
 });
 
 test('user can reopen a resolved issue', function () {
