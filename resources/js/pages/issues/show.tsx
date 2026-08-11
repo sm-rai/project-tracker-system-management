@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { format } from 'date-fns';
 import {
     ArrowLeft,
     CalendarClock,
@@ -11,6 +12,13 @@ import {
 import type { FormEvent, ReactNode } from 'react';
 import { useState } from 'react';
 
+import {
+    destroy,
+    edit,
+    index as issuesIndex,
+    reopen,
+    resolve,
+} from '@/actions/App/Http/Controllers/IssueController';
 import { AppSidebar } from '@/components/app-sidebar';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { SiteHeader } from '@/components/site-header';
@@ -33,6 +41,8 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 interface Project {
@@ -115,13 +125,14 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
     const [reopenConfirmOpen, setReopenConfirmOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
-    const { data, setData, patch, processing } = useForm({
+    const { data, setData, patch, processing, errors } = useForm({
+        resolved_at: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
         resolution_note: issue.resolution_note || '',
     });
 
     const handleResolveSubmit = (e: FormEvent) => {
         e.preventDefault();
-        patch(`/issues/${issue.id}/resolve`, {
+        patch(resolve.url(issue.id), {
             preserveScroll: true,
             onSuccess: () => setResolveDialogOpen(false),
         });
@@ -129,7 +140,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
 
     const handleReopen = () => {
         router.patch(
-            `/issues/${issue.id}/reopen`,
+            reopen.url(issue.id),
             {},
             {
                 preserveScroll: true,
@@ -139,7 +150,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
     };
 
     const handleDelete = () => {
-        router.delete(`/issues/${issue.id}`, {
+        router.delete(destroy.url(issue.id), {
             onFinish: () => setDeleteConfirmOpen(false),
         });
     };
@@ -215,7 +226,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     size="icon"
                                     className="size-11 shrink-0 lg:size-9"
                                 >
-                                    <Link href="/issues">
+                                    <Link href={issuesIndex.url()}>
                                         <span className="sr-only">
                                             Kembali ke daftar issue
                                         </span>
@@ -285,7 +296,60 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                                         issue ini (opsional).
                                                     </DialogDescription>
                                                 </DialogHeader>
-                                                <div className="space-y-2 py-4">
+                                                <div className="space-y-4 py-4">
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="resolved_at">
+                                                            Waktu selesai
+                                                        </Label>
+                                                        <DateTimePicker
+                                                            id="resolved_at"
+                                                            value={
+                                                                data.resolved_at
+                                                            }
+                                                            onChange={(value) =>
+                                                                setData(
+                                                                    'resolved_at',
+                                                                    value,
+                                                                )
+                                                            }
+                                                            minDate={
+                                                                new Date(
+                                                                    issue.reported_at,
+                                                                )
+                                                            }
+                                                            maxDate={new Date()}
+                                                            aria-invalid={Boolean(
+                                                                errors.resolved_at,
+                                                            )}
+                                                            aria-describedby={
+                                                                errors.resolved_at
+                                                                    ? 'resolved_at-error'
+                                                                    : 'resolved_at-help'
+                                                            }
+                                                        />
+                                                        <p
+                                                            id="resolved_at-help"
+                                                            className="text-xs leading-relaxed text-muted-foreground"
+                                                        >
+                                                            Isi waktu sebenarnya
+                                                            saat issue selesai.
+                                                            Waktu harus berada
+                                                            setelah waktu
+                                                            laporan dan tidak
+                                                            boleh melewati waktu
+                                                            sekarang.
+                                                        </p>
+                                                        {errors.resolved_at && (
+                                                            <p
+                                                                id="resolved_at-error"
+                                                                className="text-xs font-medium text-danger"
+                                                            >
+                                                                {
+                                                                    errors.resolved_at
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                     <Textarea
                                                         rows={4}
                                                         placeholder="Catatan penanganan atau solusi perbaikan..."
@@ -343,7 +407,7 @@ export default function IssueShowPage({ issue }: IssueShowProps) {
                                     aria-label="Edit issue"
                                     className="size-11 lg:size-9"
                                 >
-                                    <Link href={`/issues/${issue.id}/edit`}>
+                                    <Link href={edit.url(issue.id)}>
                                         <span className="sr-only">
                                             Edit issue
                                         </span>

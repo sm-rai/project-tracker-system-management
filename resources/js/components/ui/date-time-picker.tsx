@@ -1,4 +1,11 @@
-import { format, isValid, parseISO } from 'date-fns';
+import {
+    format,
+    isAfter,
+    isBefore,
+    isSameDay,
+    isValid,
+    parseISO,
+} from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { ChevronDownIcon } from 'lucide-react';
 import * as React from 'react';
@@ -25,6 +32,8 @@ interface DateTimePickerProps {
     className?: string;
     disabled?: boolean;
     clearable?: boolean;
+    minDate?: Date;
+    maxDate?: Date;
     id?: string;
     'aria-label'?: string;
     'aria-describedby'?: string;
@@ -51,6 +60,27 @@ function formatDateTime(date: Date, time: string): string {
     return format(dateTime, "yyyy-MM-dd'T'HH:mm");
 }
 
+function parseDateTimeValue(date: Date, time: string): Date {
+    const [hour, minute] = time.split(':').map(Number);
+    const dateTime = new Date(date);
+
+    dateTime.setHours(hour, minute, 0, 0);
+
+    return dateTime;
+}
+
+function clampDateTime(date: Date, minDate?: Date, maxDate?: Date): Date {
+    if (minDate && isBefore(date, minDate)) {
+        return minDate;
+    }
+
+    if (maxDate && isAfter(date, maxDate)) {
+        return maxDate;
+    }
+
+    return date;
+}
+
 export function DateTimePicker({
     value,
     onChange,
@@ -58,6 +88,8 @@ export function DateTimePicker({
     className,
     disabled = false,
     clearable = true,
+    minDate,
+    maxDate,
     id,
     'aria-label': ariaLabel,
     'aria-describedby': ariaDescribedBy,
@@ -70,6 +102,20 @@ export function DateTimePicker({
     const [open, setOpen] = React.useState(false);
     const selectedDate = React.useMemo(() => parseDateTime(value), [value]);
     const timeValue = selectedDate ? format(selectedDate, 'HH:mm') : '';
+    const minTime =
+        selectedDate && minDate && isSameDay(selectedDate, minDate)
+            ? format(minDate, 'HH:mm')
+            : undefined;
+    const maxTime =
+        selectedDate && maxDate && isSameDay(selectedDate, maxDate)
+            ? format(maxDate, 'HH:mm')
+            : undefined;
+    const disabledDates = [
+        minDate ? { before: minDate } : undefined,
+        maxDate ? { after: maxDate } : undefined,
+    ].filter((matcher): matcher is { before: Date } | { after: Date } =>
+        Boolean(matcher),
+    );
 
     const handleDateSelect = (date: Date | undefined) => {
         if (!date) {
@@ -79,7 +125,13 @@ export function DateTimePicker({
             return;
         }
 
-        onChange?.(formatDateTime(date, timeValue || '00:00'));
+        const nextDateTime = clampDateTime(
+            parseDateTimeValue(date, timeValue || '00:00'),
+            minDate,
+            maxDate,
+        );
+
+        onChange?.(format(nextDateTime, "yyyy-MM-dd'T'HH:mm"));
         setOpen(false);
     };
 
@@ -87,6 +139,15 @@ export function DateTimePicker({
         const nextTime = event.target.value;
 
         if (!selectedDate || !nextTime) {
+            return;
+        }
+
+        const nextDateTime = parseDateTimeValue(selectedDate, nextTime);
+
+        if (
+            (minDate && isBefore(nextDateTime, minDate)) ||
+            (maxDate && isAfter(nextDateTime, maxDate))
+        ) {
             return;
         }
 
@@ -150,6 +211,11 @@ export function DateTimePicker({
                             selected={selectedDate}
                             captionLayout="dropdown"
                             defaultMonth={selectedDate}
+                            disabled={
+                                disabledDates.length > 0
+                                    ? disabledDates
+                                    : undefined
+                            }
                             onSelect={handleDateSelect}
                             locale={idLocale}
                         />
@@ -164,6 +230,8 @@ export function DateTimePicker({
                     step="60"
                     value={timeValue}
                     onChange={handleTimeChange}
+                    min={minTime}
+                    max={maxTime}
                     disabled={disabled || !selectedDate}
                     aria-label="Waktu"
                     aria-describedby={ariaDescribedBy}
