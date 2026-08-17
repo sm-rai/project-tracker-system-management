@@ -56,6 +56,9 @@ FROM php-base AS production
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
+    HOME=/tmp/.chromium \
+    XDG_CONFIG_HOME=/tmp/.chromium/config \
+    XDG_CACHE_HOME=/tmp/.chromium/cache \
     BROWSERSHOT_CHROME_PATH=/usr/bin/chromium \
     BROWSERSHOT_NODE_BINARY=/usr/local/bin/node \
     BROWSERSHOT_NPM_BINARY=/usr/local/bin/npm \
@@ -72,7 +75,8 @@ RUN apt-get update \
         nginx \
         supervisor \
     && rm -rf /var/lib/apt/lists/* \
-    && rm -f /etc/nginx/sites-enabled/default
+    && rm -f /etc/nginx/sites-enabled/default \
+    && install -d -o www-data -g www-data -m 0700 /tmp/.chromium
 
 COPY --from=node-runtime /usr/local/ /usr/local/
 COPY --chown=www-data:www-data --from=build /app /var/www/html
