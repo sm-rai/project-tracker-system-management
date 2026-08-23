@@ -75,6 +75,39 @@ body {
     gap: 14px;
 }
 
+.export-pdf .report-header {
+    align-items: center;
+}
+
+.report-brand-logo {
+    display: block;
+    width: 112px;
+    height: auto;
+}
+
+.report-brand-copy {
+    min-width: 0;
+}
+
+.report-product-name,
+.report-product-area {
+    margin: 0;
+}
+
+.report-product-name {
+    color: var(--export-foreground);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.report-product-area {
+    margin-top: 3px;
+    color: var(--export-muted-foreground);
+    font-size: 11px;
+    line-height: 1.3;
+}
+
 .report-brand-mark {
     display: grid;
     width: 48px;
@@ -142,6 +175,10 @@ body {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
+}
+
+.export-pdf .export-summary-grid {
+    padding-right: 2px;
 }
 
 .export-metric-card,
@@ -239,6 +276,16 @@ body {
     gap: 12px;
 }
 
+.export-pdf .export-stats-grid {
+    display: flex;
+    padding-right: 2px;
+}
+
+.export-pdf .export-stat-card {
+    min-width: 0;
+    flex: 0 0 calc(25% - 9px);
+}
+
 .export-stat-card {
     padding: 14px 16px;
 }
@@ -304,6 +351,10 @@ body {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
+}
+
+.export-pdf .export-breakdown-grid {
+    padding-right: 2px;
 }
 
 .export-breakdown-card {

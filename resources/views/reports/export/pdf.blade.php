@@ -18,6 +18,10 @@
         $report['okr']['feature_request_on_time'],
     ];
 
+    $logoDataUri = 'data:image/png;base64,'.base64_encode(
+        file_get_contents(public_path('images/Logo RAI Full.png')),
+    );
+
     $breakdownCards = [
         [
             'title' => 'Status Issue',
@@ -52,18 +56,18 @@
     <div class="export-document export-pdf">
         <header class="report-header">
             <div class="report-brand">
-                <div class="report-brand-mark">RAI</div>
-                <div>
-                    <p class="report-eyebrow">Project Tracker</p>
-                    <h1 class="report-title">Snapshot Laporan OKR</h1>
-                    <p class="report-subtitle">Rumah Atsiri Indonesia · Divisi System Management</p>
+                <img
+                    class="report-brand-logo"
+                    src="{{ $logoDataUri }}"
+                    alt="Rumah Atsiri Indonesia"
+                >
+                <div class="report-brand-copy">
+                    <p class="report-product-name">Project Tracker</p>
+                    <p class="report-product-area">System Management</p>
                 </div>
             </div>
             <div class="report-meta">
                 <strong>{{ $report['snapshot']['period_label'] }}</strong>
-                <span>{{ $report['snapshot']['period_type_label'] }}</span>
-                <br>
-                <span>Dibuat {{ $report['snapshot']['generated_at'] }}</span>
             </div>
         </header>
 
@@ -105,11 +109,11 @@
                     <p class="export-stat-value">{{ $report['stats']['active_projects'] }}</p>
                 </article>
                 <article class="export-stat-card">
-                    <p class="export-stat-label">Issue pada Periode</p>
+                    <p class="export-stat-label">Issue</p>
                     <p class="export-stat-value">{{ $report['stats']['issues'] }}</p>
                 </article>
                 <article class="export-stat-card">
-                    <p class="export-stat-label">Feature Request pada Periode</p>
+                    <p class="export-stat-label">Feature Request</p>
                     <p class="export-stat-value">{{ $report['stats']['feature_requests'] }}</p>
                 </article>
             </div>
@@ -146,7 +150,7 @@
                                             <span class="muted">Belum ada brief</span>
                                         @endif
                                     @else
-                                        <span class="muted">Di luar radar</span>
+                                        <span class="muted">&mdash;</span>
                                     @endif
                                 </td>
                                 <td>

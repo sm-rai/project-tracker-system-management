@@ -110,6 +110,10 @@ test('export data preserves snapshot values and empty report copy', function ():
 
 test('export templates contain the report summary and empty state copy', function (): void {
     $snapshot = ReportSnapshot::factory()->create([
+        'period_start_date' => '2026-08-09',
+        'period_end_date' => '2026-08-15',
+        'period_type' => ReportSnapshot::PeriodCustomRange,
+        'generated_at' => '2026-08-17 23:51:00',
         'issue_breakdown_json' => [
             'empty_label' => 'Tidak ada issue baru pada periode ini.',
             'total' => 0,
@@ -130,12 +134,25 @@ test('export templates contain the report summary and empty state copy', functio
     ]);
 
     $data = app(BuildReportExportData::class)->handle($snapshot);
-    $viewData = ['report' => $data, 'styles' => ''];
+    $styles = file_get_contents(resource_path('css/report-export.css'));
+    $viewData = ['report' => $data, 'styles' => $styles];
     $pdfHtml = view('reports.export.pdf', $viewData)->render();
     $pngHtml = view('reports.export.png', $viewData)->render();
 
     expect($pdfHtml)
         ->toContain('Snapshot Laporan OKR')
+        ->toContain('class="report-brand-logo"')
+        ->toContain('src="data:image/png;base64,')
+        ->toContain('<p class="report-product-name">Project Tracker</p>')
+        ->toContain('<p class="report-product-area">System Management</p>')
+        ->toContain('<strong>9 Agu 2026 - 15 Agu 2026</strong>')
+        ->not->toContain('class="report-brand-mark"')
+        ->not->toContain('Rentang tanggal')
+        ->not->toContain('<span>Dibuat ')
+        ->toContain('<p class="export-stat-label">Issue</p>')
+        ->toContain('<p class="export-stat-label">Feature Request</p>')
+        ->not->toContain('Issue pada Periode')
+        ->not->toContain('Feature Request pada Periode')
         ->toContain('Tidak ada issue baru pada periode ini.')
         ->toContain('Tidak ada Feature Request baru pada periode ini.')
         ->toContain('Breakdown Root Cause')
@@ -143,6 +160,14 @@ test('export templates contain the report summary and empty state copy', functio
         ->toContain('Snapshot Laporan OKR')
         ->toContain('Issue SLA')
         ->toContain('Feature Request SLA');
+
+    expect($styles)
+        ->toMatch('/\.export-pdf \.export-summary-grid\s*\{[^}]*padding-right: 2px;/s')
+        ->toMatch('/\.export-pdf \.export-breakdown-grid\s*\{[^}]*padding-right: 2px;/s')
+        ->toContain('.export-pdf .export-stats-grid')
+        ->toContain('display: flex;')
+        ->toContain('padding-right: 2px;')
+        ->toContain('flex: 0 0 calc(25% - 9px);');
 });
 
 test('export pdf renders populated issue and feature request rows', function (): void {
@@ -194,4 +219,38 @@ test('export pdf renders populated issue and feature request rows', function ():
         ->toContain('Gagal menyimpan transaksi')
         ->toContain('Tambah filter laporan')
         ->toContain('1 Agu 2026');
+});
+
+test('export pdf uses a dash for deployed project brief realization', function (): void {
+    $snapshot = ReportSnapshot::factory()->make([
+        'project_breakdown_json' => [
+            'target_percentage' => 75,
+            'active_total' => 0,
+            'evaluable_total' => 0,
+            'achieved_total' => 0,
+            'total' => 1,
+            'projects' => [[
+                'id' => 1,
+                'name' => 'Project Tracker',
+                'status' => 'deployed_running',
+                'status_label' => 'Running',
+                'is_active_development' => false,
+                'brief_features_total' => 0,
+                'brief_features_done' => 0,
+                'realization_percentage' => 100,
+                'target_percentage' => 75,
+                'is_evaluable' => false,
+                'achieved' => false,
+            ]],
+            'status_distribution' => [],
+        ],
+    ]);
+
+    $data = app(BuildReportExportData::class)->handle($snapshot);
+    $html = view('reports.export.pdf', ['report' => $data, 'styles' => ''])->render();
+
+    expect($html)
+        ->toContain('&mdash;')
+        ->not->toContain('Di luar radar')
+        ->toContain('Selesai / deployed');
 });
