@@ -75,7 +75,8 @@ body {
     gap: 14px;
 }
 
-.export-pdf .report-header {
+.export-pdf .report-header,
+.export-png .report-header {
     align-items: center;
 }
 
@@ -106,40 +107,6 @@ body {
     color: var(--export-muted-foreground);
     font-size: 11px;
     line-height: 1.3;
-}
-
-.report-brand-mark {
-    display: grid;
-    width: 48px;
-    height: 48px;
-    place-items: center;
-    border: 2px solid var(--export-primary);
-    color: var(--export-primary);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-}
-
-.report-eyebrow {
-    margin: 0 0 2px;
-    color: var(--export-primary);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
-.report-title {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.report-subtitle {
-    margin: 5px 0 0;
-    color: var(--export-muted-foreground);
-    font-size: 12px;
 }
 
 .report-meta {
@@ -473,13 +440,21 @@ body {
     font-size: 9px;
 }
 
-.export-png .report-title {
-    font-size: 32px;
+.export-png .report-brand-logo {
+    width: 160px;
 }
 
-.export-png .report-subtitle,
-.export-png .report-meta {
-    font-size: 13px;
+.export-png .report-product-name {
+    font-size: 22px;
+}
+
+.export-png .report-product-area {
+    margin-top: 4px;
+    font-size: 15px;
+}
+
+.export-png .report-meta strong {
+    font-size: 18px;
 }
 
 .export-png .export-section {

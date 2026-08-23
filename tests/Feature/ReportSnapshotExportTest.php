@@ -158,6 +158,18 @@ test('export templates contain the report summary and empty state copy', functio
         ->toContain('Breakdown Root Cause')
         ->and($pngHtml)
         ->toContain('Snapshot Laporan OKR')
+        ->toContain('class="report-brand-logo"')
+        ->toContain('src="data:image/png;base64,')
+        ->toContain('<p class="report-product-name">Project Tracker</p>')
+        ->toContain('<p class="report-product-area">System Management</p>')
+        ->toContain('<strong>9 Agu 2026 - 15 Agu 2026</strong>')
+        ->not->toContain('class="report-brand-mark"')
+        ->not->toContain('<span>Dibuat ')
+        ->toContain('<p class="export-stat-label">Issue</p>')
+        ->toContain('<p class="export-stat-label">Feature Request</p>')
+        ->not->toContain('Issue Baru')
+        ->not->toContain('Feature Request Baru')
+        ->toContain('Target minimal 75% realisasi per project')
         ->toContain('Issue SLA')
         ->toContain('Feature Request SLA');
 
@@ -221,7 +233,7 @@ test('export pdf renders populated issue and feature request rows', function ():
         ->toContain('1 Agu 2026');
 });
 
-test('export pdf uses a dash for deployed project brief realization', function (): void {
+test('export templates use a dash for deployed project brief realization', function (): void {
     $snapshot = ReportSnapshot::factory()->make([
         'project_breakdown_json' => [
             'target_percentage' => 75,
@@ -247,10 +259,15 @@ test('export pdf uses a dash for deployed project brief realization', function (
     ]);
 
     $data = app(BuildReportExportData::class)->handle($snapshot);
-    $html = view('reports.export.pdf', ['report' => $data, 'styles' => ''])->render();
+    $pdfHtml = view('reports.export.pdf', ['report' => $data, 'styles' => ''])->render();
+    $pngHtml = view('reports.export.png', ['report' => $data, 'styles' => ''])->render();
 
-    expect($html)
+    expect($pdfHtml)
         ->toContain('&mdash;')
         ->not->toContain('Di luar radar')
+        ->toContain('Selesai / deployed')
+        ->and($pngHtml)
+        ->toContain('&mdash;')
+        ->not->toContain('100% selesai')
         ->toContain('Selesai / deployed');
 });

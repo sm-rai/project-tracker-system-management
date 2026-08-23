@@ -4,28 +4,34 @@
         $report['okr']['issue_on_time'],
         $report['okr']['feature_request_on_time'],
     ];
+
+    $logoDataUri = 'data:image/png;base64,'.base64_encode(
+        file_get_contents(public_path('images/Logo RAI Full.png')),
+    );
 @endphp
 <!doctype html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Ringkasan Snapshot OKR - {{ $report['snapshot']['period_label'] }}</title>
+    <title>Snapshot Laporan OKR - {{ $report['snapshot']['period_label'] }}</title>
     <style>{!! $styles !!}</style>
 </head>
 <body>
     <div class="export-document export-png">
         <header class="report-header">
             <div class="report-brand">
-                <div class="report-brand-mark">RAI</div>
-                <div>
-                    <p class="report-eyebrow">Project Tracker · Rumah Atsiri Indonesia</p>
-                    <h1 class="report-title">Snapshot Laporan OKR</h1>
-                    <p class="report-subtitle">Divisi System Management · {{ $report['snapshot']['period_type_label'] }}</p>
+                <img
+                    class="report-brand-logo"
+                    src="{{ $logoDataUri }}"
+                    alt="Rumah Atsiri Indonesia"
+                >
+                <div class="report-brand-copy">
+                    <p class="report-product-name">Project Tracker</p>
+                    <p class="report-product-area">System Management</p>
                 </div>
             </div>
             <div class="report-meta">
                 <strong>{{ $report['snapshot']['period_label'] }}</strong>
-                <span>Dibuat {{ $report['snapshot']['generated_at'] }}</span>
             </div>
         </header>
 
@@ -39,7 +45,7 @@
                     <span class="export-status {{ $briefMetric['evaluable_projects'] === 0 ? 'export-status-neutral' : ($briefMetric['achieved_projects'] === $briefMetric['evaluable_projects'] ? 'export-status-success' : 'export-status-warning') }}">
                         {{ $briefMetric['evaluable_projects'] === 0 ? 'Belum dapat dinilai' : ($briefMetric['achieved_projects'] . ' project tercapai') }}
                     </span>
-                    <p class="export-metric-target">Target {{ $briefMetric['target'] }}% per project</p>
+                    <p class="export-metric-target">Target minimal {{ $briefMetric['target'] }}% realisasi per project</p>
                 </article>
 
                 @foreach ($itemMetrics as $metric)
@@ -66,11 +72,11 @@
                     <p class="export-stat-value">{{ $report['stats']['active_projects'] }}</p>
                 </article>
                 <article class="export-stat-card">
-                    <p class="export-stat-label">Issue Baru</p>
+                    <p class="export-stat-label">Issue</p>
                     <p class="export-stat-value">{{ $report['stats']['issues'] }}</p>
                 </article>
                 <article class="export-stat-card">
-                    <p class="export-stat-label">Feature Request Baru</p>
+                    <p class="export-stat-label">Feature Request</p>
                     <p class="export-stat-value">{{ $report['stats']['feature_requests'] }}</p>
                 </article>
             </div>
@@ -117,10 +123,10 @@
                                     </div>
                                     <span class="export-project-value">Belum dapat dinilai</span>
                                 @else
-                                    <div class="export-progress export-progress-success">
-                                        <span style="width: 100%"></span>
+                                    <div class="export-progress export-progress-neutral">
+                                        <span style="width: 0%"></span>
                                     </div>
-                                    <span class="export-project-value">100% selesai</span>
+                                    <span class="export-project-value">&mdash;</span>
                                 @endif
                             </div>
                         </article>
@@ -147,7 +153,7 @@
         </section>
 
         <footer class="export-footer">
-            Snapshot ini merekam kondisi OKR pada {{ $report['snapshot']['period_label'] }}.
+            Snapshot ini merekam kondisi OKR pada {{ $report['snapshot']['period_label'] }} dan tidak berubah ketika data operasional setelahnya diperbarui.
         </footer>
     </div>
 </body>
