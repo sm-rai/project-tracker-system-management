@@ -11,7 +11,7 @@ use App\Models\Issue;
 use App\Models\Project;
 use App\Support\AppDateTime;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 
 class BuildDashboardData
 {
@@ -19,8 +19,8 @@ class BuildDashboardData
     public function handle(): array
     {
         $now = AppDateTime::nowInBusinessTimezone();
-        $periodStart = $now->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $periodEnd = $now->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $periodStart = $now->startOfWeek(CarbonInterface::SUNDAY)->startOfDay();
+        $periodEnd = $now->endOfWeek(CarbonInterface::SATURDAY)->endOfDay();
         $periodStartUtc = $periodStart->utc();
         $periodEndUtc = $periodEnd->utc();
 

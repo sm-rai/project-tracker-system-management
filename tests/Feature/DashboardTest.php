@@ -27,10 +27,25 @@ test('authenticated user receives dashboard summary component and period metadat
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('dashboard')
-            ->where('dashboard.period.start', '2026-07-27')
-            ->where('dashboard.period.end', '2026-08-02')
-            ->where('dashboard.period.label', '27 Jul 2026 - 2 Agu 2026')
+            ->where('dashboard.period.start', '2026-07-26')
+            ->where('dashboard.period.end', '2026-08-01')
+            ->where('dashboard.period.label', '26 Jul 2026 - 1 Agu 2026')
             ->where('dashboard.period.generated_at', '2026-07-30 19:00')
+        );
+});
+
+test('dashboard starts a new reporting week at Sunday midnight in the business timezone', function (): void {
+    Carbon::setTestNow('2026-08-01 17:00:00');
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('dashboard.period.start', '2026-08-02')
+            ->where('dashboard.period.end', '2026-08-08')
+            ->where('dashboard.period.label', '2 Agu 2026 - 8 Agu 2026')
         );
 });
 

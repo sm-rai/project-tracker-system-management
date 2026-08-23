@@ -7,6 +7,7 @@ use App\Http\Requests\StoreReportSnapshotRequest;
 use App\Models\ReportSnapshot;
 use App\Support\AppDateTime;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,8 +17,8 @@ class ReportSnapshotController extends Controller
     public function index(): Response
     {
         $now = AppDateTime::nowInBusinessTimezone();
-        $periodStart = $now->startOfWeek()->startOfDay();
-        $periodEnd = $now->endOfWeek()->endOfDay();
+        $periodStart = $now->startOfWeek(CarbonInterface::SUNDAY)->startOfDay();
+        $periodEnd = $now->endOfWeek(CarbonInterface::SATURDAY)->endOfDay();
 
         return Inertia::render('reports/index', [
             'defaultPeriod' => [
@@ -46,8 +47,8 @@ class ReportSnapshotController extends Controller
             $periodEnd = AppDateTime::endOfBusinessDate((string) $validated['period_end_date']);
         } else {
             $now = AppDateTime::nowInBusinessTimezone();
-            $periodStart = $now->startOfWeek()->startOfDay();
-            $periodEnd = $now->endOfWeek()->endOfDay();
+            $periodStart = $now->startOfWeek(CarbonInterface::SUNDAY)->startOfDay();
+            $periodEnd = $now->endOfWeek(CarbonInterface::SATURDAY)->endOfDay();
         }
 
         $periodStart = $periodStart->utc();

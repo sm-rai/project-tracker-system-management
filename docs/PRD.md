@@ -197,8 +197,8 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 | Field | Tipe | Keterangan |
 |---|---|---|
 | id | bigint | PK |
-| period_start_date | date | tanggal mulai periode (default Senin) |
-| period_end_date | date | tanggal akhir periode (default Minggu, total 7 hari) |
+| period_start_date | date | tanggal mulai periode (default Minggu) |
+| period_end_date | date | tanggal akhir periode (default Sabtu, total 7 hari) |
 | period_type | enum | `weekly_default` (laporan mingguan standar, 7 hari) atau `custom_range` (analisis ad-hoc rentang tanggal bebas) |
 | okr1_project_achievement_percentage | decimal nullable | persentase project aktif yang mencapai target OKR 1 sebesar 75%; ringkasan tambahan, bukan pengganti penilaian per project |
 | okr2_issue_percentage | decimal | % kendala on-time pada periode tsb |
@@ -270,7 +270,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
   - % on-time OKR 2 berjalan (periode saat ini, live)
 
 ### 9.6 Generate & Export Laporan
-- **Laporan Mingguan Standar:** periode default 7 hari kalender (Senin–Minggu), untuk kebutuhan rutin ke HoD.
+- **Laporan Mingguan Standar:** periode default 7 hari kalender (Minggu–Sabtu), untuk kebutuhan rutin ke HoD.
 - **Analisis Rentang Custom:** user bisa memilih rentang tanggal bebas (tidak harus 7 hari/kelipatan minggu) untuk kebutuhan visualisasi/analisis ad-hoc yang berbeda dari laporan mingguan standar.
 - Preview laporan sebelum export.
 - Export **PDF** (laporan lengkap): ringkasan OKR 1 & OKR 2, chart tren antar-periode, chart realisasi vs target, breakdown root cause, narasi otomatis (misal: "Minggu ini X kendala dilaporkan, Y% selesai tepat waktu").

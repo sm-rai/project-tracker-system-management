@@ -31,6 +31,21 @@ test('authenticated users receive the report index component', function (): void
         );
 });
 
+test('report default period starts a new week at Sunday midnight in the business timezone', function (): void {
+    Carbon::setTestNow('2026-08-01 17:00:00');
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get('/reports')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('defaultPeriod.start', '2026-08-02')
+            ->where('defaultPeriod.end', '2026-08-08')
+            ->where('defaultPeriod.label', '2 Agu 2026 - 8 Agu 2026')
+        );
+});
+
 test('users can generate a weekly default report snapshot', function (): void {
     Carbon::setTestNow('2026-07-30 12:00:00');
 
@@ -46,8 +61,8 @@ test('users can generate a weekly default report snapshot', function (): void {
     $snapshot = ReportSnapshot::query()->firstOrFail();
 
     expect($snapshot->period_type)->toBe('weekly_default')
-        ->and($snapshot->period_start_date->toDateString())->toBe('2026-07-27')
-        ->and($snapshot->period_end_date->toDateString())->toBe('2026-08-02')
+        ->and($snapshot->period_start_date->toDateString())->toBe('2026-07-26')
+        ->and($snapshot->period_end_date->toDateString())->toBe('2026-08-01')
         ->and($snapshot->project_breakdown_json['active_total'])->toBe(1)
         ->and($snapshot->project_breakdown_json['evaluable_total'])->toBe(1)
         ->and($snapshot->project_breakdown_json['achieved_total'])->toBe(0)
