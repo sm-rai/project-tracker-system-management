@@ -201,13 +201,47 @@ test('index exposes filters and paginated feature requests', function () {
     );
 });
 
-test('index does not load summary props', function () {
-    Carbon::setTestNow('2026-07-30 12:00:00');
+test('index exposes an operational summary and prioritizes active requests by deadline', function () {
+    Carbon::setTestNow('2026-08-23 12:00:00');
     $user = User::factory()->create();
+    $project = Project::factory()->deployedRunning()->create();
+
+    $fulfilledRequest = FeatureRequest::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Request terpenuhi',
+        'requested_at' => '2026-08-20 09:00:00',
+        'priority' => 'normal',
+    ]);
+    $fulfilledRequest->fulfill();
+    FeatureRequest::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Request aman',
+        'requested_at' => '2026-08-23 09:00:00',
+        'priority' => 'low',
+    ]);
+    FeatureRequest::factory()->inProgress()->create([
+        'project_id' => $project->id,
+        'title' => 'Request mendekati target',
+        'requested_at' => '2026-08-22 18:00:00',
+        'priority' => 'urgent',
+    ]);
+    FeatureRequest::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Request overdue',
+        'requested_at' => '2026-08-20 09:00:00',
+        'priority' => 'urgent',
+    ]);
 
     $this->actingAs($user)->get('/feature-requests')
         ->assertInertia(fn ($page) => $page
             ->component('feature-requests/index', false)
+            ->where('summary.active', 3)
+            ->where('summary.approaching_target', 1)
+            ->where('summary.overdue', 1)
+            ->where('featureRequests.data.0.title', 'Request overdue')
+            ->where('featureRequests.data.1.title', 'Request mendekati target')
+            ->where('featureRequests.data.2.title', 'Request aman')
+            ->where('featureRequests.data.3.title', 'Request terpenuhi')
             ->missing('metrics')
             ->missing('okr')
         );

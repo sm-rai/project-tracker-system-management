@@ -25,6 +25,22 @@ class FeatureRequestController extends Controller
     {
         Gate::authorize('viewAny', FeatureRequest::class);
 
+        $fulfilledStatus = FeatureRequestStatus::Fulfilled->value;
+        $currentTime = now();
+        $approachingTargetEnd = $currentTime->copy()->addDay();
+        $summaryRow = FeatureRequest::query()
+            ->toBase()
+            ->selectRaw('count(case when status != ? then 1 end) as active', [$fulfilledStatus])
+            ->selectRaw(
+                'count(case when status != ? and due_date >= ? and due_date <= ? then 1 end) as approaching_target',
+                [$fulfilledStatus, $currentTime, $approachingTargetEnd],
+            )
+            ->selectRaw(
+                'count(case when status != ? and due_date < ? then 1 end) as overdue',
+                [$fulfilledStatus, $currentTime],
+            )
+            ->first();
+
         $query = FeatureRequest::query()
             ->select([
                 'id',
@@ -40,7 +56,6 @@ class FeatureRequestController extends Controller
                 'is_on_time',
             ])
             ->with('project:id,name,status')
-            ->latest('requested_at')
             ->when($request->input('search'), function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")
@@ -52,10 +67,18 @@ class FeatureRequestController extends Controller
             ->when($request->input('status'), fn ($query, $status) => $query->where('status', $status))
             ->when($request->boolean('overdue'), fn ($query) => $query
                 ->where('status', '!=', FeatureRequestStatus::Fulfilled->value)
-                ->where('due_date', '<', now()));
+                ->where('due_date', '<', $currentTime))
+            ->orderByRaw('case when status = ? then 1 else 0 end', [$fulfilledStatus])
+            ->orderByRaw('case when status != ? then due_date end asc', [$fulfilledStatus])
+            ->latest('requested_at');
 
         return Inertia::render('feature-requests/index', [
             'featureRequests' => $query->paginate(10)->withQueryString(),
+            'summary' => [
+                'active' => (int) ($summaryRow->active ?? 0),
+                'approaching_target' => (int) ($summaryRow->approaching_target ?? 0),
+                'overdue' => (int) ($summaryRow->overdue ?? 0),
+            ],
             'filters' => $request->only(['search', 'project_id', 'priority', 'status', 'overdue']),
             'deployedProjects' => $this->deployedProjects(),
             'priorities' => array_column(Priority::cases(), 'value'),

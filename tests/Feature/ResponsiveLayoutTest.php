@@ -59,7 +59,7 @@ test('dense mobile actions use touch-sized controls', function () {
         ->and($projectsIndex)
         ->toContain('size-11 h-11 text-xs font-medium')
         ->and($featureRequestsIndex)
-        ->toContain('size-11 text-muted-foreground')
+        ->toContain('h-11 gap-1.5')
         ->and($siteHeader)
         ->toContain('size-11 lg:size-7')
         ->and($filterPopover)

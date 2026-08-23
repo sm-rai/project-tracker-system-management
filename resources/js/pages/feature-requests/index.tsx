@@ -2,7 +2,6 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     ChevronLeft,
     ChevronRight,
-    Eye,
     MoreHorizontal,
     Plus,
     Search,
@@ -51,6 +50,11 @@ import type {
 
 interface Props {
     featureRequests: PaginatedFeatureRequests;
+    summary: {
+        active: number;
+        approaching_target: number;
+        overdue: number;
+    };
     filters: {
         search?: string;
         project_id?: string;
@@ -87,7 +91,7 @@ function StatusBadge({ request }: { request: FeatureRequest }) {
                 variant="outline"
                 className="border-danger/20 bg-danger-surface text-danger"
             >
-                Overdue
+                Terlambat
             </Badge>
         );
     }
@@ -106,8 +110,23 @@ function StatusBadge({ request }: { request: FeatureRequest }) {
     );
 }
 
+function isApproachingTarget(request: FeatureRequest) {
+    if (request.status === 'fulfilled') {
+        return false;
+    }
+
+    const remainingMilliseconds =
+        new Date(request.due_date).getTime() - Date.now();
+
+    return (
+        remainingMilliseconds >= 0 &&
+        remainingMilliseconds <= 24 * 60 * 60 * 1000
+    );
+}
+
 export default function FeatureRequestsIndex({
     featureRequests,
+    summary,
     filters,
     deployedProjects,
     priorities,
@@ -221,13 +240,29 @@ export default function FeatureRequestsIndex({
                 <SidebarInset>
                     <SiteHeader title="Feature Request" />
                     <div className="flex flex-1 flex-col gap-4 p-4 pt-0 md:p-6 md:pt-0">
-                        <div className="flex flex-col gap-1 pt-4 md:pt-2">
-                            <h1 className="text-lg font-semibold tracking-tight text-foreground">
-                                Feature Requests
-                            </h1>
-                            <p className="text-sm text-muted-foreground">
-                                Catat, prioritaskan, dan pantau kebutuhan sistem
-                                yang sedang berjalan.
+                        <h1 className="sr-only">Feature Request</h1>
+
+                        <div
+                            aria-label="Ringkasan feature request"
+                            className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 text-xs text-muted-foreground md:pt-3"
+                        >
+                            <p>
+                                <span className="mr-1.5 font-semibold text-foreground tabular-nums">
+                                    {summary.active}
+                                </span>
+                                Aktif
+                            </p>
+                            <p>
+                                <span className="mr-1.5 font-semibold text-warning tabular-nums">
+                                    {summary.approaching_target}
+                                </span>
+                                Mendekati Target
+                            </p>
+                            <p>
+                                <span className="mr-1.5 font-semibold text-danger tabular-nums">
+                                    {summary.overdue}
+                                </span>
+                                Terlambat
                             </p>
                         </div>
 
@@ -237,7 +272,7 @@ export default function FeatureRequestsIndex({
                                     <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         aria-label="Cari feature request"
-                                        placeholder="Cari judul atau kebutuhan..."
+                                        placeholder="Cari feature request..."
                                         value={search}
                                         onChange={(event) =>
                                             setSearch(event.target.value)
@@ -357,7 +392,7 @@ export default function FeatureRequestsIndex({
                                                     )
                                                 }
                                             />
-                                            Overdue
+                                            Terlambat
                                         </label>
                                     </div>
                                 </FilterPopover>
@@ -382,35 +417,26 @@ export default function FeatureRequestsIndex({
                             >
                                 <Link href={create()}>
                                     <Plus className="size-4" />
-                                    <span>Tambah Feature Request</span>
+                                    <span>Tambah Request</span>
                                 </Link>
                             </Button>
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-border bg-card">
-                            <Table className="min-w-[980px] table-fixed">
+                            <Table className="min-w-[720px] table-fixed">
                                 <TableHeader>
                                     <TableRow className="border-border hover:bg-transparent">
-                                        <TableHead className="h-10 w-[32%] text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[48%] text-xs font-medium text-muted-foreground">
                                             Feature Request
                                         </TableHead>
-                                        <TableHead className="h-10 w-[16%] text-xs font-medium text-muted-foreground">
-                                            Sistem
-                                        </TableHead>
-                                        <TableHead className="h-10 w-[10%] text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[14%] text-xs font-medium text-muted-foreground">
                                             Prioritas
                                         </TableHead>
-                                        <TableHead className="h-10 w-[14%] text-xs font-medium text-muted-foreground">
-                                            Status
+                                        <TableHead className="h-10 w-[20%] text-xs font-medium text-muted-foreground">
+                                            Status / SLA
                                         </TableHead>
-                                        <TableHead className="h-10 w-[12%] text-xs font-medium text-muted-foreground">
-                                            Diterima
-                                        </TableHead>
-                                        <TableHead className="h-10 w-[12%] text-xs font-medium text-muted-foreground">
+                                        <TableHead className="h-10 w-[18%] text-xs font-medium text-muted-foreground">
                                             Target
-                                        </TableHead>
-                                        <TableHead className="h-10 w-[4%] text-right text-xs font-medium text-muted-foreground">
-                                            Aksi
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -431,15 +457,13 @@ export default function FeatureRequestsIndex({
                                                         >
                                                             {request.title}
                                                         </Link>
-                                                        <span className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                                                        <span className="truncate text-xs text-muted-foreground">
                                                             {
-                                                                request.description
+                                                                request.project
+                                                                    .name
                                                             }
                                                         </span>
                                                     </div>
-                                                </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">
-                                                    {request.project.name}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline">
@@ -449,46 +473,30 @@ export default function FeatureRequestsIndex({
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <StatusBadge
-                                                        request={request}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="text-sm text-muted-foreground tabular-nums">
-                                                    {formatAppDateTime(
-                                                        request.requested_at,
-                                                    )}
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <StatusBadge
+                                                            request={request}
+                                                        />
+                                                        {isApproachingTarget(
+                                                            request,
+                                                        ) && (
+                                                            <span className="text-xs font-medium text-warning">
+                                                                Mendekati target
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground tabular-nums">
                                                     {formatAppDateTime(
                                                         request.due_date,
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button
-                                                        asChild
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="size-11 text-muted-foreground hover:bg-muted hover:text-foreground lg:size-8"
-                                                    >
-                                                        <Link
-                                                            href={show(
-                                                                request.id,
-                                                            )}
-                                                            title="Lihat detail"
-                                                        >
-                                                            <Eye className="size-4" />
-                                                            <span className="sr-only">
-                                                                Lihat Detail
-                                                            </span>
-                                                        </Link>
-                                                    </Button>
-                                                </TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={7}
+                                                colSpan={4}
                                                 className="h-48 text-center"
                                             >
                                                 <div className="mx-auto flex max-w-xs flex-col items-center justify-center gap-2">
@@ -503,7 +511,7 @@ export default function FeatureRequestsIndex({
                                                     <p className="text-center text-xs leading-normal text-muted-foreground">
                                                         {hasActiveFilter
                                                             ? 'Tidak ada request yang cocok dengan filter saat ini.'
-                                                            : 'Klik “Tambah Feature Request” untuk membuat request pertama.'}
+                                                            : 'Klik “Tambah Request” untuk membuat request pertama.'}
                                                     </p>
                                                     {hasActiveFilter && (
                                                         <Button
