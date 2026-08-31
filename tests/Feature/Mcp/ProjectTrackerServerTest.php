@@ -1,16 +1,22 @@
 <?php
 
+use App\Enums\BriefFeatureStatus;
 use App\Enums\FeatureRequestStatus;
 use App\Enums\IssueStatus;
+use App\Enums\ProjectStatus;
 use App\Mcp\Servers\ProjectTrackerServer;
+use App\Mcp\Tools\CreateBriefFeaturesTool;
 use App\Mcp\Tools\CreateFeatureRequestTool;
 use App\Mcp\Tools\CreateIssueTool;
+use App\Mcp\Tools\ListBriefFeatureProjectsTool;
 use App\Mcp\Tools\ListProjectsTool;
+use App\Models\BriefFeature;
 use App\Models\FeatureRequest;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\SlaConfig;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 beforeEach(function (): void {
     SlaConfig::updateOrCreate(['priority' => 'urgent'], ['target_resolution_hours' => 24]);
@@ -38,6 +44,239 @@ test('the project tracker MCP only lists deployed projects', function (): void {
 
     expect($running->exists)->toBeTrue()
         ->and($maintenance->exists)->toBeTrue();
+});
+
+test('the MCP lists only projects eligible for brief features', function (): void {
+    Project::factory()->planning()->create(['name' => 'Alpha Planning']);
+    Project::factory()->inProgress()->create(['name' => 'Bravo Development']);
+    Project::factory()->deployedRunning()->create(['name' => 'Charlie Running']);
+    Project::factory()->deployedMaintenance()->create(['name' => 'Delta Maintenance']);
+    Project::factory()->onHold()->create(['name' => 'Echo On Hold']);
+    Project::factory()->completedPendingDeployment()->create(['name' => 'Foxtrot Pending Deploy']);
+
+    $response = ProjectTrackerServer::tool(ListBriefFeatureProjectsTool::class);
+
+    $response
+        ->assertOk()
+        ->assertSee('"environment": "testing"')
+        ->assertSee('Alpha Planning')
+        ->assertSee('Bravo Development')
+        ->assertSee('Charlie Running')
+        ->assertSee('Delta Maintenance')
+        ->assertDontSee('Echo On Hold')
+        ->assertDontSee('Foxtrot Pending Deploy');
+});
+
+test('the MCP atomically creates a brief feature batch with supported statuses', function (): void {
+    $project = Project::factory()->inProgress()->create();
+
+    $response = ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => [
+            ['name' => 'Authentication', 'description' => 'Login dan reset password.'],
+            ['name' => 'Role Management', 'status' => 'in_progress'],
+            ['name' => 'Audit Trail', 'status' => 'done'],
+        ],
+        'confirmed' => true,
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertSee('"environment": "testing"')
+        ->assertSee('"created_count": 3')
+        ->assertSee('"existing_count": 0');
+
+    expect(BriefFeature::where('name', 'Authentication')->sole()->status)->toBe(BriefFeatureStatus::Todo)
+        ->and(BriefFeature::where('name', 'Role Management')->sole()->status)->toBe(BriefFeatureStatus::InProgress)
+        ->and(BriefFeature::where('name', 'Audit Trail')->sole()->status)->toBe(BriefFeatureStatus::Done)
+        ->and(BriefFeature::where('name', 'Audit Trail')->sole()->completed_at)->not->toBeNull();
+});
+
+test('the MCP only creates brief features for active project statuses', function (): void {
+    $eligibleStatuses = [
+        ProjectStatus::Planning,
+        ProjectStatus::InProgress,
+        ProjectStatus::DeployedRunning,
+        ProjectStatus::DeployedMaintenance,
+    ];
+
+    foreach ($eligibleStatuses as $index => $status) {
+        $project = Project::factory()->create(['status' => $status]);
+
+        ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+            'project_id' => $project->id,
+            'features' => [['name' => "Eligible Feature {$index}"]],
+            'confirmed' => true,
+        ])->assertOk();
+    }
+
+    expect(BriefFeature::count())->toBe(4);
+
+    foreach ([ProjectStatus::OnHold, ProjectStatus::CompletedPendingDeployment] as $index => $status) {
+        $project = Project::factory()->create(['status' => $status]);
+
+        ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+            'project_id' => $project->id,
+            'features' => [['name' => "Rejected Feature {$index}"]],
+            'confirmed' => true,
+        ])->assertHasErrors(['Project harus aktif']);
+    }
+
+    expect(BriefFeature::count())->toBe(4);
+});
+
+test('existing brief feature names are skipped after case and whitespace normalization', function (): void {
+    $project = Project::factory()->planning()->create();
+    BriefFeature::factory()->create([
+        'project_id' => $project->id,
+        'name' => 'Role Management',
+    ]);
+
+    $response = ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => [
+            ['name' => '  role   management  '],
+            ['name' => 'Authentication'],
+        ],
+        'confirmed' => true,
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertSee('"created_count": 1')
+        ->assertSee('"existing_count": 1');
+
+    expect(BriefFeature::where('project_id', $project->id)->count())->toBe(2);
+});
+
+test('the same normalized brief feature name is allowed in different projects', function (): void {
+    $firstProject = Project::factory()->planning()->create();
+    $secondProject = Project::factory()->inProgress()->create();
+
+    foreach ([$firstProject, $secondProject] as $project) {
+        ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+            'project_id' => $project->id,
+            'features' => [['name' => 'Authentication']],
+            'confirmed' => true,
+        ])->assertOk();
+    }
+
+    expect(BriefFeature::where('name', 'Authentication')->count())->toBe(2);
+});
+
+test('duplicate names inside one brief feature payload reject the entire batch', function (): void {
+    $project = Project::factory()->inProgress()->create();
+
+    $response = ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => [
+            ['name' => 'Audit Trail'],
+            ['name' => ' audit   trail '],
+        ],
+        'confirmed' => true,
+    ]);
+
+    $response->assertHasErrors(['nama Brief Feature duplikat']);
+    expect(BriefFeature::count())->toBe(0);
+});
+
+test('brief feature MCP writes require confirmation and a valid bounded payload', function (): void {
+    $project = Project::factory()->inProgress()->create();
+
+    ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => [['name' => 'Authentication']],
+        'confirmed' => false,
+    ])->assertHasErrors(['Minta persetujuan pengguna']);
+
+    ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => [],
+        'confirmed' => true,
+    ])->assertHasErrors(['features']);
+
+    ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => array_fill(0, 101, ['name' => 'Repeated Input']),
+        'confirmed' => true,
+    ])->assertHasErrors(['features']);
+
+    ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => [
+            ['name' => 'Authentication'],
+            ['name' => '   '],
+        ],
+        'confirmed' => true,
+    ])->assertHasErrors(['features']);
+
+    ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+        'project_id' => $project->id,
+        'features' => [
+            ['name' => 'Authentication'],
+            ['name' => 'Audit Trail', 'status' => 'unknown'],
+        ],
+        'confirmed' => true,
+    ])->assertHasErrors(['features.1.status']);
+
+    expect(BriefFeature::count())->toBe(0);
+});
+
+test('a concurrent brief feature import for the same project is rejected', function (): void {
+    $project = Project::factory()->inProgress()->create();
+    $lock = Cache::lock("project-tracker:brief-features:project:{$project->id}", 10);
+    $lock->get();
+
+    try {
+        $response = ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+            'project_id' => $project->id,
+            'features' => [['name' => 'Authentication']],
+            'confirmed' => true,
+        ]);
+    } finally {
+        $lock->release();
+    }
+
+    $response->assertHasErrors(['sedang diproses']);
+    expect(BriefFeature::count())->toBe(0);
+});
+
+test('a failed brief feature insert rolls back the entire batch', function (): void {
+    $project = Project::factory()->inProgress()->create();
+    $failureState = new class
+    {
+        public bool $enabled = true;
+
+        public int $createdCount = 0;
+    };
+
+    BriefFeature::creating(function () use ($failureState): void {
+        if (! $failureState->enabled) {
+            return;
+        }
+
+        $failureState->createdCount++;
+
+        if ($failureState->createdCount === 2) {
+            throw new RuntimeException('Simulated brief feature failure.');
+        }
+    });
+
+    try {
+        $response = ProjectTrackerServer::tool(CreateBriefFeaturesTool::class, [
+            'project_id' => $project->id,
+            'features' => [
+                ['name' => 'Authentication'],
+                ['name' => 'Audit Trail'],
+            ],
+            'confirmed' => true,
+        ]);
+    } finally {
+        $failureState->enabled = false;
+    }
+
+    $response->assertHasErrors(['Simulated brief feature failure.']);
+    expect(BriefFeature::count())->toBe(0);
 });
 
 test('the project tracker MCP creates a resolved issue from a merged GitHub change', function (): void {
