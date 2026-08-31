@@ -13,6 +13,8 @@
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/fortify": "^1.37",
         "laravel/framework": "^13.17",
+        "laravel/mcp": "^0.9",
+        "laravel/sanctum": "^4.3",
         "laravel/socialite": "^5.29",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
@@ -107,6 +109,9 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
+        "platform": {
+            "php": "8.3.0"
+        },
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true

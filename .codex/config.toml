@@ -1,3 +1,17 @@
 [mcp_servers.laravel-boost]
 command = "php"
 args = ["artisan", "boost:mcp"]
+
+[mcp_servers.project-tracker-local]
+command = "php"
+args = ["artisan", "mcp:start", "project-tracker"]
+default_tools_approval_mode = "writes"
+
+# Configure the deployed endpoint in ~/.codex/config.toml so it is available
+# from every trusted local project. Keep the bearer token in an environment
+# variable, never in this repository:
+#
+# [mcp_servers.project-tracker-production]
+# url = "https://tracker.example.com/mcp/project-tracker"
+# bearer_token_env_var = "PROJECT_TRACKER_MCP_TOKEN"
+# default_tools_approval_mode = "writes"

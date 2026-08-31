@@ -9,8 +9,16 @@ use App\Models\User;
 
 test('authenticated user can view projects list with pagination and search filter', function () {
     $user = User::factory()->admin()->create();
-    Project::factory()->create(['name' => 'POS System', 'created_by' => $user->id]);
-    Project::factory()->create(['name' => 'ERP Inventory', 'created_by' => $user->id]);
+    Project::factory()->create([
+        'name' => 'POS System',
+        'description' => 'Retail sales application.',
+        'created_by' => $user->id,
+    ]);
+    Project::factory()->create([
+        'name' => 'ERP Inventory',
+        'description' => 'Warehouse inventory application.',
+        'created_by' => $user->id,
+    ]);
 
     $response = $this->actingAs($user)
         ->get(route('projects.index', ['search' => 'POS']));

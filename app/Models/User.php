@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property int $id
@@ -32,7 +33,7 @@ use Illuminate\Support\Carbon;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.
@@ -50,12 +51,17 @@ class User extends Authenticatable
 
     /**
      * The projects this user is assigned to.
+     *
+     * @return BelongsToMany<Project, $this>
      */
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class)->withTimestamps();
     }
 
+    /**
+     * @return HasMany<UserIdentity, $this>
+     */
     public function identities(): HasMany
     {
         return $this->hasMany(UserIdentity::class);
