@@ -12,6 +12,13 @@ test('coolify excludes the queue worker from aggregate health checks', function 
         ->not->toContain('healthcheck:');
 });
 
+test('coolify passes the trusted proxy network to the web application', function (): void {
+    $source = File::get(base_path('docker-compose.coolify.yaml'));
+    $app = Str::between($source, "\n  app:\n", "\n  worker:\n");
+
+    expect($app)->toContain('TRUSTED_PROXIES: "${TRUSTED_PROXIES:-172.18.0.0/16}"');
+});
+
 test('production image gives chromium writable runtime directories', function (): void {
     $source = File::get(base_path('Dockerfile'));
 

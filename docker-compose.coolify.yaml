@@ -16,6 +16,7 @@ services:
       APP_KEY: "${APP_KEY:?Set APP_KEY in Coolify}"
       APP_DEBUG: "false"
       APP_URL: https://tracker-sm.atsiriwellforce.com
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES:-172.18.0.0/16}"
       APP_BUSINESS_TIMEZONE: Asia/Jakarta
       APP_LOCALE: id
       APP_FALLBACK_LOCALE: en
