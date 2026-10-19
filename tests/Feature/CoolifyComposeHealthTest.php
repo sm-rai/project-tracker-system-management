@@ -19,6 +19,17 @@ test('coolify passes the trusted proxy network to the web application', function
     expect($app)->toContain('TRUSTED_PROXIES: "${TRUSTED_PROXIES:-172.18.0.0/16}"');
 });
 
+test('the application trusts HTTPS forwarded by configured proxies', function (): void {
+    $middleware = File::get(base_path('bootstrap/app.php'));
+    $proxyConfig = File::get(base_path('config/trustedproxy.php'));
+
+    expect($middleware)
+        ->toContain('$middleware->trustProxies(')
+        ->toContain('Request::HEADER_X_FORWARDED_PROTO');
+
+    expect($proxyConfig)->toContain("'proxies' => env('TRUSTED_PROXIES')");
+});
+
 test('production image gives chromium writable runtime directories', function (): void {
     $source = File::get(base_path('Dockerfile'));
 
