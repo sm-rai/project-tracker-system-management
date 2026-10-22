@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-bookworm AS php-base
+FROM php:8.3.36-fpm-bookworm AS php-base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -22,7 +22,7 @@ RUN apt-get update \
 
 COPY docker/php/production.ini /usr/local/etc/php/conf.d/production.ini
 
-FROM node:22-bookworm-slim AS node-runtime
+FROM node:22.23.4-bookworm-slim AS node-runtime
 
 FROM php-base AS build
 
