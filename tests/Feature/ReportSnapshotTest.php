@@ -63,12 +63,9 @@ test('users can generate a weekly default report snapshot', function (): void {
     expect($snapshot->period_type)->toBe('weekly_default')
         ->and($snapshot->period_start_date->toDateString())->toBe('2026-07-26')
         ->and($snapshot->period_end_date->toDateString())->toBe('2026-08-01')
-        ->and($snapshot->project_breakdown_json['active_total'])->toBe(1)
-        ->and($snapshot->project_breakdown_json['evaluable_total'])->toBe(1)
-        ->and($snapshot->project_breakdown_json['achieved_total'])->toBe(0)
-        ->and((float) $snapshot->project_breakdown_json['projects'][0]['realization_percentage'])->toBe(50.0)
-        ->and($snapshot->project_breakdown_json['projects'][0]['achieved'])->toBe(false)
-        ->and($snapshot->project_breakdown_json['projects'][0]['name'])->toBe('CRM Stabilization');
+        ->and($snapshot->format_version)->toBe(2)
+        ->and($snapshot->project_breakdown_json['activities'])->toHaveCount(4)
+        ->and($snapshot->project_breakdown_json['activities'][0]['title'])->toBe('CRM Stabilization');
 });
 
 test('users can generate a custom range report snapshot', function (): void {
@@ -91,7 +88,7 @@ test('users can generate a custom range report snapshot', function (): void {
         ->and($snapshot->period_end_date->toDateString())->toBe('2026-07-15');
 });
 
-test('report snapshot calculates okr metrics for the selected period', function (): void {
+test('report snapshot stores activity facts without weekly okr metrics', function (): void {
     Carbon::setTestNow('2026-07-30 12:00:00');
 
     $user = User::factory()->create();
@@ -137,26 +134,23 @@ test('report snapshot calculates okr metrics for the selected period', function 
 
     $snapshot = ReportSnapshot::query()->firstOrFail();
 
-    expect($snapshot->project_breakdown_json['active_total'])->toBe(1)
-        ->and($snapshot->project_breakdown_json['evaluable_total'])->toBe(1)
-        ->and($snapshot->project_breakdown_json['achieved_total'])->toBe(1)
-        ->and((float) $snapshot->project_breakdown_json['projects'][0]['realization_percentage'])->toBe(75.0)
-        ->and($snapshot->project_breakdown_json['projects'][0]['achieved'])->toBe(true)
-        ->and((float) $snapshot->okr2_issue_percentage)->toBe(50.0)
-        ->and((float) $snapshot->okr2_feature_request_percentage)->toBe(50.0)
-        ->and($snapshot->issue_breakdown_json['total'])->toBe(2)
-        ->and($snapshot->issue_breakdown_json['on_time'])->toBe(1)
-        ->and($snapshot->feature_request_breakdown_json['total'])->toBe(2)
-        ->and($snapshot->feature_request_breakdown_json['on_time'])->toBe(1);
+    expect($snapshot->format_version)->toBe(2)
+        ->and($snapshot->okr1_avg_percentage)->toBeNull()
+        ->and($snapshot->okr1_project_achievement_percentage)->toBeNull()
+        ->and($snapshot->okr2_issue_percentage)->toBeNull()
+        ->and($snapshot->okr2_feature_request_percentage)->toBeNull()
+        ->and($snapshot->issue_breakdown_json['activities'])->toHaveCount(3)
+        ->and($snapshot->feature_request_breakdown_json['activities'])->toHaveCount(3);
 });
 
-test('report snapshot returns one hundred percent sla metrics when selected period is empty', function (): void {
+test('report snapshot returns empty activities when selected period is empty', function (): void {
     Carbon::setTestNow('2026-07-30 12:00:00');
 
     $user = User::factory()->create();
 
-    Issue::factory()->create(['reported_at' => '2026-07-20 09:00:00']);
-    FeatureRequest::factory()->create(['requested_at' => '2026-07-20 09:00:00']);
+    $project = Project::factory()->create(['created_at' => '2026-07-20 00:00:00']);
+    Issue::factory()->create(['project_id' => $project->id, 'reported_at' => '2026-07-20 09:00:00']);
+    FeatureRequest::factory()->create(['project_id' => $project->id, 'requested_at' => '2026-07-20 09:00:00']);
 
     $this->actingAs($user)
         ->post('/reports', ['period_type' => 'weekly_default'])
@@ -164,20 +158,18 @@ test('report snapshot returns one hundred percent sla metrics when selected peri
 
     $snapshot = ReportSnapshot::query()->firstOrFail();
 
-    expect((float) $snapshot->okr2_issue_percentage)->toBe(100.0)
-        ->and((float) $snapshot->okr2_feature_request_percentage)->toBe(100.0)
-        ->and($snapshot->issue_breakdown_json['total'])->toBe(0)
-        ->and($snapshot->feature_request_breakdown_json['total'])->toBe(0)
-        ->and($snapshot->issue_breakdown_json['empty_label'])->toBe('Tidak ada issue baru pada periode ini.')
-        ->and($snapshot->feature_request_breakdown_json['empty_label'])->toBe('Tidak ada Feature Request baru pada periode ini.');
+    expect($snapshot->okr2_issue_percentage)->toBeNull()
+        ->and($snapshot->okr2_feature_request_percentage)->toBeNull()
+        ->and($snapshot->issue_breakdown_json['activities'])->toBe([])
+        ->and($snapshot->feature_request_breakdown_json['activities'])->toBe([]);
 
     $this->actingAs($user)
         ->get("/reports/{$snapshot->id}")
         ->assertInertia(fn ($page) => $page
-            ->where('report.okr.issue_on_time.empty_label', 'Tidak ada issue baru')
-            ->where('report.okr.feature_request_on_time.empty_label', 'Tidak ada Feature Request baru')
-            ->where('report.breakdowns.issues.empty_label', 'Tidak ada issue baru pada periode ini.')
-            ->where('report.breakdowns.feature_requests.empty_label', 'Tidak ada Feature Request baru pada periode ini.')
+            ->where('report.format_version', 2)
+            ->where('report.activity_summary.total_activities', 0)
+            ->missing('report.okr')
+            ->missing('report.breakdowns')
         );
 });
 
@@ -220,6 +212,7 @@ test('users can preview a saved report snapshot', function (): void {
         ->assertInertia(fn ($page) => $page
             ->component('reports/show')
             ->where('report.id', $snapshot->id)
+            ->where('report.format_version', 1)
             ->where('report.period.label', '27 Jul 2026 - 2 Agu 2026')
             ->where('report.okr.brief_realization.total_projects', 1)
             ->where('report.okr.brief_realization.evaluable_projects', 1)

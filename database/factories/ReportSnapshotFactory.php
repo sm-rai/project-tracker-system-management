@@ -18,6 +18,7 @@ class ReportSnapshotFactory extends Factory
     public function definition(): array
     {
         return [
+            'format_version' => 1,
             'period_start_date' => now()->startOfWeek()->toDateString(),
             'period_end_date' => now()->endOfWeek()->toDateString(),
             'period_type' => ReportSnapshot::PeriodWeeklyDefault,
@@ -52,5 +53,19 @@ class ReportSnapshotFactory extends Factory
             ],
             'generated_at' => now(),
         ];
+    }
+
+    public function activityFormat(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'format_version' => 2,
+            'okr1_avg_percentage' => null,
+            'okr1_project_achievement_percentage' => null,
+            'okr2_issue_percentage' => null,
+            'okr2_feature_request_percentage' => null,
+            'project_breakdown_json' => ['activities' => []],
+            'issue_breakdown_json' => ['activities' => []],
+            'feature_request_breakdown_json' => ['activities' => []],
+        ]);
     }
 }

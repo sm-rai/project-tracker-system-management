@@ -9,13 +9,14 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int $format_version
  * @property Carbon $period_start_date
  * @property Carbon $period_end_date
  * @property string $period_type
- * @property string $okr1_avg_percentage
+ * @property string|null $okr1_avg_percentage
  * @property string|null $okr1_project_achievement_percentage
- * @property string $okr2_issue_percentage
- * @property string $okr2_feature_request_percentage
+ * @property string|null $okr2_issue_percentage
+ * @property string|null $okr2_feature_request_percentage
  * @property array<string, mixed> $project_breakdown_json
  * @property array<string, mixed> $issue_breakdown_json
  * @property array<string, mixed> $feature_request_breakdown_json
@@ -34,11 +35,15 @@ class ReportSnapshot extends Model
     /** @use HasFactory<ReportSnapshotFactory> */
     use HasFactory;
 
+    /** @var array<string, mixed> */
+    protected $attributes = ['format_version' => 1];
+
     /** @var list<string> */
     protected $fillable = [
         'period_start_date',
         'period_end_date',
         'period_type',
+        'format_version',
         'okr1_avg_percentage',
         'okr1_project_achievement_percentage',
         'okr2_issue_percentage',
@@ -57,6 +62,7 @@ class ReportSnapshot extends Model
     protected function casts(): array
     {
         return [
+            'format_version' => 'integer',
             'period_start_date' => 'date',
             'period_end_date' => 'date',
             'okr1_avg_percentage' => 'decimal:2',
