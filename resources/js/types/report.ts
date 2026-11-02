@@ -14,13 +14,53 @@ export interface ReportOkrSummary {
     feature_request_on_time: number;
 }
 
-export interface ReportSummary {
+interface ReportSummaryBase {
     id: number;
     period_type: ReportPeriodType;
     period_label: string;
     generated_at: string;
-    okr: ReportOkrSummary;
     href: string;
+}
+
+export interface ReportLegacySummary extends ReportSummaryBase {
+    format_version: 1;
+    okr: ReportOkrSummary;
+}
+
+export interface ReportActivitySummary {
+    total_activities: number;
+    unique_items: number;
+    groups: {
+        entity_type: ReportActivity['entity_type'];
+        label: string;
+        new_items: number;
+        completed_items: number;
+        total_activities: number;
+        unique_items: number;
+    }[];
+}
+
+export interface ReportActivitySummaryItem extends ReportSummaryBase {
+    format_version: 2;
+    activity_summary: ReportActivitySummary;
+}
+
+export type ReportSummary = ReportLegacySummary | ReportActivitySummaryItem;
+
+export interface ReportActivity {
+    entity_type: 'project' | 'brief_feature' | 'issue' | 'feature_request';
+    entity_id: number;
+    title: string;
+    project_id: number | null;
+    project_name: string | null;
+    activity_type: 'created' | 'completed';
+    activity_label: string;
+    occurred_at: string;
+    status: string;
+    status_label: string;
+    priority: string | null;
+    due_date: string | null;
+    note: string | null;
 }
 
 export interface ReportDefaultPeriod {
@@ -123,7 +163,7 @@ export interface ReportFeatureRequestBreakdown {
     by_priority: ReportCountItem[];
 }
 
-export interface ReportDetail {
+interface ReportDetailBase {
     id: number;
     period: {
         type: ReportPeriodType;
@@ -132,6 +172,18 @@ export interface ReportDetail {
         label: string;
     };
     generated_at: string;
+}
+
+export interface ReportActivityDetail extends ReportDetailBase {
+    format_version: 2;
+    activity_summary: ReportActivitySummary;
+    activities: ReportActivity[];
+}
+
+export type ReportDetail = ReportLegacyDetail | ReportActivityDetail;
+
+export interface ReportLegacyDetail extends ReportDetailBase {
+    format_version: 1;
     okr: {
         brief_realization: ReportProjectOkrSummary & {
             key: 'brief_realization';

@@ -1,9 +1,136 @@
 <?php
 
+use App\Actions\Reports\BuildActivityReportData;
 use App\Actions\Reports\BuildReportExportData;
 use App\Actions\Reports\RenderReportSnapshotExport;
+use App\Models\Project;
 use App\Models\ReportSnapshot;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
+
+function savedActivityExportSnapshot(): ReportSnapshot
+{
+    $project = Project::factory()->create(['name' => 'Nama sumber awal']);
+    $activity = [
+        'entity_type' => 'project', 'entity_id' => $project->id,
+        'title' => str_repeat('Judul panjang ', 20).'<script>alert("title")</script>',
+        'project_id' => $project->id, 'project_name' => 'Project tersimpan <b>RAI</b>',
+        'activity_type' => 'completed', 'activity_label' => 'Development selesai',
+        'occurred_at' => '2026-07-29', 'status' => 'completed_pending_deployment',
+        'status_label' => 'Menunggu deployment', 'priority' => null,
+        'due_date' => '2026-07-30', 'note' => 'Catatan tersimpan <script>alert("note")</script>',
+    ];
+    $snapshot = ReportSnapshot::factory()->activityFormat()->create([
+        'period_start_date' => '2026-07-26', 'period_end_date' => '2026-08-01',
+        'project_breakdown_json' => ['activities' => [
+            $activity,
+            [...$activity, 'activity_type' => 'created', 'activity_label' => 'Project baru', 'occurred_at' => '2026-07-27T23:30:00+00:00', 'note' => null],
+        ]],
+    ]);
+    $project->update(['name' => 'Nama sumber berubah']);
+
+    return $snapshot;
+}
+
+test('activity preview and exports share immutable saved activities without legacy metrics', function (): void {
+    $snapshot = savedActivityExportSnapshot();
+    $expected = app(BuildActivityReportData::class)->handle($snapshot);
+    $this->actingAs(User::factory()->create())->get("/reports/{$snapshot->id}")
+        ->assertInertia(fn (Assert $page) => $page->component('reports/show')
+            ->where('report.format_version', 2)
+            ->where('report.activity_summary', $expected['activity_summary'])
+            ->where('report.activities', $expected['activities'])
+            ->missing('report.okr'));
+
+    $data = app(BuildReportExportData::class)->handle($snapshot);
+    expect($data)->not->toHaveKey('okr')
+        ->and($data['activity_summary'])->toBe($expected['activity_summary'])
+        ->and($data['activities'])->toBe($expected['activities'])
+        ->and($data['context_projects'])->toBe(['Project tersimpan <b>RAI</b>']);
+});
+
+test('activity export templates render counts saved values escaping and date precision', function (string $format): void {
+    $data = app(BuildReportExportData::class)->handle(savedActivityExportSnapshot());
+    $html = view('reports.export.activities-'.$format, ['report' => $data, 'styles' => ''])->render();
+    expect($html)->toContain('Laporan Aktivitas')
+        ->toContain('2 aktivitas')->toContain('1 item unik')
+        ->toContain('Project tersimpan &lt;b&gt;RAI&lt;/b&gt;')
+        ->not->toContain('Nama sumber berubah')
+        ->not->toContain('Ringkasan OKR')->not->toContain('Issue SLA')
+        ->not->toContain('<script>')->not->toContain('Target minimal');
+    if ($format === 'pdf') {
+        expect($html)->toContain(e($data['activities'][0]['title']))
+            ->toContain('Development selesai')->toContain('Project baru')
+            ->toContain('29 Jul 2026')->not->toContain('29 Jul 2026, 00:00')
+            ->toContain('28 Jul 2026, 06:30')
+            ->toContain('30 Jul 2026')->not->toContain('30 Jul 2026, 00:00')
+            ->toContain('Catatan tersimpan &lt;script&gt;')
+            ->toContain('overflow-wrap: anywhere');
+    }
+})->with(['pdf', 'png']);
+
+test('empty activity exports include all four groups and clear empty copy', function (string $format): void {
+    $snapshot = ReportSnapshot::factory()->activityFormat()->create();
+    $data = app(BuildReportExportData::class)->handle($snapshot);
+    $html = view('reports.export.activities-'.$format, ['report' => $data, 'styles' => ''])->render();
+    expect($html)->toContain('0 aktivitas')->toContain('0 item unik')
+        ->toContain('Tidak ada aktivitas pada periode ini.')
+        ->toContain('Brief Feature')->toContain('Feature Request')
+        ->not->toContain('Issue SLA');
+})->with(['pdf', 'png']);
+
+test('activity downloads select activity templates and filenames', function (string $format): void {
+    $snapshot = savedActivityExportSnapshot();
+    $this->mock(RenderReportSnapshotExport::class, function ($mock) use ($format): void {
+        $mock->shouldReceive($format)->once()->andReturnUsing(function (string $html, ?string $path = null) use ($format): ?string {
+            expect($html)->toContain('Laporan Aktivitas')->not->toContain('Ringkasan OKR');
+            if ($format === 'png') {
+                file_put_contents($path, 'png-test');
+
+                return null;
+            }
+
+            return base64_encode('%PDF-test');
+        });
+    });
+    $response = $this->actingAs(User::factory()->create())->get("/reports/{$snapshot->id}/export/{$format}");
+    $response->assertOk()->assertHeaderContains('content-disposition', 'snapshot-aktivitas-26-jul-2026-01-agu-2026.'.$format);
+    if ($format === 'png') {
+        unlink($response->baseResponse->getFile()->getPathname());
+    }
+})->with(['pdf', 'png']);
+
+test('both snapshot formats retain export failure responses and partial png cleanup', function (int $version, string $format): void {
+    $snapshot = $version === 2
+        ? ReportSnapshot::factory()->activityFormat()->create()
+        : ReportSnapshot::factory()->create();
+    $temporaryPath = null;
+    $this->mock(RenderReportSnapshotExport::class, function ($mock) use ($format, &$temporaryPath): void {
+        $mock->shouldReceive($format)->once()->andReturnUsing(function (string $html, ?string $path = null) use (&$temporaryPath): never {
+            if ($path !== null) {
+                $temporaryPath = $path;
+                file_put_contents($path, 'partial-image');
+            }
+
+            throw new RuntimeException('Renderer unavailable');
+        });
+    });
+    $this->actingAs(User::factory()->create())->get("/reports/{$snapshot->id}/export/{$format}")
+        ->assertServiceUnavailable();
+    if ($format === 'png') {
+        expect($temporaryPath)->not->toBeNull()
+            ->and(is_file($temporaryPath))->toBeFalse();
+    }
+})->with([1, 2])->with(['pdf', 'png']);
+
+test('invalid pdf renderer data returns a service unavailable response', function (): void {
+    $snapshot = ReportSnapshot::factory()->activityFormat()->create();
+    $this->mock(RenderReportSnapshotExport::class, function ($mock): void {
+        $mock->shouldReceive('pdf')->once()->andReturn('invalid base64 !');
+    });
+    $this->actingAs(User::factory()->create())->get("/reports/{$snapshot->id}/export/pdf")
+        ->assertServiceUnavailable();
+});
 
 test('guests are redirected when exporting a report snapshot', function (): void {
     $snapshot = ReportSnapshot::factory()->create();

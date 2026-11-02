@@ -8,11 +8,29 @@ use Carbon\CarbonImmutable;
 
 class BuildReportExportData
 {
+    public function __construct(private BuildActivityReportData $buildActivityReportData) {}
+
     /**
      * @return array<string, mixed>
      */
     public function handle(ReportSnapshot $snapshot): array
     {
+        if ($snapshot->format_version === 2) {
+            $data = $this->buildActivityReportData->handle($snapshot);
+
+            return [
+                'format_version' => 2,
+                'snapshot' => [
+                    'id' => $snapshot->id,
+                    'period_label' => $this->formatDateRange($snapshot->period_start_date, $snapshot->period_end_date),
+                    'period_type_label' => $snapshot->period_type === ReportSnapshot::PeriodWeeklyDefault ? 'Minggu berjalan' : 'Rentang tanggal',
+                    'generated_at' => $this->formatDateTime(AppDateTime::inBusinessTimezone($snapshot->generated_at)),
+                ],
+                ...$data,
+                'context_projects' => collect($data['activities'])->pluck('project_name')->filter()->unique()->values()->all(),
+            ];
+        }
+
         $projects = $snapshot->project_breakdown_json;
         $issues = $snapshot->issue_breakdown_json;
         $featureRequests = $snapshot->feature_request_breakdown_json;

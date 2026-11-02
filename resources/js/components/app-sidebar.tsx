@@ -26,6 +26,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { index as featureRequestsIndex } from '@/routes/feature-requests';
+import { index as reportsIndex } from '@/routes/reports';
 import type { User } from '@/types/auth';
 
 const menuItemClassName =
@@ -121,8 +122,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             label: 'Pelaporan',
             items: [
                 {
-                    label: 'Laporan OKR',
-                    href: '/reports',
+                    label: 'Laporan Aktivitas',
+                    href: reportsIndex(),
                     icon: IconFileAnalytics,
                     isActive: (currentUrl) => currentUrl.startsWith('/reports'),
                 },

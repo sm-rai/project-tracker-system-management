@@ -13,6 +13,7 @@ import {
 import type { CSSProperties } from 'react';
 
 import { AppSidebar } from '@/components/app-sidebar';
+import { ReportActivityShow } from '@/components/report-activity-show';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,8 +34,11 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { formatAppDateTime } from '@/lib/datetime';
+import { index as reportsIndex } from '@/routes/reports';
+import { pdf, png } from '@/routes/reports/export';
 import type {
     ReportDetail,
+    ReportLegacyDetail,
     ReportFeatureRequestItem,
     ReportIssueItem,
     ReportOkrMetric,
@@ -448,7 +452,7 @@ function FeatureRequestRows({
     );
 }
 
-export default function ReportShow({ report }: Props) {
+function LegacyReportShow({ report }: { report: ReportLegacyDetail }) {
     const okrMetrics = [
         report.okr.issue_on_time,
         report.okr.feature_request_on_time,
@@ -488,23 +492,19 @@ export default function ReportShow({ report }: Props) {
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button asChild variant="outline">
-                                    <a
-                                        href={`/reports/${report.id}/export/png`}
-                                    >
+                                    <a href={png.url(report.id)}>
                                         <ImageDown className="size-4" />
                                         Export PNG
                                     </a>
                                 </Button>
                                 <Button asChild>
-                                    <a
-                                        href={`/reports/${report.id}/export/pdf`}
-                                    >
+                                    <a href={pdf.url(report.id)}>
                                         <FileDown className="size-4" />
                                         Export PDF
                                     </a>
                                 </Button>
                                 <Button asChild variant="outline">
-                                    <Link href="/reports">
+                                    <Link href={reportsIndex()}>
                                         <ArrowLeft className="size-4" />
                                         Kembali ke Laporan
                                     </Link>
@@ -624,5 +624,13 @@ export default function ReportShow({ report }: Props) {
                 </SidebarInset>
             </SidebarProvider>
         </>
+    );
+}
+
+export default function ReportShow({ report }: Props) {
+    return report.format_version === 2 ? (
+        <ReportActivityShow report={report} />
+    ) : (
+        <LegacyReportShow report={report} />
     );
 }

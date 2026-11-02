@@ -21,7 +21,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Label } from '@/components/ui/label';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
     Select,
     SelectContent,
@@ -30,6 +30,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { show, store } from '@/routes/reports';
 import type {
     ReportDefaultPeriod,
     ReportProjectOkrSummary,
@@ -72,7 +73,7 @@ function projectOkrTone(summary: ReportProjectOkrSummary): string {
 function ReportCard({ report }: { report: ReportSummary }) {
     return (
         <Link
-            href={report.href}
+            href={show(report.id)}
             className="block rounded-lg border bg-card p-4 transition-colors hover:bg-background-soft"
         >
             <div className="flex items-start justify-between gap-4">
@@ -82,6 +83,9 @@ function ReportCard({ report }: { report: ReportSummary }) {
                         <Badge variant="outline">
                             {periodTypeLabels[report.period_type]}
                         </Badge>
+                        {report.format_version === 1 && (
+                            <Badge variant="secondary">Arsip OKR</Badge>
+                        )}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Dibuat {report.generated_at}
@@ -90,30 +94,47 @@ function ReportCard({ report }: { report: ReportSummary }) {
                 <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
             </div>
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                <Badge
-                    variant="outline"
-                    className={projectOkrTone(report.okr.brief_realization)}
-                >
-                    Brief {report.okr.brief_realization.achieved_projects}/
-                    {report.okr.brief_realization.evaluable_projects} target
-                </Badge>
-                <Badge
-                    variant="outline"
-                    className={percentageTone(report.okr.issue_on_time, 80)}
-                >
-                    Issue {report.okr.issue_on_time}%
-                </Badge>
-                <Badge
-                    variant="outline"
-                    className={percentageTone(
-                        report.okr.feature_request_on_time,
-                        90,
-                    )}
-                >
-                    Request {report.okr.feature_request_on_time}%
-                </Badge>
-            </div>
+            {report.format_version === 2 ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                    <Badge variant="secondary">
+                        {report.activity_summary.total_activities} aktivitas
+                    </Badge>
+                    <Badge variant="outline">
+                        {report.activity_summary.unique_items} item unik
+                    </Badge>
+                    {report.activity_summary.groups.map((group) => (
+                        <Badge key={group.entity_type} variant="outline">
+                            {group.label}: {group.new_items} baru ·{' '}
+                            {group.completed_items} selesai
+                        </Badge>
+                    ))}
+                </div>
+            ) : (
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                    <Badge
+                        variant="outline"
+                        className={projectOkrTone(report.okr.brief_realization)}
+                    >
+                        Brief {report.okr.brief_realization.achieved_projects}/
+                        {report.okr.brief_realization.evaluable_projects} target
+                    </Badge>
+                    <Badge
+                        variant="outline"
+                        className={percentageTone(report.okr.issue_on_time, 80)}
+                    >
+                        Issue {report.okr.issue_on_time}%
+                    </Badge>
+                    <Badge
+                        variant="outline"
+                        className={percentageTone(
+                            report.okr.feature_request_on_time,
+                            90,
+                        )}
+                    >
+                        Request {report.okr.feature_request_on_time}%
+                    </Badge>
+                </div>
+            )}
         </Link>
     );
 }
@@ -130,12 +151,12 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        post('/reports');
+        post(store.url());
     };
 
     return (
         <>
-            <Head title="Laporan OKR" />
+            <Head title="Laporan Aktivitas" />
             <SidebarProvider
                 style={
                     {
@@ -146,7 +167,7 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
             >
                 <AppSidebar variant="inset" />
                 <SidebarInset>
-                    <SiteHeader title="Laporan OKR" />
+                    <SiteHeader title="Laporan Aktivitas" />
                     <main className="flex flex-1 flex-col gap-5 p-4 md:p-6">
                         <section className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                             <div>
@@ -158,9 +179,10 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                     Buat laporan dan simpan histori
                                 </h1>
                                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                                    Simpan kondisi OKR pada periode terpilih
-                                    agar dapat ditinjau kembali, dibandingkan
-                                    dengan periode lain, dan diekspor nanti.
+                                    Rekap item baru dan penyelesaian pada
+                                    periode terpilih. Simpan aktivitas untuk
+                                    ditinjau kembali dan diekspor sebagai PDF
+                                    atau PNG.
                                 </p>
                             </div>
                         </section>
@@ -170,20 +192,26 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                 <CardHeader>
                                     <CardTitle>Buat Laporan</CardTitle>
                                     <CardDescription>
-                                        Pilih periode yang ingin direkap. Hasil
-                                        perhitungannya akan disimpan sebagai
-                                        snapshot historis.
+                                        Pilih minggu berjalan (Minggu–Sabtu)
+                                        atau rentang tanggal. Aktivitas hingga
+                                        waktu pembuatan disimpan sebagai
+                                        snapshot.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <form
-                                        className="space-y-5"
+                                        className="flex flex-col gap-5"
                                         onSubmit={submit}
                                     >
-                                        <div className="space-y-2">
-                                            <Label htmlFor="period_type">
+                                        <Field
+                                            className="gap-2"
+                                            data-invalid={Boolean(
+                                                errors.period_type,
+                                            )}
+                                        >
+                                            <FieldLabel htmlFor="period_type">
                                                 Periode
-                                            </Label>
+                                            </FieldLabel>
                                             <Select
                                                 value={data.period_type}
                                                 onValueChange={(value) =>
@@ -193,7 +221,17 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                                     )
                                                 }
                                             >
-                                                <SelectTrigger id="period_type">
+                                                <SelectTrigger
+                                                    id="period_type"
+                                                    aria-invalid={Boolean(
+                                                        errors.period_type,
+                                                    )}
+                                                    aria-describedby={
+                                                        errors.period_type
+                                                            ? 'period_type-error'
+                                                            : undefined
+                                                    }
+                                                >
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -206,11 +244,14 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                                 </SelectContent>
                                             </Select>
                                             {errors.period_type && (
-                                                <p className="text-xs text-danger">
+                                                <p
+                                                    id="period_type-error"
+                                                    className="text-xs text-danger"
+                                                >
                                                     {errors.period_type}
                                                 </p>
                                             )}
-                                        </div>
+                                        </Field>
 
                                         <div className="rounded-lg border bg-background-soft p-4">
                                             <div className="flex items-start gap-3">
@@ -228,10 +269,15 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
 
                                         {isCustomRange && (
                                             <div className="grid gap-4 sm:grid-cols-2">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="period_start_date">
+                                                <Field
+                                                    className="gap-2"
+                                                    data-invalid={Boolean(
+                                                        errors.period_start_date,
+                                                    )}
+                                                >
+                                                    <FieldLabel htmlFor="period_start_date">
                                                         Tanggal Mulai
-                                                    </Label>
+                                                    </FieldLabel>
                                                     <DatePicker
                                                         id="period_start_date"
                                                         aria-label="Tanggal mulai laporan"
@@ -261,11 +307,16 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                                             }
                                                         </p>
                                                     )}
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="period_end_date">
+                                                </Field>
+                                                <Field
+                                                    className="gap-2"
+                                                    data-invalid={Boolean(
+                                                        errors.period_end_date,
+                                                    )}
+                                                >
+                                                    <FieldLabel htmlFor="period_end_date">
                                                         Tanggal Selesai
-                                                    </Label>
+                                                    </FieldLabel>
                                                     <DatePicker
                                                         id="period_end_date"
                                                         aria-label="Tanggal selesai laporan"
@@ -295,7 +346,7 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                                             }
                                                         </p>
                                                     )}
-                                                </div>
+                                                </Field>
                                             </div>
                                         )}
 

@@ -69,6 +69,10 @@ class ReportSnapshotExportController extends Controller
 
     private function renderTemplate(string $viewName, ReportSnapshot $snapshot): string
     {
+        if ($snapshot->format_version === 2) {
+            $viewName = str_replace('reports.export.', 'reports.export.activities-', $viewName);
+        }
+
         $styles = file_get_contents(resource_path('css/report-export.css'));
 
         if ($styles === false) {
@@ -114,7 +118,8 @@ class ReportSnapshotExportController extends Controller
         ];
 
         return sprintf(
-            'snapshot-okr-%d-%s-%d-%02d-%s-%d.%s',
+            'snapshot-%s-%d-%s-%d-%02d-%s-%d.%s',
+            $snapshot->format_version === 2 ? 'aktivitas' : 'okr',
             $start->day,
             $months[$start->month],
             $start->year,
