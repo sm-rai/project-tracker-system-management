@@ -4,10 +4,10 @@
 | | |
 |---|---|
 | **Dokumen** | Product Requirements Document (PRD) |
-| **Versi** | 1.4 (Export PDF lengkap & PNG ringkasan snapshot) |
+| **Versi** | 1.5 (Persentase OKR kuartalan & snapshot aktivitas mingguan) |
 | **Pemilik Produk** | Erwin — System Management, IT Rumah Atsiri Indonesia |
 | **Status** | Draft — siap direview sebelum masuk fase development |
-| **Tanggal** | 26 Juli 2026 |
+| **Tanggal** | 2 November 2026 |
 
 ---
 
@@ -42,8 +42,8 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 - Mencatat semua project (brief & breakdown fitur) secara terstruktur → basis perhitungan OKR 1.
 - Mencatat semua kendala sistem dan request fitur pada sistem existing → basis perhitungan OKR 2.
 - Melacak fase siklus hidup tiap project/sistem secara eksplisit — dari development, deployment, hingga status operasional (running/maintenance).
-- Menghitung otomatis persentase capaian kedua OKR, termasuk tren dari minggu ke minggu.
-- Menghasilkan laporan mingguan yang bisa diexport dalam format **PDF** (laporan lengkap) dan **PNG** (ringkasan snapshot utuh untuk share cepat), dengan fleksibilitas rentang tanggal.
+- Menghitung otomatis persentase capaian kedua OKR untuk kuartal kalender berjalan, dengan progres brief project yang tetap kumulatif.
+- Menghasilkan laporan aktivitas mingguan yang bisa diexport dalam format **PDF** (rincian lengkap) dan **PNG** (ringkasan aktivitas untuk share cepat), dengan fleksibilitas rentang tanggal.
 
 ---
 
@@ -66,7 +66,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 - CRUD Feature Request — hanya untuk Project/Sistem yang sudah berstatus deployed
 - Konfigurasi SLA per prioritas (Urgent/Normal/Low)
 - Dashboard ringkasan real-time
-- Generate & export laporan mingguan (PDF lengkap + PNG ringkasan snapshot utuh), dengan opsi rentang tanggal custom
+- Generate manual & export laporan aktivitas mingguan (PDF lengkap + PNG ringkasan aktivitas), dengan opsi rentang tanggal custom
 - Autentikasi sederhana (single user, role-ready)
 
 ### 5.2 Out of Scope (MVP) — kandidat fase berikutnya
@@ -89,7 +89,7 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 | **Database** | MySQL — satu database untuk seluruh entity, tidak perlu pemisahan schema mengingat skala aplikasi yang kecil dan single-purpose |
 | **Hosting** | Infra existing kamu (VPS via Coolify) |
 | **PDF generation** | Rekomendasi: **Spatie Browsershot** (render Blade/HTML view via headless Chrome ke PDF) — lebih presisi untuk chart dibanding DomPDF yang terbatas untuk CSS/JS modern |
-| **PNG snapshot export** | Screenshot ringkasan snapshot utuh via Browsershot (server-side), berisi ringkasan OKR, statistik, realisasi project, dan status Issue/Feature Request |
+| **PNG snapshot export** | Ringkasan jumlah aktivitas per jenis dan project terkait via Browsershot (server-side); snapshot OKR lama mempertahankan tampilan historisnya |
 | **Auth** | Laravel native auth (session-based) — cukup login email + password, tanpa alur invitation kompleks karena skala user kecil |
 
 > **Catatan:** pattern Repository + Service Layer bisa tetap dipakai untuk menjaga konsistensi coding style, sesuai preferensi arsitektur yang biasa kamu pakai.
@@ -193,26 +193,28 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 | is_on_time | boolean | computed: `fulfilled_at <= due_date` |
 | created_at / updated_at | timestamp | |
 
-### 7.7 `report_snapshots` (histori untuk tren & analisis)
+### 7.7 `report_snapshots` (histori aktivitas dan kompatibilitas laporan lama)
 | Field | Tipe | Keterangan |
 |---|---|---|
 | id | bigint | PK |
 | period_start_date | date | tanggal mulai periode (default Minggu) |
 | period_end_date | date | tanggal akhir periode (default Sabtu, total 7 hari) |
 | period_type | enum | `weekly_default` (laporan mingguan standar, 7 hari) atau `custom_range` (analisis ad-hoc rentang tanggal bebas) |
-| okr1_project_achievement_percentage | decimal nullable | persentase project aktif yang mencapai target OKR 1 sebesar 75%; ringkasan tambahan, bukan pengganti penilaian per project |
-| okr2_issue_percentage | decimal | % kendala on-time pada periode tsb |
-| okr2_feature_request_percentage | decimal | % request fitur on-time pada periode tsb |
-| project_breakdown_json | json | snapshot detail per project saat itu |
-| issue_breakdown_json | json | snapshot detail kendala saat itu (termasuk breakdown root cause) |
-| feature_request_breakdown_json | json | snapshot detail request fitur saat itu |
+| format_version | integer | `1` untuk snapshot OKR lama; `2` untuk snapshot aktivitas baru |
+| okr1_avg_percentage | decimal nullable | kompatibilitas snapshot lama; `null` pada snapshot aktivitas baru |
+| okr1_project_achievement_percentage | decimal nullable | ringkasan OKR project pada snapshot lama; `null` pada snapshot aktivitas baru |
+| okr2_issue_percentage | decimal nullable | persentase Issue pada snapshot lama; `null` pada snapshot aktivitas baru |
+| okr2_feature_request_percentage | decimal nullable | persentase Feature Request pada snapshot lama; `null` pada snapshot aktivitas baru |
+| project_breakdown_json | json | aktivitas project dan brief feature pada versi 2; detail project historis pada versi 1 |
+| issue_breakdown_json | json | aktivitas laporan dan penyelesaian Issue pada versi 2; detail historis pada versi 1 |
+| feature_request_breakdown_json | json | aktivitas permintaan dan pemenuhan fitur pada versi 2; detail historis pada versi 1 |
 | pdf_file_path | string | nullable, lokasi file PDF hasil generate |
 | png_file_paths | json (array) | nullable, kompatibilitas histori; export PNG MVP berupa satu ringkasan snapshot utuh dan tidak disimpan sebagai file permanen |
 | generated_at | timestamp | |
 
-> Snapshot disimpan permanen tiap kali laporan/analisis digenerate, agar tren historis tidak berubah meskipun data mentah di tabel lain kemudian diedit.
+> Snapshot disimpan permanen tiap kali laporan digenerate. Preview dan export menggunakan data tersimpan sehingga isi laporan tidak berubah meskipun data operasional kemudian diedit.
 
-> Catatan kompatibilitas: snapshot lama dapat tetap memiliki kolom `okr1_avg_percentage`, tetapi snapshot baru menggunakan `okr1_project_achievement_percentage` dan detail `project_breakdown_json` sebagai sumber penilaian OKR 1 per project.
+> Snapshot versi 1 mempertahankan nilai dan tampilan OKR aslinya. Snapshot versi 2 hanya berisi aktivitas dan tidak menghitung persentase OKR mingguan. Rincian aturan tersedia pada `docs/superpowers/specs/2026-11-02-quarterly-okr-weekly-activities-design.md`.
 
 ---
 
@@ -222,8 +224,9 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 - Setiap project yang masih berada dalam fase development memiliki OKR 1 masing-masing.
 - Status project yang masuk penilaian: `planning`, `in_progress`, `on_hold`, dan `completed_pending_deployment`.
 - Perhitungan setiap project: `(fitur done / total fitur) × 100`.
+- Penilaian mengikuti kuartal kalender berjalan (Q1 Jan–Mar, Q2 Apr–Jun, Q3 Jul–Sep, Q4 Okt–Des). Project development lintas kuartal tetap dinilai setiap kuartal dengan progres kumulatif seluruh brief feature; progres tidak direset saat kuartal berganti.
 - Project dinyatakan mencapai OKR 1 apabila realisasinya minimal **75%**.
-- Dashboard dan laporan wajib menampilkan hasil per project, bukan rata-rata persentase lintas project.
+- Dashboard menampilkan hasil per project, bukan rata-rata persentase lintas project. Snapshot aktivitas baru tidak menampilkan persentase OKR.
 - Project yang belum memiliki brief feature berstatus **belum dapat dinilai** dan tidak dimasukkan ke denominator project yang dapat dinilai. Kondisi ini tetap ditampilkan sebagai kelengkapan data yang perlu ditindaklanjuti.
 - Ringkasan tambahan boleh menampilkan jumlah project yang mencapai target dibandingkan jumlah project yang dapat dinilai, tetapi tidak menjadi pengganti nilai OKR per project.
 - Begitu project berstatus `deployed_running` atau `deployed_maintenance`, project tersebut dianggap **100% selesai** dan otomatis keluar dari radar OKR 1 (tetap tercatat untuk histori), sekaligus otomatis menjadi eligible untuk menerima pencatatan Issue/Feature Request di OKR 2 — tidak ada langkah linking manual, karena keduanya adalah entitas yang sama.
@@ -231,10 +234,12 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
 ### 8.2 OKR 2 — Kendala & Request Fitur
 - `due_date` = tanggal lapor + jumlah hari SLA sesuai prioritas (kalender hari biasa, bukan hari kerja — lihat catatan di §11).
 - `is_on_time = true` jika diselesaikan (`resolved_at`/`fulfilled_at`) sebelum atau tepat `due_date`.
-- % periode = `(jumlah item on_time / total item pada periode) × 100`.
-- **Jika dalam satu periode tidak ada Issue/Feature Request baru sama sekali → otomatis dihitung 100%** untuk metrik terkait pada periode tersebut.
+- % kuartal = `(jumlah item selesai tepat waktu / total item pada kuartal) × 100`, dengan target Issue 80% dan Feature Request 90%.
+- Kelompok kuartal ditentukan dari `reported_at` untuk Issue dan `requested_at` untuk Feature Request, sejak awal kuartal sampai waktu perhitungan. Item terbuka tetap masuk denominator; numerator memerlukan status selesai, `is_on_time = true`, dan tanggal selesai yang tidak berada di masa depan.
+- Penyelesaian lintas kuartal tetap terkait kuartal laporan/permintaan asal. Aktivitas penyelesaiannya masuk snapshot berdasarkan tanggal penyelesaian.
+- **Jika dalam kuartal tidak ada Issue/Feature Request baru sama sekali → otomatis dihitung 100%** untuk metrik terkait, dengan keterangan bahwa belum ada item pada kuartal tersebut.
 - Status `deployed_maintenance` pada `projects` bersifat informatif — menunjukkan kondisi sistem saat ini, terpisah dari pencatatan Issue individual (maintenance terjadwal tidak otomatis membuat Issue baru).
-- Kategori `root_cause_category` (system_error vs non_system) ditampilkan sebagai breakdown tambahan di laporan, murni untuk insight — tidak mengubah rumus persentase utama.
+- Kategori `root_cause_category` (system_error vs non_system) tetap menjadi informasi tambahan pada Issue dan breakdown laporan lama, murni untuk insight — tidak mengubah rumus persentase utama.
 
 ---
 
@@ -267,15 +272,17 @@ Tanpa sistem pencatatan terstruktur, perhitungan persentase ini dilakukan manual
   - Realisasi OKR 1 per project aktif dan jumlah project yang mencapai target
   - Jumlah sistem yang sedang `deployed_maintenance`
   - Jumlah Issue & Feature Request open, termasuk yang overdue
-  - % on-time OKR 2 berjalan (periode saat ini, live)
+  - % on-time OKR 2 kuartal berjalan (live), beserta identitas kuartal dan tahun
 
 ### 9.6 Generate & Export Laporan
-- **Laporan Mingguan Standar:** periode default 7 hari kalender (Minggu–Sabtu), untuk kebutuhan rutin ke HoD.
-- **Analisis Rentang Custom:** user bisa memilih rentang tanggal bebas (tidak harus 7 hari/kelipatan minggu) untuk kebutuhan visualisasi/analisis ad-hoc yang berbeda dari laporan mingguan standar.
+- **Laporan Aktivitas Mingguan:** dibuat manual dengan periode default 7 hari kalender (Minggu–Sabtu), untuk kebutuhan rutin ke HoD. Tidak ada pembuatan otomatis terjadwal.
+- **Rentang Custom:** user bisa memilih rentang tanggal bebas, termasuk minggu sebelumnya, untuk merekap aktivitas pada periode tersebut.
+- Isi laporan baru berupa aktivitas pencatatan dan penyelesaian project, brief feature, Issue, dan Feature Request; penyelesaian item yang berasal dari minggu sebelumnya tetap disertakan. Perubahan biasa tidak dianggap sebagai penyelesaian.
+- Aktivitas baru dan selesai dihitung terpisah; jumlah aktivitas dan jumlah item unik dibedakan. Snapshot hanya memakai kejadian yang sudah tercatat sampai waktu pembuatannya, tanpa merekonstruksi audit log perubahan status yang tidak tersimpan.
 - Preview laporan sebelum export.
-- Export **PDF** (laporan lengkap): ringkasan OKR 1 & OKR 2, chart tren antar-periode, chart realisasi vs target, breakdown root cause, narasi otomatis (misal: "Minggu ini X kendala dilaporkan, Y% selesai tepat waktu").
-- Export **PNG** ringkasan snapshot utuh untuk kebutuhan share cepat (misal ke WhatsApp/slide HoD).
-- Setiap kali generate, tersimpan sebagai snapshot histori (`report_snapshots`), ditandai `period_type` sesuai jenisnya.
+- Export **PDF** memuat ringkasan dan rincian aktivitas tersimpan, tanpa kartu persentase OKR atau penilaian target OKR.
+- Export **PNG** memuat ringkasan jumlah aktivitas per jenis dan daftar project terkait untuk kebutuhan share cepat.
+- Setiap kali generate, tersimpan sebagai snapshot histori baru (`report_snapshots`), ditandai `period_type` dan `format_version`. Snapshot OKR lama tetap dapat dibuka dan diexport sesuai data aslinya.
 
 ### 9.7 Autentikasi
 - Login sederhana (email + password).
@@ -313,9 +320,9 @@ Beberapa keputusan berikut diambil sebagai asumsi masuk akal berdasarkan brainst
 - [ ] CRUD Issue & Feature Request berjalan, due date & status on-time terhitung otomatis dari SLA
 - [ ] Validasi berfungsi: dropdown Issue/Feature Request hanya menampilkan project/sistem berstatus `deployed_running`/`deployed_maintenance`
 - [ ] Halaman konfigurasi SLA berfungsi
-- [ ] Dashboard menampilkan ringkasan real-time yang akurat
-- [ ] Laporan mingguan standar (7 hari) maupun analisis rentang custom bisa digenerate, dengan snapshot tersimpan
-- [ ] Export PDF lengkap dan PNG ringkasan snapshot utuh berhasil dan layak dikirim ke HoD tanpa editing manual tambahan
+- [ ] Dashboard menampilkan persentase OKR kuartal berjalan serta kondisi operasional real-time yang akurat
+- [ ] Laporan aktivitas mingguan standar (Minggu–Sabtu) maupun rentang custom bisa dibuat manual, dengan snapshot tersimpan dan laporan OKR lama tetap terbaca
+- [ ] Export PDF rincian aktivitas dan PNG ringkasan aktivitas berhasil dan layak dikirim ke HoD tanpa editing manual tambahan; export snapshot OKR lama tetap tersedia
 - [ ] Login berfungsi dengan aman (single user)
 
 ---

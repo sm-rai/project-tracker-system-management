@@ -1,10 +1,10 @@
 # Desain: Persentase OKR Kuartalan dan Snapshot Aktivitas Mingguan
 
-|             |                                                           |
-| ----------- | --------------------------------------------------------- |
-| **Tanggal** | 2 November 2026                                           |
-| **Status**  | Rancangan disetujui; menunggu review spesifikasi tertulis |
-| **Acuan**   | `docs/PRD.md` bagian 7.7, 8, 9.5, dan 9.6                 |
+|             |                                                       |
+| ----------- | ----------------------------------------------------- |
+| **Tanggal** | 2 November 2026                                       |
+| **Status**  | Diimplementasikan lokal; pengujian dan review selesai |
+| **Acuan**   | `docs/PRD.md` bagian 7.7, 8, 9.5, dan 9.6             |
 
 ## 1. Tujuan dan keputusan pengguna
 
@@ -233,5 +233,26 @@ laporan lama, dan contoh export. Tidak menambah dependensi untuk perubahan ini.
 Pekerjaan ini berfokus pada dashboard kuartal berjalan dan snapshot aktivitas
 manual. Pemilih kuartal historis, penguncian hasil OKR akhir kuartal, audit log
 seluruh perubahan status, target fitur terpisah per kuartal, dan pembuatan
-snapshot otomatis tidak termasuk. Tidak ada push atau deployment dalam tahap
-penulisan desain ini.
+snapshot otomatis tidak termasuk. Pekerjaan ini tidak mencakup push atau deployment.
+
+### Hasil implementasi lokal
+
+- Implementasi dashboard, penyimpanan aktivitas, dan presentasi/export berada
+  pada commit `44e2433`, `58e0ccb`, dan `752a564`.
+- Seluruh suite aplikasi lulus: **232 tes / 1.461 assertions** pada source
+  `752a564`. Cakupan dashboard lulus 20 tes / 290 assertions; cakupan laporan
+  terintegrasi lulus 45 tes / 330 assertions.
+- Pemeriksaan TypeScript, ESLint/Prettier pada frontend terkait, Pint, sintaks
+  PHP, build frontend, dan pemeriksaan diff lulus. Review tiap tahap, review
+  seluruh perubahan, dan review tampilan tidak menyisakan temuan.
+- Migration tambahan diterapkan pada MySQL lokal yang telah diverifikasi.
+  Sidik isi snapshot lama ID 1 sama persis sebelum dan sesudah migration;
+  format historis dan nilai OKR-nya dipertahankan.
+- Pembuatan manual melalui browser menghasilkan snapshot aktivitas ID 2 untuk
+  1–7 November 2026, dengan seluruh kolom persentase OKR bernilai `null`.
+- Dashboard dan laporan diperiksa pada desktop serta viewport ponsel 390 px.
+  Data uji berisi delapan aktivitas dari empat item unik memakai SQLite dan
+  server lokal terpisah, tanpa memasukkan contoh ke database MySQL aplikasi.
+- Unduhan PDF/PNG lama dan baru berhasil. PDF aktivitas dengan teks panjang
+  diperiksa pada dua halaman, termasuk pengulangan header tabel dan tanggal
+  penyelesaian project tanpa jam rekaan.

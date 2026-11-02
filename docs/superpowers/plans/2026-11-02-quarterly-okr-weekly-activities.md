@@ -34,7 +34,7 @@
 
 **Interfaces:** Preserve dashboard shape, adding `period.quarter: number` and `period.year: number`. `period.start/end` describe the full quarter, `period.label` is `Q3 2026 · 1 Jul 2026 - 30 Sep 2026`; queries end at captured now, not quarter end. Operational totals remain unbounded.
 
-- [ ] Update existing weekly metadata/cohort tests to the quarter contract. Add quarter/year rollover datasets (local midnight), same-quarter older items, previous-quarter items, future reported/requested/completion dates, empty cohort and cumulative project cases. Example expected observable contract:
+- [x] Update existing weekly metadata/cohort tests to the quarter contract. Add quarter/year rollover datasets (local midnight), same-quarter older items, previous-quarter items, future reported/requested/completion dates, empty cohort and cumulative project cases. Example expected observable contract:
 
 ```php
 $this->actingAs(User::factory()->create())->get('/dashboard')
@@ -46,10 +46,10 @@ $this->actingAs(User::factory()->create())->get('/dashboard')
     );
 ```
 
-- [ ] Run `php artisan test --compact tests/Feature/DashboardTest.php` and confirm failures specifically reflect the missing quarterly behavior.
-- [ ] Capture business now once. Set boundaries using `startOfQuarter`/`endOfQuarter`, with the query upper bound equal to now. Count on-time items only when status is complete, `is_on_time` true and completion time is no later than now. Retain per-project cumulative feature progress and current active lifecycle membership. Exclude source records/features with creation or completion timestamps after now if they affect assessment.
-- [ ] Update dashboard copy from week to quarter, metadata type, and labels. Preserve layout/design and existing thresholds.
-- [ ] Run focused tests, TypeScript check, touched-file frontend formatting/lint and Pint. Self-review and commit only Task 1 files with `feat: calculate dashboard OKRs by quarter`.
+- [x] Run `php artisan test --compact tests/Feature/DashboardTest.php` and confirm failures specifically reflect the missing quarterly behavior.
+- [x] Capture business now once. Set boundaries using `startOfQuarter`/`endOfQuarter`, with the query upper bound equal to now. Count on-time items only when status is complete, `is_on_time` true and completion time is no later than now. Retain per-project cumulative feature progress and current active lifecycle membership. Exclude source records/features with creation or completion timestamps after now if they affect assessment.
+- [x] Update dashboard copy from week to quarter, metadata type, and labels. Preserve layout/design and existing thresholds.
+- [x] Run focused tests, TypeScript check, touched-file frontend formatting/lint and Pint. Self-review and commit only Task 1 files with `feat: calculate dashboard OKRs by quarter`.
 
 ## Task 2: Versioned activity snapshots and backend API
 
@@ -102,13 +102,13 @@ V1 summary/detail keep existing fields and add `format_version: 1`.
 V2 summary includes existing identity/period labels/generated_at/href, `format_version: 2`, `activity_summary`, and no `okr`.
 V2 detail includes existing `id`, `period`, `generated_at`, `format_version: 2`, `activity_summary`, `activities`, and no `okr` or legacy metric breakdowns.
 
-- [ ] Write integration tests for new snapshot version/null percentage storage, current-week boundaries, custom range, no future events, old-item completion, project/brief creation and completion, Issue without a project, correct distinct counts, reopened items, immutable saved data, empty snapshots, and old snapshot metadata compatibility. Rewrite existing generation assertions for the new contract without discarding their validation/authorization coverage.
-- [ ] Run the two report test files and capture expected red failures.
-- [ ] Verify actual application schema through Boost (already confirmed report table exists). Migration: existing/default format 1, new writes explicitly 2, retain all legacy values. Change all four legacy percentages to nullable/default null. Rollback must refuse when activity-format rows exist rather than reinterpret their missing percentages as legacy OKRs; when no V2 rows exist, restore prior defaults/nullability and drop version.
-- [ ] Implement the collector using bounded eager-loaded queries per entity. Events: project `created_at` / `actual_end_date`; brief `created_at` / `completed_at`; Issue `reported_at` / `resolved_at`; request `requested_at` / `fulfilled_at`. Completion requires matching completed status. Project completion means development finished (pending deployment or deployed), not actual deployment. Clamp the upper timestamp to generation time; date-only comparison uses local dates. Empty future ranges yield no activities. Never infer completion from last edit time.
-- [ ] Implement presenter from stored JSON only. Keep distinct count keys entity-qualified; include context project names without counting context as activity. Generation captures now once, stores all three JSON groups, four null percentage values and explicit version 2 atomically.
-- [ ] Branch report controller summary/detail using version; keep old presentation behavior for old rows. Keep manual weekly/default and custom validation flows, never schedule generation. Legacy factory remains version 1 by default; optionally add a clear activity-format factory state for new export tests.
-- [ ] Run both report test files plus existing export tests (legacy export remains valid), Pint and PHP syntax checks; self-review and commit owned backend files with `feat: store manual activity report snapshots`.
+- [x] Write integration tests for new snapshot version/null percentage storage, current-week boundaries, custom range, no future events, old-item completion, project/brief creation and completion, Issue without a project, correct distinct counts, reopened items, immutable saved data, empty snapshots, and old snapshot metadata compatibility. Rewrite existing generation assertions for the new contract without discarding their validation/authorization coverage.
+- [x] Run the two report test files and capture expected red failures.
+- [x] Verify actual application schema through Boost (already confirmed report table exists). Migration: existing/default format 1, new writes explicitly 2, retain all legacy values. Change all four legacy percentages to nullable/default null. Rollback must refuse when activity-format rows exist rather than reinterpret their missing percentages as legacy OKRs; when no V2 rows exist, restore prior defaults/nullability and drop version.
+- [x] Implement the collector using bounded eager-loaded queries per entity. Events: project `created_at` / `actual_end_date`; brief `created_at` / `completed_at`; Issue `reported_at` / `resolved_at`; request `requested_at` / `fulfilled_at`. Completion requires matching completed status. Project completion means development finished (pending deployment or deployed), not actual deployment. Clamp the upper timestamp to generation time; date-only comparison uses local dates. Empty future ranges yield no activities. Never infer completion from last edit time.
+- [x] Implement presenter from stored JSON only. Keep distinct count keys entity-qualified; include context project names without counting context as activity. Generation captures now once, stores all three JSON groups, four null percentage values and explicit version 2 atomically.
+- [x] Branch report controller summary/detail using version; keep old presentation behavior for old rows. Keep manual weekly/default and custom validation flows, never schedule generation. Legacy factory remains version 1 by default; optionally add a clear activity-format factory state for new export tests.
+- [x] Run both report test files plus existing export tests (legacy export remains valid), Pint and PHP syntax checks; self-review and commit owned backend files with `feat: store manual activity report snapshots`.
 
 ## Task 3: Activity report UI and exports, preserving legacy presentation
 
@@ -122,19 +122,19 @@ V2 detail includes existing `id`, `period`, `generated_at`, `format_version: 2`,
 
 **Interfaces:** Consume Task 2's exact versioned API. Preserve existing legacy TS interfaces as the V1 branch of discriminated unions. `BuildReportExportData` V2 returns the same `activity_summary` and `activities` from `BuildActivityReportData`, existing snapshot metadata, unique context project names, and no `okr`. V2 filename prefix is `snapshot-aktivitas`; V1 stays `snapshot-okr`.
 
-- [ ] Add failing tests proving V2 preview payload and both HTML export templates contain saved activity values, no OKR percentage UI, version-specific filenames, empty output, long titles/multiple rows, and independence from later source edits. Maintain existing V1 export tests and errors/temporary-file cleanup coverage.
-- [ ] Run the focused export/activity tests and capture expected failures for missing V2 export support.
-- [ ] Use Impeccable (Operate mode, preserve existing Terracotta/Warm Stone/Plus Jakarta identity), shadcn, Tailwind and Wayfinder skills. Read existing UI components before editing. Reuse Card/Table/Badge/Field/Select composition. Update navigation and creation copy to `Laporan Aktivitas`; history clearly identifies old OKR snapshots without relabeling their saved contents. Preserve all existing manual date controls and errors.
-- [ ] Add discriminated unions and version-safe rendering: old reports use their current OKR detail; new detail displays new/completed counts per entity, distinct item/event totals, timestamps, context project, status and optional notes. Date-only completion must display without a fabricated time or UTC date shift. Mobile tables scroll horizontally, long titles wrap, empty states remain clear. Use Wayfinder report store/show/export functions rather than introducing hardcoded routes.
-- [ ] Branch export builder/controller by version; do not change existing V1 views. New PDF contains detailed saved activities; PNG contains activity counts and context project names. Use existing stylesheet for consistent layout and escape all user content. Both use versioned saved data only.
-- [ ] Run focused tests, touched-file ESLint/Prettier, `npm run types:check`, `npm run build`, Pint and diff checks. Self-review and commit owned files with `feat: present and export weekly activities`.
+- [x] Add failing tests proving V2 preview payload and both HTML export templates contain saved activity values, no OKR percentage UI, version-specific filenames, empty output, long titles/multiple rows, and independence from later source edits. Maintain existing V1 export tests and errors/temporary-file cleanup coverage.
+- [x] Run the focused export/activity tests and capture expected failures for missing V2 export support.
+- [x] Use Impeccable (Operate mode, preserve existing Terracotta/Warm Stone/Plus Jakarta identity), shadcn, Tailwind and Wayfinder skills. Read existing UI components before editing. Reuse Card/Table/Badge/Field/Select composition. Update navigation and creation copy to `Laporan Aktivitas`; history clearly identifies old OKR snapshots without relabeling their saved contents. Preserve all existing manual date controls and errors.
+- [x] Add discriminated unions and version-safe rendering: old reports use their current OKR detail; new detail displays new/completed counts per entity, distinct item/event totals, timestamps, context project, status and optional notes. Date-only completion must display without a fabricated time or UTC date shift. Mobile tables scroll horizontally, long titles wrap, empty states remain clear. Use Wayfinder report store/show/export functions rather than introducing hardcoded routes.
+- [x] Branch export builder/controller by version; do not change existing V1 views. New PDF contains detailed saved activities; PNG contains activity counts and context project names. Use existing stylesheet for consistent layout and escape all user content. Both use versioned saved data only.
+- [x] Run focused tests, touched-file ESLint/Prettier, `npm run types:check`, `npm run build`, Pint and diff checks. Self-review and commit owned files with `feat: present and export weekly activities`.
 
 ## Task 4: Integration verification and delivery
 
 **Files:** Mark this plan's checklist and the approved specification's status accurately. Update relevant existing PRD passages only to reflect the approved quarterly/activity separation; do not create unrelated documents.
 
-- [ ] Review the whole branch against each specification acceptance criterion, resolving all material findings with focused regression tests.
-- [ ] Verify local DB identity read-only, inspect pending migration SQL, then run only the new migration on the local application database. Do not migrate production or reset databases. Verify version/nullability and preservation of existing snapshot rows afterward.
-- [ ] Run affected Dashboard/ReportSnapshot/ReportActivity/ReportSnapshotExport tests once on integrated code. Run full suite only when wider shared schema/presentation changes justify it. Run frontend types, touched-file lint/format, build, Pint and `git diff --check`.
-- [ ] Inspect dashboard and manual report screens at desktop/mobile widths and render representative legacy and activity export layouts with the available browser/Chromium tooling. Use synthetic temporary data only when clearly isolated from the user's normal database.
-- [ ] Commit documentation completion updates. Confirm branch and clean working tree. Report observable behavior, tests and any real verification limits in Indonesian; no push/deployment.
+- [x] Review the whole branch against each specification acceptance criterion, resolving all material findings with focused regression tests.
+- [x] Verify local DB identity read-only, inspect pending migration SQL, then run only the new migration on the local application database. Do not migrate production or reset databases. Verify version/nullability and preservation of existing snapshot rows afterward.
+- [x] Run affected Dashboard/ReportSnapshot/ReportActivity/ReportSnapshotExport tests once on integrated code. Run full suite only when wider shared schema/presentation changes justify it. Run frontend types, touched-file lint/format, build, Pint and `git diff --check`.
+- [x] Inspect dashboard and manual report screens at desktop/mobile widths and render representative legacy and activity export layouts with the available browser/Chromium tooling. Use synthetic temporary data only when clearly isolated from the user's normal database.
+- [x] Commit documentation completion updates. Confirm branch and clean working tree. Report observable behavior, tests and any real verification limits in Indonesian; no push/deployment.
