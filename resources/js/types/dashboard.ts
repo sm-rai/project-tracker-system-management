@@ -1,6 +1,8 @@
 export interface DashboardPeriod {
     start: string;
     end: string;
+    quarter: number;
+    year: number;
     label: string;
     generated_at: string;
 }

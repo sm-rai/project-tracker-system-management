@@ -427,7 +427,7 @@ export default function Dashboard({ dashboard }: Props) {
                             <div className="max-w-3xl">
                                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                     <CalendarDays className="size-4" />
-                                    <span>Minggu {dashboard.period.label}</span>
+                                    <span>{dashboard.period.label}</span>
                                     <span className="hidden md:inline">-</span>
                                     <span>
                                         Terakhir dibuka{' '}
@@ -438,9 +438,10 @@ export default function Dashboard({ dashboard }: Props) {
                                     Ringkasan OKR dan Operasional
                                 </h1>
                                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                                    Metrik OKR mengikuti periode minggu ini,
-                                    sedangkan status Issue, Feature Request, dan
-                                    sistem menunjukkan kondisi saat ini.
+                                    Metrik OKR mengikuti kuartal berjalan dengan
+                                    progres project kumulatif, sedangkan status
+                                    Issue, Feature Request, dan sistem
+                                    menunjukkan kondisi saat ini.
                                 </p>
                             </div>
                             <div className="flex flex-wrap gap-2">

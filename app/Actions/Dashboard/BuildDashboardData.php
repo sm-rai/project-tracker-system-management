@@ -11,7 +11,6 @@ use App\Models\Issue;
 use App\Models\Project;
 use App\Support\AppDateTime;
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterface;
 
 class BuildDashboardData
 {
@@ -19,34 +18,36 @@ class BuildDashboardData
     public function handle(): array
     {
         $now = AppDateTime::nowInBusinessTimezone();
-        $periodStart = $now->startOfWeek(CarbonInterface::SUNDAY)->startOfDay();
-        $periodEnd = $now->endOfWeek(CarbonInterface::SATURDAY)->endOfDay();
+        $periodStart = $now->startOfQuarter();
+        $periodEnd = $now->endOfQuarter();
         $periodStartUtc = $periodStart->utc();
-        $periodEndUtc = $periodEnd->utc();
+        $nowUtc = $now->utc();
 
         return [
             'period' => [
                 'start' => $periodStart->toDateString(),
                 'end' => $periodEnd->toDateString(),
-                'label' => $this->formatDateRange($periodStart, $periodEnd),
+                'quarter' => $now->quarter,
+                'year' => $now->year,
+                'label' => sprintf('Q%d %d · %s', $now->quarter, $now->year, $this->formatDateRange($periodStart, $periodEnd)),
                 'generated_at' => $now->format('Y-m-d H:i'),
             ],
             'okr' => [
-                'brief_realization' => $this->buildBriefRealizationMetric(),
-                'issue_on_time' => $this->buildIssueOnTimeMetric($periodStartUtc, $periodEndUtc),
-                'feature_request_on_time' => $this->buildFeatureRequestOnTimeMetric($periodStartUtc, $periodEndUtc),
+                'brief_realization' => $this->buildBriefRealizationMetric($nowUtc),
+                'issue_on_time' => $this->buildIssueOnTimeMetric($periodStartUtc, $nowUtc),
+                'feature_request_on_time' => $this->buildFeatureRequestOnTimeMetric($periodStartUtc, $nowUtc),
             ],
-            'operational' => $this->buildOperationalHealth(),
+            'operational' => $this->buildOperationalHealth($nowUtc),
             'projectStatusDistribution' => $this->buildProjectStatusDistribution(),
             'attention' => [
-                'issues' => $this->buildOverdueIssues(),
-                'feature_requests' => $this->buildOverdueFeatureRequests(),
+                'issues' => $this->buildOverdueIssues($nowUtc),
+                'feature_requests' => $this->buildOverdueFeatureRequests($nowUtc),
             ],
         ];
     }
 
     /** @return array<string, mixed> */
-    private function buildBriefRealizationMetric(): array
+    private function buildBriefRealizationMetric(CarbonImmutable $now): array
     {
         $activeStatuses = [
             ProjectStatus::Planning->value,
@@ -57,10 +58,14 @@ class BuildDashboardData
 
         $projects = Project::query()
             ->whereIn('status', $activeStatuses)
+            ->where('created_at', '<=', $now)
             ->withCount([
-                'briefFeatures as brief_features_total',
+                'briefFeatures as brief_features_total' => fn ($query) => $query
+                    ->where('created_at', '<=', $now),
                 'briefFeatures as brief_features_done' => fn ($query) => $query
-                    ->where('status', BriefFeatureStatus::Done->value),
+                    ->where('created_at', '<=', $now)
+                    ->where('status', BriefFeatureStatus::Done->value)
+                    ->where('completed_at', '<=', $now),
             ])
             ->orderBy('name')
             ->get();
@@ -116,11 +121,17 @@ class BuildDashboardData
     }
 
     /** @return array<string, mixed> */
-    private function buildIssueOnTimeMetric(CarbonImmutable $periodStart, CarbonImmutable $periodEnd): array
+    private function buildIssueOnTimeMetric(CarbonImmutable $periodStart, CarbonImmutable $now): array
     {
-        $periodQuery = Issue::query()->whereBetween('reported_at', [$periodStart, $periodEnd]);
+        $periodQuery = Issue::query()
+            ->whereBetween('reported_at', [$periodStart, $now])
+            ->where('created_at', '<=', $now);
         $total = (clone $periodQuery)->count();
-        $onTime = (clone $periodQuery)->where('is_on_time', true)->count();
+        $onTime = (clone $periodQuery)
+            ->where('status', IssueStatus::Resolved->value)
+            ->where('is_on_time', true)
+            ->where('resolved_at', '<=', $now)
+            ->count();
         $actual = $total === 0 ? 100.0 : round(($onTime / $total) * 100, 1);
 
         return $this->buildOkrMetric(
@@ -130,16 +141,22 @@ class BuildDashboardData
             target: 80,
             totalItems: $total,
             onTimeItems: $onTime,
-            emptyLabel: $total === 0 ? 'Belum ada issue baru minggu ini.' : null,
+            emptyLabel: $total === 0 ? 'Belum ada issue baru kuartal ini.' : null,
         );
     }
 
     /** @return array<string, mixed> */
-    private function buildFeatureRequestOnTimeMetric(CarbonImmutable $periodStart, CarbonImmutable $periodEnd): array
+    private function buildFeatureRequestOnTimeMetric(CarbonImmutable $periodStart, CarbonImmutable $now): array
     {
-        $periodQuery = FeatureRequest::query()->whereBetween('requested_at', [$periodStart, $periodEnd]);
+        $periodQuery = FeatureRequest::query()
+            ->whereBetween('requested_at', [$periodStart, $now])
+            ->where('created_at', '<=', $now);
         $total = (clone $periodQuery)->count();
-        $onTime = (clone $periodQuery)->where('is_on_time', true)->count();
+        $onTime = (clone $periodQuery)
+            ->where('status', FeatureRequestStatus::Fulfilled->value)
+            ->where('is_on_time', true)
+            ->where('fulfilled_at', '<=', $now)
+            ->count();
         $actual = $total === 0 ? 100.0 : round(($onTime / $total) * 100, 1);
 
         return $this->buildOkrMetric(
@@ -149,7 +166,7 @@ class BuildDashboardData
             target: 90,
             totalItems: $total,
             onTimeItems: $onTime,
-            emptyLabel: $total === 0 ? 'Belum ada feature request baru minggu ini.' : null,
+            emptyLabel: $total === 0 ? 'Belum ada feature request baru kuartal ini.' : null,
         );
     }
 
@@ -177,21 +194,21 @@ class BuildDashboardData
     }
 
     /** @return array<string, int> */
-    private function buildOperationalHealth(): array
+    private function buildOperationalHealth(CarbonImmutable $now): array
     {
         return [
             'total_projects' => Project::count(),
             'deployed_maintenance' => Project::where('status', ProjectStatus::DeployedMaintenance->value)->count(),
             'open_issues' => Issue::where('status', IssueStatus::Open->value)->count(),
             'overdue_issues' => Issue::where('status', IssueStatus::Open->value)
-                ->where('due_date', '<', now())
+                ->where('due_date', '<', $now)
                 ->count(),
             'open_feature_requests' => FeatureRequest::whereIn('status', [
                 FeatureRequestStatus::Open->value,
                 FeatureRequestStatus::InProgress->value,
             ])->count(),
             'overdue_feature_requests' => FeatureRequest::where('status', '!=', FeatureRequestStatus::Fulfilled->value)
-                ->where('due_date', '<', now())
+                ->where('due_date', '<', $now)
                 ->count(),
         ];
     }
@@ -217,11 +234,11 @@ class BuildDashboardData
     }
 
     /** @return list<array<string, mixed>> */
-    private function buildOverdueIssues(): array
+    private function buildOverdueIssues(CarbonImmutable $now): array
     {
         $issues = Issue::query()
             ->where('status', IssueStatus::Open->value)
-            ->where('due_date', '<', now())
+            ->where('due_date', '<', $now)
             ->orderBy('due_date')
             ->limit(5)
             ->get()
@@ -232,7 +249,7 @@ class BuildDashboardData
                 'priority' => $issue->priority->value,
                 'status' => $issue->status->value,
                 'due_date' => $issue->due_date->toIso8601String(),
-                'hours_overdue' => (int) $issue->due_date->diffInHours(now()),
+                'hours_overdue' => (int) $issue->due_date->diffInHours($now),
                 'href' => route('issues.show', $issue, false),
             ])
             ->all();
@@ -241,11 +258,11 @@ class BuildDashboardData
     }
 
     /** @return list<array<string, mixed>> */
-    private function buildOverdueFeatureRequests(): array
+    private function buildOverdueFeatureRequests(CarbonImmutable $now): array
     {
         $featureRequests = FeatureRequest::query()
             ->where('status', '!=', FeatureRequestStatus::Fulfilled->value)
-            ->where('due_date', '<', now())
+            ->where('due_date', '<', $now)
             ->orderBy('due_date')
             ->limit(5)
             ->get()
@@ -256,7 +273,7 @@ class BuildDashboardData
                 'priority' => $featureRequest->priority->value,
                 'status' => $featureRequest->status->value,
                 'due_date' => $featureRequest->due_date->toIso8601String(),
-                'hours_overdue' => (int) $featureRequest->due_date->diffInHours(now()),
+                'hours_overdue' => (int) $featureRequest->due_date->diffInHours($now),
                 'href' => route('feature-requests.show', $featureRequest, false),
             ])
             ->all();
