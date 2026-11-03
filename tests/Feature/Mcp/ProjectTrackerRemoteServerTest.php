@@ -19,13 +19,13 @@ function mcpInitializePayload(): array
     ];
 }
 
-function mcpToolsListPayload(): array
+function mcpToolsListPayload(?string $cursor = null): array
 {
     return [
         'jsonrpc' => '2.0',
         'id' => 2,
         'method' => 'tools/list',
-        'params' => (object) [],
+        'params' => $cursor === null ? (object) [] : ['cursor' => $cursor],
     ];
 }
 
@@ -80,6 +80,51 @@ test('an authorized remote client can discover brief feature tools', function ()
         ->assertSuccessful()
         ->assertJsonFragment(['name' => 'list-brief-feature-projects'])
         ->assertJsonFragment(['name' => 'create-tracker-brief-features']);
+});
+
+test('an authorized remote client can discover CRUD tools for all four tracker entities', function (): void {
+    $user = User::factory()->admin()->create();
+    $token = $user->createToken('Codex MCP', ['mcp:use'])->plainTextToken;
+    $toolNames = [
+        'list-all-tracker-projects',
+        'get-tracker-project',
+        'create-tracker-project',
+        'update-tracker-project',
+        'delete-tracker-project',
+        'list-tracker-brief-features',
+        'get-tracker-brief-feature',
+        'create-tracker-brief-features',
+        'update-tracker-brief-feature',
+        'delete-tracker-brief-feature',
+        'list-tracker-issues',
+        'get-tracker-issue',
+        'create-tracker-issue-record',
+        'update-tracker-issue',
+        'delete-tracker-issue',
+        'list-tracker-feature-requests',
+        'get-tracker-feature-request',
+        'create-tracker-feature-request-record',
+        'update-tracker-feature-request',
+        'delete-tracker-feature-request',
+    ];
+
+    $discoveredToolNames = [];
+    $cursor = null;
+
+    do {
+        $response = $this->withToken($token)
+            ->postJson('/mcp/project-tracker', mcpToolsListPayload($cursor))
+            ->assertSuccessful();
+        $discoveredToolNames = array_merge(
+            $discoveredToolNames,
+            array_column($response->json('result.tools'), 'name'),
+        );
+        $cursor = $response->json('result.nextCursor');
+    } while ($cursor !== null);
+
+    foreach ($toolNames as $toolName) {
+        expect($discoveredToolNames)->toContain($toolName);
+    }
 });
 
 test('an MCP token without the required ability is forbidden', function (): void {
