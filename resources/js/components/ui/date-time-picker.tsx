@@ -101,7 +101,9 @@ export function DateTimePicker({
     const timeId = fieldId + '-time';
     const [open, setOpen] = React.useState(false);
     const selectedDate = React.useMemo(() => parseDateTime(value), [value]);
-    const timeValue = selectedDate ? format(selectedDate, 'HH:mm') : '';
+    const selectedTimeValue = selectedDate ? format(selectedDate, 'HH:mm') : '';
+    const [timeValue, setTimeValue] = React.useState(selectedTimeValue);
+    const isTimeEditing = React.useRef(false);
     const minTime =
         selectedDate && minDate && isSameDay(selectedDate, minDate)
             ? format(minDate, 'HH:mm')
@@ -117,8 +119,16 @@ export function DateTimePicker({
         Boolean(matcher),
     );
 
+    React.useEffect(() => {
+        if (!isTimeEditing.current) {
+            setTimeValue(selectedTimeValue);
+        }
+    }, [selectedTimeValue]);
+
     const handleDateSelect = (date: Date | undefined) => {
         if (!date) {
+            isTimeEditing.current = false;
+            setTimeValue('');
             onChange?.('');
             setOpen(false);
 
@@ -131,30 +141,41 @@ export function DateTimePicker({
             maxDate,
         );
 
+        isTimeEditing.current = false;
+        setTimeValue(format(nextDateTime, 'HH:mm'));
         onChange?.(format(nextDateTime, "yyyy-MM-dd'T'HH:mm"));
         setOpen(false);
     };
 
     const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const nextTime = event.target.value;
+        isTimeEditing.current = true;
+        setTimeValue(nextTime);
 
         if (!selectedDate || !nextTime) {
-            return;
-        }
-
-        const nextDateTime = parseDateTimeValue(selectedDate, nextTime);
-
-        if (
-            (minDate && isBefore(nextDateTime, minDate)) ||
-            (maxDate && isAfter(nextDateTime, maxDate))
-        ) {
             return;
         }
 
         onChange?.(formatDateTime(selectedDate, nextTime));
     };
 
+    const handleTimeBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        const nextTime = event.currentTarget.value;
+        isTimeEditing.current = false;
+
+        if (!selectedDate || !nextTime) {
+            setTimeValue(selectedTimeValue);
+
+            return;
+        }
+
+        setTimeValue(nextTime);
+        onChange?.(formatDateTime(selectedDate, nextTime));
+    };
+
     const handleClear = () => {
+        isTimeEditing.current = false;
+        setTimeValue('');
         onChange?.('');
         setOpen(false);
     };
@@ -230,6 +251,7 @@ export function DateTimePicker({
                     step="60"
                     value={timeValue}
                     onChange={handleTimeChange}
+                    onBlur={handleTimeBlur}
                     min={minTime}
                     max={maxTime}
                     disabled={disabled || !selectedDate}

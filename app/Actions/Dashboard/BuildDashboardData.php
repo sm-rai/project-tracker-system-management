@@ -2,7 +2,6 @@
 
 namespace App\Actions\Dashboard;
 
-use App\Enums\BriefFeatureStatus;
 use App\Enums\FeatureRequestStatus;
 use App\Enums\IssueStatus;
 use App\Enums\ProjectStatus;
@@ -14,14 +13,16 @@ use Carbon\CarbonImmutable;
 
 class BuildDashboardData
 {
+    public function __construct(private BuildQuarterlyOkrData $buildQuarterlyOkrData) {}
+
     /** @return array<string, mixed> */
     public function handle(): array
     {
         $now = AppDateTime::nowInBusinessTimezone();
         $periodStart = $now->startOfQuarter();
         $periodEnd = $now->endOfQuarter();
-        $periodStartUtc = $periodStart->utc();
         $nowUtc = $now->utc();
+        $okr = $this->buildQuarterlyOkrData->handle($periodStart, $periodEnd, $now)['okr'];
 
         return [
             'period' => [
@@ -32,164 +33,13 @@ class BuildDashboardData
                 'label' => sprintf('Q%d %d · %s', $now->quarter, $now->year, $this->formatDateRange($periodStart, $periodEnd)),
                 'generated_at' => $now->format('Y-m-d H:i'),
             ],
-            'okr' => [
-                'brief_realization' => $this->buildBriefRealizationMetric($nowUtc),
-                'issue_on_time' => $this->buildIssueOnTimeMetric($periodStartUtc, $nowUtc),
-                'feature_request_on_time' => $this->buildFeatureRequestOnTimeMetric($periodStartUtc, $nowUtc),
-            ],
+            'okr' => $okr,
             'operational' => $this->buildOperationalHealth($nowUtc),
             'projectStatusDistribution' => $this->buildProjectStatusDistribution(),
             'attention' => [
                 'issues' => $this->buildOverdueIssues($nowUtc),
                 'feature_requests' => $this->buildOverdueFeatureRequests($nowUtc),
             ],
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function buildBriefRealizationMetric(CarbonImmutable $now): array
-    {
-        $activeStatuses = [
-            ProjectStatus::Planning->value,
-            ProjectStatus::InProgress->value,
-            ProjectStatus::OnHold->value,
-            ProjectStatus::CompletedPendingDeployment->value,
-        ];
-
-        $projects = Project::query()
-            ->whereIn('status', $activeStatuses)
-            ->where('created_at', '<=', $now)
-            ->withCount([
-                'briefFeatures as brief_features_total' => fn ($query) => $query
-                    ->where('created_at', '<=', $now),
-                'briefFeatures as brief_features_done' => fn ($query) => $query
-                    ->where('created_at', '<=', $now)
-                    ->where('status', BriefFeatureStatus::Done->value)
-                    ->where('completed_at', '<=', $now),
-            ])
-            ->orderBy('name')
-            ->get();
-
-        $projectMetrics = $projects
-            ->map(fn (Project $project): array => $this->buildProjectBriefMetric($project))
-            ->values();
-
-        $evaluableProjects = $projectMetrics->filter(
-            fn (array $project): bool => $project['is_evaluable'] === true
-        );
-        $achievedProjects = $evaluableProjects->filter(
-            fn (array $project): bool => $project['achieved'] === true
-        );
-
-        return [
-            'key' => 'brief_realization',
-            'label' => 'Realisasi brief per project',
-            'target' => 75,
-            'total_projects' => $projectMetrics->count(),
-            'evaluable_projects' => $evaluableProjects->count(),
-            'achieved_projects' => $achievedProjects->count(),
-            'projects' => $projectMetrics->all(),
-            'empty_label' => $projectMetrics->isEmpty()
-                ? 'Belum ada project dalam fase development.'
-                : null,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function buildProjectBriefMetric(Project $project): array
-    {
-        $total = (int) $project->brief_features_total;
-        $done = (int) $project->brief_features_done;
-        $isEvaluable = $total > 0;
-        $realizationPercentage = $isEvaluable
-            ? round(($done / $total) * 100, 1)
-            : null;
-
-        return [
-            'id' => $project->id,
-            'name' => $project->name,
-            'status' => $project->status->value,
-            'status_label' => $project->status->label(),
-            'brief_features_total' => $total,
-            'brief_features_done' => $done,
-            'realization_percentage' => $realizationPercentage,
-            'target_percentage' => 75,
-            'is_evaluable' => $isEvaluable,
-            'achieved' => $isEvaluable ? $realizationPercentage >= 75 : null,
-            'empty_label' => $isEvaluable ? null : 'Belum ada brief feature.',
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function buildIssueOnTimeMetric(CarbonImmutable $periodStart, CarbonImmutable $now): array
-    {
-        $periodQuery = Issue::query()
-            ->whereBetween('reported_at', [$periodStart, $now])
-            ->where('created_at', '<=', $now);
-        $total = (clone $periodQuery)->count();
-        $onTime = (clone $periodQuery)
-            ->where('status', IssueStatus::Resolved->value)
-            ->where('is_on_time', true)
-            ->where('resolved_at', '<=', $now)
-            ->count();
-        $actual = $total === 0 ? 100.0 : round(($onTime / $total) * 100, 1);
-
-        return $this->buildOkrMetric(
-            key: 'issue_on_time',
-            label: 'Issue selesai tepat waktu',
-            actual: $actual,
-            target: 80,
-            totalItems: $total,
-            onTimeItems: $onTime,
-            emptyLabel: $total === 0 ? 'Belum ada issue baru kuartal ini.' : null,
-        );
-    }
-
-    /** @return array<string, mixed> */
-    private function buildFeatureRequestOnTimeMetric(CarbonImmutable $periodStart, CarbonImmutable $now): array
-    {
-        $periodQuery = FeatureRequest::query()
-            ->whereBetween('requested_at', [$periodStart, $now])
-            ->where('created_at', '<=', $now);
-        $total = (clone $periodQuery)->count();
-        $onTime = (clone $periodQuery)
-            ->where('status', FeatureRequestStatus::Fulfilled->value)
-            ->where('is_on_time', true)
-            ->where('fulfilled_at', '<=', $now)
-            ->count();
-        $actual = $total === 0 ? 100.0 : round(($onTime / $total) * 100, 1);
-
-        return $this->buildOkrMetric(
-            key: 'feature_request_on_time',
-            label: 'Feature request tepat waktu',
-            actual: $actual,
-            target: 90,
-            totalItems: $total,
-            onTimeItems: $onTime,
-            emptyLabel: $total === 0 ? 'Belum ada feature request baru kuartal ini.' : null,
-        );
-    }
-
-    /** @return array<string, mixed> */
-    private function buildOkrMetric(
-        string $key,
-        string $label,
-        float $actual,
-        int $target,
-        int $totalItems,
-        ?int $onTimeItems,
-        ?string $emptyLabel,
-    ): array {
-        return [
-            'key' => $key,
-            'label' => $label,
-            'actual' => $actual,
-            'target' => $target,
-            'delta' => round($actual - $target, 1),
-            'achieved' => $actual >= $target,
-            'total_items' => $totalItems,
-            'on_time_items' => $onTimeItems,
-            'empty_label' => $emptyLabel,
         ];
     }
 

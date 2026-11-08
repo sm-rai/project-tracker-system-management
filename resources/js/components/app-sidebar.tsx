@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     IconAlertTriangle,
     IconBulb,
+    IconChartBar,
     IconClock,
     IconDashboard,
     IconFileAnalytics,
@@ -26,6 +27,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { index as featureRequestsIndex } from '@/routes/feature-requests';
+import { index as okrReportsIndex } from '@/routes/okr-reports';
 import { index as reportsIndex } from '@/routes/reports';
 import type { User } from '@/types/auth';
 
@@ -126,6 +128,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     href: reportsIndex(),
                     icon: IconFileAnalytics,
                     isActive: (currentUrl) => currentUrl.startsWith('/reports'),
+                },
+                {
+                    label: 'Laporan OKR',
+                    href: okrReportsIndex(),
+                    icon: IconChartBar,
+                    isActive: (currentUrl) =>
+                        currentUrl.startsWith('/okr-reports'),
                 },
             ],
         },

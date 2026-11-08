@@ -7,6 +7,7 @@ use App\Http\Controllers\GoogleAuthenticationController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\QuarterlyOkrReportController;
 use App\Http\Controllers\ReportSnapshotController;
 use App\Http\Controllers\ReportSnapshotExportController;
 use App\Http\Controllers\SlaConfigController;
@@ -29,6 +30,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 
     Route::get('/reports', [ReportSnapshotController::class, 'index'])->name('reports.index');
+    Route::get('/okr-reports', [QuarterlyOkrReportController::class, 'index'])->name('okr-reports.index');
     Route::post('/reports', [ReportSnapshotController::class, 'store'])->name('reports.store');
     Route::get('/reports/{reportSnapshot}/export/pdf', [ReportSnapshotExportController::class, 'pdf'])
         ->name('reports.export.pdf');
