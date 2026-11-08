@@ -94,7 +94,20 @@ function ReportCard({ report }: { report: ReportSummary }) {
                 <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
             </div>
 
-            {report.format_version === 2 ? (
+            {report.format_version === 3 ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                    <Badge variant="secondary">
+                        {report.summary.active_project_count} project aktif
+                    </Badge>
+                    <Badge variant="outline">
+                        {report.summary.resolved_issue_count} Issue solved
+                    </Badge>
+                    <Badge variant="outline">
+                        {report.summary.fulfilled_feature_request_count} Feature
+                        Request delivered
+                    </Badge>
+                </div>
+            ) : report.format_version === 2 ? (
                 <div className="mt-4 flex flex-wrap gap-2">
                     <Badge variant="secondary">
                         {report.activity_summary.total_activities} aktivitas
@@ -179,10 +192,10 @@ export default function ReportsIndex({ defaultPeriod, reports }: Props) {
                                     Buat laporan dan simpan histori
                                 </h1>
                                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                                    Rekap item baru dan penyelesaian pada
-                                    periode terpilih. Simpan aktivitas untuk
-                                    ditinjau kembali dan diekspor sebagai PDF
-                                    atau PNG.
+                                    Lihat project aktif dan item yang selesai
+                                    pada periode terpilih. Simpan ringkasan
+                                    untuk ditinjau kembali atau diekspor sebagai
+                                    PDF dan PNG.
                                 </p>
                             </div>
                         </section>

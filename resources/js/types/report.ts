@@ -45,7 +45,19 @@ export interface ReportActivitySummaryItem extends ReportSummaryBase {
     activity_summary: ReportActivitySummary;
 }
 
-export type ReportSummary = ReportLegacySummary | ReportActivitySummaryItem;
+export interface ReportSimplifiedSummaryItem extends ReportSummaryBase {
+    format_version: 3;
+    summary: {
+        active_project_count: number;
+        resolved_issue_count: number;
+        fulfilled_feature_request_count: number;
+    };
+}
+
+export type ReportSummary =
+    | ReportLegacySummary
+    | ReportActivitySummaryItem
+    | ReportSimplifiedSummaryItem;
 
 export interface ReportActivity {
     entity_type: 'project' | 'brief_feature' | 'issue' | 'feature_request';
@@ -180,7 +192,36 @@ export interface ReportActivityDetail extends ReportDetailBase {
     activities: ReportActivity[];
 }
 
-export type ReportDetail = ReportLegacyDetail | ReportActivityDetail;
+export interface ReportSimplifiedProject {
+    id: number;
+    name: string;
+    brief_features_done: number;
+    brief_features_total: number;
+    progress_percentage: number | null;
+}
+
+export interface ReportResolvedItem {
+    id: number;
+    title: string;
+    description: string;
+    project_name: string | null;
+    solved_at: string;
+}
+
+export interface ReportSimplifiedDetail extends ReportDetailBase {
+    format_version: 3;
+    summary: {
+        active_project_count: number;
+        resolved_issue_count: number;
+        fulfilled_feature_request_count: number;
+    };
+    active_projects: ReportSimplifiedProject[];
+    resolved_issues: ReportResolvedItem[];
+    fulfilled_feature_requests: ReportResolvedItem[];
+}
+
+export type ReportDetail =
+    ReportLegacyDetail | ReportActivityDetail | ReportSimplifiedDetail;
 
 export interface ReportLegacyDetail extends ReportDetailBase {
     format_version: 1;

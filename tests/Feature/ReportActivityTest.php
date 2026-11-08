@@ -1,7 +1,7 @@
 <?php
 
 use App\Actions\Reports\BuildActivityReportData;
-use App\Actions\Reports\GenerateReportSnapshot;
+use App\Actions\Reports\CollectReportActivities;
 use App\Enums\BriefFeatureStatus;
 use App\Enums\IssueStatus;
 use App\Enums\ProjectStatus;
@@ -26,11 +26,20 @@ afterEach(function (): void {
 
 function activitySnapshot(string $start = '2026-07-26', string $end = '2026-08-01'): ReportSnapshot
 {
-    return app(GenerateReportSnapshot::class)->handle(
-        AppDateTime::startOfBusinessDate($start),
-        AppDateTime::endOfBusinessDate($end),
-        ReportSnapshot::PeriodCustomRange,
-    );
+    $periodStart = AppDateTime::startOfBusinessDate($start);
+    $periodEnd = AppDateTime::endOfBusinessDate($end);
+    $generatedAt = AppDateTime::nowInBusinessTimezone()->utc();
+    $activities = app(CollectReportActivities::class)->handle($periodStart, $periodEnd, $generatedAt);
+
+    return ReportSnapshot::factory()->activityFormat()->create([
+        'period_start_date' => $periodStart->toDateString(),
+        'period_end_date' => $periodEnd->toDateString(),
+        'period_type' => ReportSnapshot::PeriodCustomRange,
+        'project_breakdown_json' => $activities['projects'],
+        'issue_breakdown_json' => $activities['issues'],
+        'feature_request_breakdown_json' => $activities['feature_requests'],
+        'generated_at' => $generatedAt,
+    ]);
 }
 
 function activityData(ReportSnapshot $snapshot): array
@@ -159,7 +168,7 @@ test('custom range activity snapshot remains unchanged after live source edits a
         ->and($saved['activities'][0]['project_name'])->toBe('Saved context');
 });
 
-test('new snapshots expose activity only summary and detail while legacy metadata stays version one', function (): void {
+test('saved version two snapshots remain readable alongside legacy metadata', function (): void {
     $user = User::factory()->create();
     $legacy = ReportSnapshot::factory()->create(['okr2_issue_percentage' => 80]);
     $snapshot = activitySnapshot();
@@ -172,6 +181,57 @@ test('new snapshots expose activity only summary and detail while legacy metadat
         ->missing('report.okr')->missing('report.breakdowns')
     );
     expect($legacy->format_version)->toBe(1);
+});
+
+test('simplified snapshots expose saved progress and separate resolution details while older formats stay available', function (): void {
+    $user = User::factory()->create();
+    $legacy = ReportSnapshot::factory()->create(['okr2_issue_percentage' => 80]);
+    $activityArchive = ReportSnapshot::factory()->activityFormat()->create();
+    $snapshot = ReportSnapshot::factory()->create([
+        'format_version' => 3,
+        'project_breakdown_json' => ['active_projects' => [[
+            'id' => 12,
+            'name' => 'CRM Stabilization',
+            'brief_features_done' => 2,
+            'brief_features_total' => 4,
+            'progress_percentage' => 50.0,
+        ]]],
+        'issue_breakdown_json' => ['resolved_items' => [[
+            'id' => 34,
+            'title' => 'Login gagal setelah sesi habis',
+            'description' => 'Pengguna kembali ke halaman login.',
+            'project_name' => 'CRM Stabilization',
+            'solved_at' => '2026-07-28T09:30:00+00:00',
+        ]]],
+        'feature_request_breakdown_json' => ['fulfilled_items' => [[
+            'id' => 56,
+            'title' => 'Tambahkan filter status',
+            'description' => 'Saring daftar sesuai status item.',
+            'project_name' => 'CRM Stabilization',
+            'solved_at' => '2026-07-29T10:15:00+00:00',
+        ]]],
+    ]);
+
+    $this->actingAs($user)->get('/reports')->assertInertia(fn ($page) => $page
+        ->where('reports.0.format_version', 3)
+        ->where('reports.0.summary.active_project_count', 1)
+        ->where('reports.0.summary.resolved_issue_count', 1)
+        ->where('reports.0.summary.fulfilled_feature_request_count', 1)
+        ->where('reports.1.format_version', 2)
+        ->where('reports.2.format_version', 1)
+        ->missing('reports.0.okr'));
+
+    $this->get("/reports/{$snapshot->id}")->assertInertia(fn ($page) => $page
+        ->where('report.format_version', 3)
+        ->where('report.active_projects.0.progress_percentage', 50)
+        ->where('report.resolved_issues.0.description', 'Pengguna kembali ke halaman login.')
+        ->where('report.fulfilled_feature_requests.0.solved_at', '2026-07-29T10:15:00+00:00')
+        ->missing('report.okr')
+        ->missing('report.breakdowns')
+        ->missing('report.activities'));
+
+    expect($activityArchive->format_version)->toBe(2)
+        ->and($legacy->format_version)->toBe(1);
 });
 
 test('manual report validation and guest access prevent snapshot writes', function (): void {

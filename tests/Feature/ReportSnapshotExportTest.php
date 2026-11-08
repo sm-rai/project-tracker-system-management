@@ -32,6 +32,36 @@ function savedActivityExportSnapshot(): ReportSnapshot
     return $snapshot;
 }
 
+function savedSimplifiedExportSnapshot(): ReportSnapshot
+{
+    return ReportSnapshot::factory()->create([
+        'format_version' => 3,
+        'period_start_date' => '2026-07-26',
+        'period_end_date' => '2026-08-01',
+        'project_breakdown_json' => ['active_projects' => [[
+            'id' => 12,
+            'name' => 'Inventory System',
+            'brief_features_done' => 2,
+            'brief_features_total' => 5,
+            'progress_percentage' => 40,
+        ]]],
+        'issue_breakdown_json' => ['resolved_items' => [[
+            'id' => 34,
+            'title' => 'Checkout gagal menyimpan pesanan',
+            'description' => 'Pesanan tidak tersimpan setelah tombol bayar ditekan.',
+            'project_name' => 'Inventory System',
+            'solved_at' => '2026-07-29T02:30:00+00:00',
+        ]]],
+        'feature_request_breakdown_json' => ['fulfilled_items' => [[
+            'id' => 56,
+            'title' => 'Tambahkan filter gudang',
+            'description' => 'Pengguna ingin memilih gudang sebelum melihat stok.',
+            'project_name' => 'Inventory System',
+            'solved_at' => '2026-07-30T03:15:00+00:00',
+        ]]],
+    ]);
+}
+
 test('activity preview and exports share immutable saved activities without legacy metrics', function (): void {
     $snapshot = savedActivityExportSnapshot();
     $expected = app(BuildActivityReportData::class)->handle($snapshot);
@@ -48,6 +78,50 @@ test('activity preview and exports share immutable saved activities without lega
         ->and($data['activities'])->toBe($expected['activities'])
         ->and($data['context_projects'])->toBe(['Project tersimpan <b>RAI</b>']);
 });
+
+test('simplified export data contains only saved active project progress and resolved item details', function (): void {
+    $snapshot = savedSimplifiedExportSnapshot();
+    $data = app(BuildReportExportData::class)->handle($snapshot);
+
+    expect($data['format_version'])->toBe(3)
+        ->and($data['summary'])->toBe([
+            'active_project_count' => 1,
+            'resolved_issue_count' => 1,
+            'fulfilled_feature_request_count' => 1,
+        ])
+        ->and($data['active_projects'][0]['progress_percentage'])->toBe(40)
+        ->and($data['resolved_issues'][0]['description'])->toBe('Pesanan tidak tersimpan setelah tombol bayar ditekan.')
+        ->and($data['fulfilled_feature_requests'][0]['solved_at'])->toBe('2026-07-30T03:15:00+00:00')
+        ->not->toHaveKey('okr')
+        ->not->toHaveKey('activities');
+});
+
+test('simplified export templates show active project progress and period completions', function (string $format): void {
+    $data = app(BuildReportExportData::class)->handle(savedSimplifiedExportSnapshot());
+    $html = view('reports.export.simplified-'.$format, ['report' => $data, 'styles' => ''])->render();
+
+    expect($html)->toContain('Project aktif')
+        ->toContain('Inventory System')
+        ->toContain('40%')
+        ->toContain('Issue solved')
+        ->toContain('Feature Request delivered');
+
+    if ($format === 'pdf') {
+        expect($html)
+            ->toContain('Checkout gagal menyimpan pesanan')
+            ->toContain('Tambahkan filter gudang')
+            ->toContain('Pesanan tidak tersimpan setelah tombol bayar ditekan.')
+            ->toContain('Pengguna ingin memilih gudang sebelum melihat stok.')
+            ->toContain('29 Jul 2026, 09.30 WIB')
+            ->toContain('30 Jul 2026, 10.15 WIB');
+    } else {
+        expect($html)
+            ->not->toContain('Checkout gagal menyimpan pesanan')
+            ->not->toContain('Tambahkan filter gudang')
+            ->not->toContain('Pesanan tidak tersimpan setelah tombol bayar ditekan.')
+            ->not->toContain('Pengguna ingin memilih gudang sebelum melihat stok.');
+    }
+})->with(['pdf', 'png']);
 
 test('activity export templates render counts saved values escaping and date precision', function (string $format): void {
     $data = app(BuildReportExportData::class)->handle(savedActivityExportSnapshot());
@@ -95,6 +169,39 @@ test('activity downloads select activity templates and filenames', function (str
     });
     $response = $this->actingAs(User::factory()->create())->get("/reports/{$snapshot->id}/export/{$format}");
     $response->assertOk()->assertHeaderContains('content-disposition', 'snapshot-aktivitas-26-jul-2026-01-agu-2026.'.$format);
+    if ($format === 'png') {
+        unlink($response->baseResponse->getFile()->getPathname());
+    }
+})->with(['pdf', 'png']);
+
+test('simplified downloads select simplified templates and filenames', function (string $format): void {
+    $snapshot = savedSimplifiedExportSnapshot();
+    $this->mock(RenderReportSnapshotExport::class, function ($mock) use ($format): void {
+        $mock->shouldReceive($format)->once()->andReturnUsing(function (string $html, ?string $path = null) use ($format): ?string {
+            expect($html)
+                ->toContain('Project aktif')
+                ->toContain('Issue solved')
+                ->toContain('Feature Request delivered')
+                ->not->toContain('Snapshot Laporan OKR');
+
+            if ($format === 'png') {
+                expect($html)->not->toContain('Checkout gagal menyimpan pesanan');
+                file_put_contents($path, 'png-test');
+
+                return null;
+            }
+
+            expect($html)->toContain('Checkout gagal menyimpan pesanan');
+
+            return base64_encode('%PDF-test');
+        });
+    });
+
+    $response = $this->actingAs(User::factory()->create())->get("/reports/{$snapshot->id}/export/{$format}");
+
+    $response->assertOk()
+        ->assertHeaderContains('content-disposition', 'snapshot-aktivitas-26-jul-2026-01-agu-2026.'.$format);
+
     if ($format === 'png') {
         unlink($response->baseResponse->getFile()->getPathname());
     }

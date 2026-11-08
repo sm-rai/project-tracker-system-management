@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Reports\BuildActivityReportData;
+use App\Actions\Reports\BuildSimplifiedReportData;
 use App\Actions\Reports\GenerateReportSnapshot;
 use App\Http\Requests\StoreReportSnapshotRequest;
 use App\Models\ReportSnapshot;
@@ -15,7 +16,10 @@ use Inertia\Response;
 
 class ReportSnapshotController extends Controller
 {
-    public function __construct(private BuildActivityReportData $buildActivityReportData) {}
+    public function __construct(
+        private BuildActivityReportData $buildActivityReportData,
+        private BuildSimplifiedReportData $buildSimplifiedReportData,
+    ) {}
 
     public function index(): Response
     {
@@ -74,6 +78,21 @@ class ReportSnapshotController extends Controller
     /** @return array<string, mixed> */
     private function reportSummary(ReportSnapshot $snapshot): array
     {
+        if ($snapshot->format_version === 3) {
+            return [
+                'id' => $snapshot->id,
+                'format_version' => 3,
+                'period_type' => $snapshot->period_type,
+                'period_label' => $this->formatDateRange(
+                    CarbonImmutable::parse($snapshot->period_start_date, AppDateTime::businessTimezone()),
+                    CarbonImmutable::parse($snapshot->period_end_date, AppDateTime::businessTimezone()),
+                ),
+                'generated_at' => AppDateTime::inBusinessTimezone($snapshot->generated_at)->format('Y-m-d H:i'),
+                'href' => route('reports.show', $snapshot, false),
+                'summary' => $this->buildSimplifiedReportData->handle($snapshot)['summary'],
+            ];
+        }
+
         if ($snapshot->format_version === 2) {
             return [
                 'id' => $snapshot->id,
@@ -112,6 +131,24 @@ class ReportSnapshotController extends Controller
     /** @return array<string, mixed> */
     private function reportDetail(ReportSnapshot $snapshot): array
     {
+        if ($snapshot->format_version === 3) {
+            return [
+                'id' => $snapshot->id,
+                'format_version' => 3,
+                'period' => [
+                    'type' => $snapshot->period_type,
+                    'start' => $snapshot->period_start_date->toDateString(),
+                    'end' => $snapshot->period_end_date->toDateString(),
+                    'label' => $this->formatDateRange(
+                        CarbonImmutable::parse($snapshot->period_start_date, AppDateTime::businessTimezone()),
+                        CarbonImmutable::parse($snapshot->period_end_date, AppDateTime::businessTimezone()),
+                    ),
+                ],
+                'generated_at' => AppDateTime::inBusinessTimezone($snapshot->generated_at)->format('Y-m-d H:i'),
+                ...$this->buildSimplifiedReportData->handle($snapshot),
+            ];
+        }
+
         if ($snapshot->format_version === 2) {
             return [
                 'id' => $snapshot->id,

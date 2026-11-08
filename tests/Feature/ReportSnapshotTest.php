@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reports\GenerateReportSnapshot;
 use App\Enums\FeatureRequestStatus;
 use App\Enums\IssueStatus;
 use App\Models\BriefFeature;
@@ -8,6 +9,7 @@ use App\Models\Issue;
 use App\Models\Project;
 use App\Models\ReportSnapshot;
 use App\Models\User;
+use App\Support\AppDateTime;
 use Carbon\Carbon;
 
 afterEach(function (): void {
@@ -63,9 +65,14 @@ test('users can generate a weekly default report snapshot', function (): void {
     expect($snapshot->period_type)->toBe('weekly_default')
         ->and($snapshot->period_start_date->toDateString())->toBe('2026-07-26')
         ->and($snapshot->period_end_date->toDateString())->toBe('2026-08-01')
-        ->and($snapshot->format_version)->toBe(2)
-        ->and($snapshot->project_breakdown_json['activities'])->toHaveCount(4)
-        ->and($snapshot->project_breakdown_json['activities'][0]['title'])->toBe('CRM Stabilization');
+        ->and($snapshot->format_version)->toBe(3)
+        ->and($snapshot->project_breakdown_json['active_projects'])->toHaveCount(1)
+        ->and($snapshot->project_breakdown_json['active_projects'][0])->toMatchArray([
+            'name' => 'CRM Stabilization',
+            'brief_features_done' => 1,
+            'brief_features_total' => 2,
+            'progress_percentage' => 50.0,
+        ]);
 });
 
 test('users can generate a custom range report snapshot', function (): void {
@@ -134,13 +141,110 @@ test('report snapshot stores activity facts without weekly okr metrics', functio
 
     $snapshot = ReportSnapshot::query()->firstOrFail();
 
-    expect($snapshot->format_version)->toBe(2)
+    expect($snapshot->format_version)->toBe(3)
         ->and($snapshot->okr1_avg_percentage)->toBeNull()
         ->and($snapshot->okr1_project_achievement_percentage)->toBeNull()
         ->and($snapshot->okr2_issue_percentage)->toBeNull()
         ->and($snapshot->okr2_feature_request_percentage)->toBeNull()
-        ->and($snapshot->issue_breakdown_json['activities'])->toHaveCount(3)
-        ->and($snapshot->feature_request_breakdown_json['activities'])->toHaveCount(3);
+        ->and($snapshot->project_breakdown_json['active_projects'][0]['progress_percentage'])->toBe(75)
+        ->and($snapshot->issue_breakdown_json['resolved_items'])->toHaveCount(1)
+        ->and($snapshot->feature_request_breakdown_json['fulfilled_items'])->toHaveCount(1);
+});
+
+test('new snapshots save active project progress and only issue and feature request resolutions in the period', function (): void {
+    Carbon::setTestNow('2026-07-30 12:00:00');
+
+    $project = Project::factory()->inProgress()->create([
+        'name' => 'CRM Stabilization',
+        'created_at' => '2026-06-01 00:00:00',
+    ]);
+    $unmeasuredProject = Project::factory()->planning()->create([
+        'name' => 'Data Catalog',
+        'created_at' => '2026-06-01 00:00:00',
+    ]);
+    Project::factory()->deployedRunning()->create([
+        'name' => 'Portal Live',
+        'created_at' => '2026-06-01 00:00:00',
+    ]);
+
+    BriefFeature::factory()->done()->createQuietly([
+        'project_id' => $project->id,
+        'created_at' => '2026-06-02 00:00:00',
+        'completed_at' => '2026-06-03 00:00:00',
+    ]);
+    BriefFeature::factory()->todo()->count(2)->create([
+        'project_id' => $project->id,
+        'created_at' => '2026-06-04 00:00:00',
+    ]);
+
+    $issue = Issue::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Login gagal setelah sesi habis',
+        'description' => 'Pengguna harus kembali ke halaman login setelah sesi berakhir.',
+        'reported_at' => '2026-06-15 09:00:00',
+    ]);
+    $issue->forceFill([
+        'status' => IssueStatus::Resolved,
+        'resolved_at' => '2026-07-28 09:30:00',
+    ])->saveQuietly();
+
+    Issue::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Issue belum selesai',
+        'reported_at' => '2026-07-29 09:00:00',
+    ]);
+
+    $featureRequest = FeatureRequest::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Tambahkan filter status',
+        'description' => 'Pengguna ingin menyaring daftar berdasarkan status.',
+        'requested_at' => '2026-06-20 09:00:00',
+    ]);
+    $featureRequest->forceFill([
+        'status' => FeatureRequestStatus::Fulfilled,
+        'fulfilled_at' => '2026-07-29 10:15:00',
+    ])->saveQuietly();
+
+    FeatureRequest::factory()->create([
+        'project_id' => $project->id,
+        'title' => 'Permintaan belum dipenuhi',
+        'requested_at' => '2026-07-29 11:00:00',
+    ]);
+
+    $snapshot = app(GenerateReportSnapshot::class)->handle(
+        AppDateTime::startOfBusinessDate('2026-07-26'),
+        AppDateTime::endOfBusinessDate('2026-08-01'),
+        ReportSnapshot::PeriodWeeklyDefault,
+    );
+
+    expect($snapshot->format_version)->toBe(3)
+        ->and($snapshot->project_breakdown_json['active_projects'])->toHaveCount(2)
+        ->and($snapshot->project_breakdown_json['active_projects'][0])->toMatchArray([
+            'id' => $project->id,
+            'name' => 'CRM Stabilization',
+            'progress_percentage' => 33.3,
+        ])
+        ->and($snapshot->project_breakdown_json['active_projects'][1])->toMatchArray([
+            'id' => $unmeasuredProject->id,
+            'name' => 'Data Catalog',
+            'progress_percentage' => null,
+        ])
+        ->and($snapshot->issue_breakdown_json['resolved_items'])->toHaveCount(1)
+        ->and($snapshot->issue_breakdown_json['resolved_items'][0])->toMatchArray([
+            'id' => $issue->id,
+            'title' => 'Login gagal setelah sesi habis',
+            'description' => 'Pengguna harus kembali ke halaman login setelah sesi berakhir.',
+            'project_name' => 'CRM Stabilization',
+            'solved_at' => '2026-07-28T09:30:00+00:00',
+        ])
+        ->and($snapshot->feature_request_breakdown_json['fulfilled_items'])->toHaveCount(1)
+        ->and($snapshot->feature_request_breakdown_json['fulfilled_items'][0])->toMatchArray([
+            'id' => $featureRequest->id,
+            'title' => 'Tambahkan filter status',
+            'description' => 'Pengguna ingin menyaring daftar berdasarkan status.',
+            'project_name' => 'CRM Stabilization',
+            'solved_at' => '2026-07-29T10:15:00+00:00',
+        ]);
 });
 
 test('report snapshot returns empty activities when selected period is empty', function (): void {
@@ -148,7 +252,7 @@ test('report snapshot returns empty activities when selected period is empty', f
 
     $user = User::factory()->create();
 
-    $project = Project::factory()->create(['created_at' => '2026-07-20 00:00:00']);
+    $project = Project::factory()->deployedRunning()->create(['created_at' => '2026-07-20 00:00:00']);
     Issue::factory()->create(['project_id' => $project->id, 'reported_at' => '2026-07-20 09:00:00']);
     FeatureRequest::factory()->create(['project_id' => $project->id, 'requested_at' => '2026-07-20 09:00:00']);
 
@@ -158,16 +262,20 @@ test('report snapshot returns empty activities when selected period is empty', f
 
     $snapshot = ReportSnapshot::query()->firstOrFail();
 
-    expect($snapshot->okr2_issue_percentage)->toBeNull()
+    expect($snapshot->format_version)->toBe(3)
+        ->and($snapshot->okr2_issue_percentage)->toBeNull()
         ->and($snapshot->okr2_feature_request_percentage)->toBeNull()
-        ->and($snapshot->issue_breakdown_json['activities'])->toBe([])
-        ->and($snapshot->feature_request_breakdown_json['activities'])->toBe([]);
+        ->and($snapshot->project_breakdown_json['active_projects'])->toBe([])
+        ->and($snapshot->issue_breakdown_json['resolved_items'])->toBe([])
+        ->and($snapshot->feature_request_breakdown_json['fulfilled_items'])->toBe([]);
 
     $this->actingAs($user)
         ->get("/reports/{$snapshot->id}")
         ->assertInertia(fn ($page) => $page
-            ->where('report.format_version', 2)
-            ->where('report.activity_summary.total_activities', 0)
+            ->where('report.format_version', 3)
+            ->where('report.active_projects', [])
+            ->where('report.resolved_issues', [])
+            ->where('report.fulfilled_feature_requests', [])
             ->missing('report.okr')
             ->missing('report.breakdowns')
         );

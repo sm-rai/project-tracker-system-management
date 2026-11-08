@@ -14,6 +14,7 @@ import type { CSSProperties } from 'react';
 
 import { AppSidebar } from '@/components/app-sidebar';
 import { ReportActivityShow } from '@/components/report-activity-show';
+import { ReportSimplifiedShow } from '@/components/report-simplified-show';
 import { SiteHeader } from '@/components/site-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -628,9 +629,13 @@ function LegacyReportShow({ report }: { report: ReportLegacyDetail }) {
 }
 
 export default function ReportShow({ report }: Props) {
-    return report.format_version === 2 ? (
-        <ReportActivityShow report={report} />
-    ) : (
-        <LegacyReportShow report={report} />
-    );
+    if (report.format_version === 3) {
+        return <ReportSimplifiedShow report={report} />;
+    }
+
+    if (report.format_version === 2) {
+        return <ReportActivityShow report={report} />;
+    }
+
+    return <LegacyReportShow report={report} />;
 }

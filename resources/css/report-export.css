@@ -405,6 +405,43 @@ body {
     text-align: right;
 }
 
+.simplified-item-list {
+    display: grid;
+    gap: 10px;
+}
+
+.simplified-item {
+    padding: 14px 16px;
+    border: 1px solid var(--export-border);
+    border-radius: 10px;
+    background: var(--export-card);
+    page-break-inside: avoid;
+}
+
+.simplified-item-title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.simplified-item-description {
+    margin: 6px 0 0;
+    color: var(--export-muted-foreground);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.simplified-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 16px;
+    margin-top: 10px;
+    color: var(--export-muted-foreground);
+    font-size: 10px;
+}
+
 .export-summary-copy {
     margin: 0;
     color: var(--export-muted-foreground);
@@ -498,7 +535,8 @@ body {
 
 .export-png .export-project-status,
 .export-png .export-project-value,
-.export-png .export-mini-card p {
+.export-png .export-mini-card p,
+.export-png .simplified-item-meta {
     font-size: 13px;
 }
 
@@ -521,6 +559,37 @@ body {
 
     .export-section {
         break-inside: avoid;
+    }
+
+    .simplified-document .export-section {
+        margin-top: 18px;
+        page-break-inside: auto;
+        break-inside: auto;
+    }
+
+    .simplified-document .export-section-title {
+        page-break-after: avoid;
+        break-after: avoid;
+    }
+
+    .simplified-document .export-project-list,
+    .simplified-document .simplified-item-list {
+        display: block;
+        padding-right: 2px;
+    }
+
+    .simplified-document .export-project-row,
+    .simplified-document .simplified-item {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .simplified-document .export-project-row + .export-project-row,
+    .simplified-document .simplified-item + .simplified-item {
+        margin-top: 10px;
     }
 
     .export-table thead {
